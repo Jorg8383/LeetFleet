@@ -1,0 +1,27 @@
+version: "3.9"
+name: quoco-akka
+services:
+  # By default Compose sets up a single network for your app. Each container for a service joins the
+  # default network and is both reachable by other containers on that network, and discoverable by
+  # them at a hostname identical to the container name ('broker' being the key host name here).
+  broker:
+    image: "broker:latest"
+  auldfellas:
+    image: "auldfellas:latest"
+    depends_on:
+      - "broker"
+  dodgydrivers:
+    image: "dodgydrivers:latest"
+    depends_on:
+      - "broker"
+  girlpower:
+    image: "girlpower:latest"
+    depends_on:
+      - "broker"
+  client:
+    image: "client:latest"
+    depends_on:
+      - "broker"
+      - "auldfellas"
+      - "dodgydrivers"
+      - "girlpower"

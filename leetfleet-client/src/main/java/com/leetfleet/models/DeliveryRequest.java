@@ -9,6 +9,8 @@ public class DeliveryRequest {
     }
 
     private long reference;
+    private String address;
+    private String content;
 
     public long getReference() {
         return reference;

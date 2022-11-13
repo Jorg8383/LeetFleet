@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.typesafe.akka:akka-http_2.13:unknown">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/typesafe/akka/akka-http_2.13/unknown/akka-http_2.13-unknown.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/typesafe/akka/akka-http_2.13/unknown/akka-http_2.13-unknown-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/typesafe/akka/akka-http_2.13/unknown/akka-http_2.13-unknown-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

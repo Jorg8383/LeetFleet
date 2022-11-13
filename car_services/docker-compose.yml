@@ -1,0 +1,14 @@
+version: "3.9"
+name: quoco-akka
+services:
+  # By default Compose sets up a single network for your app. Each container for a service joins the
+  # default network and is both reachable by other containers on that network, and discoverable by
+  # them at a hostname identical to the container name ('broker' being the key host name here).
+  redis:
+    image: redis
+    volumes:
+      - ./data:/data
+    # I don't think we need port mapping as this will only be accessed within the docker network.
+    # ports:
+    #   - 6379:6379
+  car_actor:

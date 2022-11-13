@@ -13,8 +13,8 @@
         <akka.version>2.7.0</akka.version>
         <!-- Specify java versions for Maven compiler plugin -->
         <!-- See: https://maven.apache.org/plugins/maven-compiler-plugin/compile-mojo.html -->
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <!-- For managing akka classic clustering versioning -->
         <scala.binary.version>2.13</scala.binary.version>
     </properties>

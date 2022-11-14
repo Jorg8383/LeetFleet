@@ -8,7 +8,7 @@ import scala.concurrent.duration.Duration;
 import akka.http.javadsl.server.Route;
 import akka.http.javadsl.Http;
 
-public class CarServer extends HttpApp {
+public class HttpToAkka extends HttpApp {
 
   private final ActorRef carActor;
 
@@ -26,7 +26,7 @@ public class CarServer extends HttpApp {
 
   private Route getCar(Long id) {
     return get(() -> {
-      CompletionStage<Optional<Car>> car = 
+      CompletionStage<Optional<Car>> car =
         PatternsCS.ask(CarActor, new GetCarMessage(id), timeout)
           .thenApply(obj -> (Optional<Car>) obj);
 
@@ -41,7 +41,7 @@ public class CarServer extends HttpApp {
 
   private Route postCar() {
     return route(post(() -> entity(Jackson.unmarshaller(User.class), car -> {
-      CompletionStage<ActionPerformed> carCreated = 
+      CompletionStage<ActionPerformed> carCreated =
         PatternsCS.ask(carActor, new CreateCarMessage(car), timeout)
           .thenApply(obj -> (ActionPerformed) obj);
 

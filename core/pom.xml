@@ -2,13 +2,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>car_services</groupId>
-    <artifactId>http</artifactId>
+    <groupId>ass2.leet-fleet</groupId>
+    <artifactId>core</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
 
     <properties>
-        <main.class>service.dodgydrivers.Main</main.class>
+        <main.class>lf.core.Main</main.class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <akka.version>2.7.0</akka.version>
         <!-- Specify java versions for Maven compiler plugin -->
@@ -32,9 +32,7 @@
             <artifactId>akka-actor_${scala.binary.version}</artifactId>
             <version>${akka.version}</version>
         </dependency>
-
         <!-- Dependencies for http -->
-
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-http-bom_2.13</artifactId>
@@ -57,7 +55,7 @@
             <artifactId>akka-http-jackson_${scala.binary.version}</artifactId>
             <version>{akka.version}</version>
         </dependency>
-        
+
         <!-- Akka remoting with Artery -->
         <dependency>
             <groupId>com.typesafe.akka</groupId>
@@ -108,12 +106,6 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>2.19.0</version>
-        </dependency>
-        <dependency>
-            <groupId>car_services</groupId>
-            <artifactId>car_actor</artifactId>
-            <version>0.0.1</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 

@@ -14,7 +14,7 @@ public class Main {
     public static int appReqDeadlineSecs = 2;
 
     public static void main(String[] args) throws Exception {
-        ActorSystem system = ActorSystem.create("carServer");
+        ActorSystem system = ActorSystem.create("HttpToAkka");
         ActorRef carActor = system.actorOf(CarActor.props(), "carActor");
         CarServer server = new CarServer(carActor);
         server.startServer("localhost", 8080, system);

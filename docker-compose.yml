@@ -1,4 +1,5 @@
 version: "3.9"
+name: leet-fleet
 services:
   redis:
     image: redis
@@ -7,3 +8,7 @@ services:
     volumes:
       - ./config/redis.conf:/redis.conf
       - ./data:/data
+  # client:
+  #   image: "client:latest"
+  #   depends_on:
+  #     - "wish_I_knew"

@@ -1,24 +1,29 @@
-package service.car_http;
+// package lf.core;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import service.actor.CarServer;
+// import akka.actor.ActorRef;
+// import akka.actor.ActorSystem;
+// import akka.http.javadsl.Http;
+// import akka.http.javadsl.ServerBinding;
+// import akka.http.javadsl.server.AllDirectives;
+// import akka.http.javadsl.server.Route;
+// import akka.actor.Props;
+// import org.apache.logging.log4j.LogManager;
+// import org.apache.logging.log4j.Logger;
+// import lf.actor.HttpToAkka;
+// import java.util.concurrent.CompletionStage;
 
-public class Main {
-    private static final Logger log = LogManager.getLogger(Main.class);
+// public class Main {
+//     private static final Logger log = LogManager.getLogger(Main.class);
 
-    // Default delay to allow quotation services to respond.
-    public static int appReqDeadlineSecs = 2;
+//     // Default delay to allow quotation services to respond.
+//     public static int appReqDeadlineSecs = 2;
 
-    public static void main(String[] args) throws Exception {
-        ActorSystem system = ActorSystem.create("HttpToAkka");
-        ActorRef carActor = system.actorOf(CarActor.props(), "carActor");
-        CarServer server = new CarServer(carActor);
-        server.startServer("localhost", 8080, system);
-    }
+//     public static void main(String[] args) throws Exception {
+//         ActorSystem system = ActorSystem.create("HttpToAkka");
+//         ActorRef carActor = system.actorOf(CarActor.props(), "carActor");
+//         CarServer server = new CarServer(carActor);
+//         server.startServer("localhost", 8080, system);
+//     }
 
     // Not sure what below does, So I'll leave in for now
 //    private static void configFromArgs(String[] args) {
@@ -43,4 +48,4 @@ public class Main {
 //
 //        return;
 //    }
-}
+//}

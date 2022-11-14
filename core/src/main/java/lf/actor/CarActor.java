@@ -1,34 +1,36 @@
-import akka.actor.AbstractActor;
-import akka.actor.Props;
+// package lf.actor;
 
-public class CarActor extends AbstractActor {
-    private CarService carService = new CarService();
+// import akka.actor.AbstractActor;
+// import akka.actor.Props;
 
-    static Props props() {
-        return Props.create(CarActor.class);
-    }
+// public class CarActor extends AbstractActor {
+//     private CarService carService = new CarService();
 
-    @Override
-    public Receive createReceive() {
-        return receiveBuilder()
-                .match(CreateCarMessage.class, handleCreateCar())
-                .match(GetCarMessage.class, handleGetCar())
-                .build();
-    }
+//     static Props props() {
+//         return Props.create(CarActor.class);
+//     }
 
-    private FI.UnitApply<CreateCarMessage> handleCreateCar() {
-        return createCarMessage -> {
-            carService.createCar(createCarMessage.getCar());
-            sender()
-                    .tell(new ActionPerformed(
-                            String.format("Car %s created.", createCarMessage.getCar().getName())), getSelf());
-        };
-    }
+//     @Override
+//     public Receive createReceive() {
+//         return receiveBuilder()
+//                 .match(CreateCarMessage.class, handleCreateCar())
+//                 .match(GetCarMessage.class, handleGetCar())
+//                 .build();
+//     }
 
-    private FI.UnitApply<GetCarMessage> handleGetCar() {
-        return getCarMessage -> {
-            sender().tell(carService.getCar(getCarMessage.getCarId()), getSelf());
-        };
-    }
+//     private FI.UnitApply<CreateCarMessage> handleCreateCar() {
+//         return createCarMessage -> {
+//             carService.createCar(createCarMessage.getCar());
+//             sender()
+//                     .tell(new ActionPerformed(
+//                             String.format("Car %s created.", createCarMessage.getCar().getName())), getSelf());
+//         };
+//     }
 
-}
+//     private FI.UnitApply<GetCarMessage> handleGetCar() {
+//         return getCarMessage -> {
+//             sender().tell(carService.getCar(getCarMessage.getCarId()), getSelf());
+//         };
+//     }
+
+// }

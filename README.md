@@ -69,6 +69,16 @@ Within a particular ecosystem, there may be a common way of installing things, s
 ## Usage
 Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
+## Running the Docker Images Directly
+
+1. `docker network create leet-fleet`
+2. `docker run --network-alias core --network leet-fleet -p 80:8080 core:latest`
+3. In a new terminal; ``
+4. In a new terminal; ``
+5. In a new terminal; ``
+6. (If your PC isn't fast - allow the services a few seconds to start!)<br>
+   In a new terminal; ``<br>
+
 ## Support
 Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
 

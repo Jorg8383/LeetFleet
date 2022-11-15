@@ -2,7 +2,8 @@ version: "3.9"
 name: leet-fleet
 services:
   redis:
-    image: redislabs/rejson:latest
+    #image: redislabs/rejson:latest
+    image: redis/redis-stack:latest
     ports:
       - 6379:6379
     volumes:

@@ -37,7 +37,7 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>4.3.0</version>
+            <version>4.3.1</version>
         </dependency>
         <!--
             Dependencies for http (@see https://doc.akka.io/docs/akka-http/current/introduction.html)

@@ -33,6 +33,12 @@
             <artifactId>akka-actor-typed_${scala.binary.version}</artifactId>
             <version>${akka.version}</version>
         </dependency>
+        <!-- Jedis dependancy -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>4.3.0</version>
+        </dependency>
         <!--
             Dependencies for http (@see https://doc.akka.io/docs/akka-http/current/introduction.html)
             Akka HTTP is provided as *independent modules from Akka itself*

@@ -102,10 +102,56 @@ public class HttpToAkka extends AllDirectives {
   }
 
   private Route createRoute() {
+    // Akka-Http is indeed mind bending:
+    // This page contains some useful examples (in comparisons to another framework)
     return concat(
+        // Java Lambda: the -> separates the parameters (left-side) from the implementation (right side).
         path("hello", () ->
-
-        get(() -> complete("<h1>Say hello to akka-http</h1>"))));
+          get(() -> complete("<h1>Say hello to akka-http</h1>")))
+    );
+        // get(() ->
+        //     path(segment("client").slash(longSegment()), id ->
+        //             complete(Clients.get(id))
+        //       )
+        //     ),
+        // get(() ->
+        //   parameter("page", page ->
+        //           complete(getPage(page))
+        //     )
+        //   ),
+        //   // The parameterOptional directive passes the parameter as Optional<String>.
+        //   // The directive parameterRequiredValue makes the route match only if the parameter contains the specified value.
+        // get(() ->
+        //     path(segment("api").slash("list"), () ->
+        //             parameterOptional("version", version ->
+        //                     complete(apiList(version)))
+        //       )
+        //   ),
+        // get(() ->
+        //   path(segment("api").slash("list-items"), () ->
+        //           parameterList("item", items ->
+        //                   complete(apiItems(items)))
+        //   )
+        // The parameterList directive may take a parameter name to specify a single parameter name to pass on as a List<String>.]
+            // get(() ->
+            //   pathPrefix("item", () ->
+            //     path(longSegment(), (Long id) -> {
+            //       final CompletionStage<Optional<Item>> futureMaybeItem = fetchItem(id);
+            //       return onSuccess(futureMaybeItem, maybeItem ->
+            //         maybeItem.map(item -> completeOK(item, Jackson.marshaller()))
+            //           .orElseGet(() -> complete(StatusCodes.NOT_FOUND, "Not Found"))
+            //       );
+            //     }))),
+            // post(() ->
+            //   // In Akka HTTP every path segment is specified as a separate String concatenated by the slash method on segment.
+            //   //path(segment("create-order").slash("now"), () ->
+            //   path("create-order", () ->
+            //     entity(Jackson.unmarshaller(Order.class), order -> {
+            //       CompletionStage<Done> futureSaved = saveOrder(order);
+            //       return onSuccess(futureSaved, done ->
+            //         complete("order created")
+            //       );
+            //     })))
   }
 
   /* Parse args - populate required configuration */

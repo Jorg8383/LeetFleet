@@ -1,4 +1,4 @@
-package lf.core;
+package lf.http;
 
 import akka.actor.ActorRef;
 import akka.actor.typed.ActorSystem;
@@ -33,7 +33,7 @@ public class HttpToAkka extends AllDirectives {
   private static final Logger log = LogManager.getLogger(HttpToAkka.class);
 
   private static String akkaHostname = "localhost";  // Sensible defaults
-  private static int    akkaPort = 2551;
+  private static int    akkaPort = 2550;
   private static String httpHostname = "localhost";
   private static int    httpPort = 8080;
   private static String redisHostname = "localhost";

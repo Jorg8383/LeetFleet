@@ -2,13 +2,21 @@ version: "3.9"
 name: leet-fleet
 services:
   redis:
-    image: redis
+    #image: redislabs/rejson:latest
+    image: redis/redis-stack:latest
     ports:
       - 6379:6379
     volumes:
       - ./config/redis.conf:/redis.conf
       - ./data:/data
+  # core:
+  #   build: core
+  #   ports:
+  #     - 8080:8080
+  #   depends_on:
+  #     - redis
   # client:
   #   image: "client:latest"
   #   depends_on:
   #     - "wish_I_knew"
+

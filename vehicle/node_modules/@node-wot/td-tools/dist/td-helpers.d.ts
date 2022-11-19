@@ -1,0 +1,4 @@
+import ThingDescription from "./thing-description";
+export declare function findProtocol(td: ThingDescription): string;
+export declare function findPort(td: ThingDescription): number;
+export declare function setContextLanguage(thing: ThingDescription, language: string, forceOverride: boolean): void;

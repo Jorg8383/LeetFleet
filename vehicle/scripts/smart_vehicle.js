@@ -8,15 +8,16 @@ servient.addServer(new HttpServer());
 
 servient.start().then((WoT) => {
     let allAvailableResources;
-    let totalMileage;
-    let mileageServiceInterval;
+    let totalMileage = 10;
+    // Initialise the service interval with 30,000 km
+    let nextServiceMileage = 30000;
     let maintenanceNeeded;
     // Initialise tyre pressure, oil level, and door status
     let tyrePressure = getRandomInt(20, 35); // [PSI]
     let oilLevel = getRandomInt(0,100); // [%]
-    let doorStatus = LOCKED;
+    let doorStatus = "UNLOCKED";
     WoT.produce({
-        title: "Smart-Vehicle",
+        title: "smart-vehicle",
         description: `A smart vehicle that connects with our fleet manager`,
         support: "https://github.com/eclipse/thingweb.node-wot/",
         properties: {
@@ -25,7 +26,6 @@ servient.start().then((WoT) => {
                 description: `Current level of all available resources given as an integer percentage for each particular resource.
     The data is obtained from sensors but can be set manually via the availableResourceLevel property in case the sensors are broken.`,
                 readOnly: true,
-                observable: false,
                 properties: {
                     oilLevel: {
                         type: "integer",
@@ -35,7 +35,7 @@ servient.start().then((WoT) => {
                     tyrePressure: {
                         type: "integer",
                         minimum: 0,
-                        maximum: 100,
+                        maximum: 50,
                     },
                 },
             },
@@ -55,10 +55,11 @@ servient.start().then((WoT) => {
                 description: `The total mileage of the vehicle.`,
                 minimum: 0,
             },
-            mileageServiceInterval: {
+            nextServiceMileage: {
                 type: "integer",
                 description: `Mileage counter for service intervals.`,
                 minimum: 0,
+                maximum: 30000,
             },
             doorStatus: {
                 title: "Door status",
@@ -94,26 +95,33 @@ servient.start().then((WoT) => {
                     type: "string",
                 },
             },
+            maintenanceNeeded: {
+                description: `Maintenance needed.`,
+                data: {
+                    type: "string",
+                },
+            },
         },
     })
         .then((thing) => {
             // Initialize the property values
             allAvailableResources = {
-                oil: readFromSensor("oilLevel"),
-                tyrePressure: readFromSensor("tyrePressure")
+                oilLevel: readFromSensor("oilLevel"),
+                tyrePressure: readFromSensor("tyrePressure"),
             };
             maintenanceNeeded = false;
             thing.setPropertyReadHandler("allAvailableResources", async () => allAvailableResources);
             thing.setPropertyReadHandler("availableResourceLevel", async () => availableResourceLevel);
             thing.setPropertyReadHandler("maintenanceNeeded", async () => maintenanceNeeded);
             thing.setPropertyReadHandler("totalMileage", async () => totalMileage);
-            thing.setPropertyReadHandler("mileageServiceInterval", async () => mileageServiceInterval);
+            thing.setPropertyReadHandler("nextServiceMileage", async () => nextServiceMileage);
             thing.setPropertyReadHandler("doorStatus", async () => doorStatus);
-            // Override a write handler for mileageServiceInterval property,
+            // Override a write handler for nextServiceMileage property,
             // raising maintenanceNeeded flag when the interval exceeds 30,000 km
-            thing.setPropertyWriteHandler("mileageServiceInterval", async (val) => {
-                mileageServiceInterval = await val.value();
-                if (mileageServiceInterval > 30000) {
+            thing.setPropertyWriteHandler("nextServiceMileage", async (val) => {
+                nextServiceMileage = await val.value();
+                // If counter for next service mileage is less than 500, set maintenance needed
+                if (nextServiceMileage < 500) {
                     maintenanceNeeded = true;
                     thing.emitPropertyChange("maintenanceNeeded");
                     // Notify a "maintainer" when the value has changed
@@ -124,8 +132,10 @@ servient.start().then((WoT) => {
                     );
                 }
             });
-            // Now initialize the mileage service interval property
-            mileageServiceInterval = readMilometerServiceInterval("mileageServiceInterval");
+            // Now initialize properties
+            nextServiceMileage = readMilometerServiceInterval();
+            totalMileage = readMilometer();
+
             // Override a write handler for availableResourceLevel property,
             // utilizing the uriVariables properly
             thing.setPropertyWriteHandler("availableResourceLevel", async (val, options) => {
@@ -153,16 +163,30 @@ servient.start().then((WoT) => {
                 }
                 throw Error("Please specify id variable as uriVariables.");
             });
+            // Add write handler for maintenanceNedded property, enabling to reset it
+            thing.setPropertyWriteHandler("maintenanceNeeded", async (val) => {
+                maintenanceNeeded = await val.value();
+            });
             // Set up a handler for lockDoor action
             thing.setActionHandler("lockDoor", async () => {
-                doorStatus = LOCKED;
-                return `Door is locked!`;
+                doorStatus = "LOCKED";
+                return doorStatus;
             });
             // Set up a handler for unlockDoor action
             thing.setActionHandler("unlockDoor", async () => {
-                doorStatus = UNLOCKED;
-                return `Door is unlocked!`;
+                doorStatus = "UNLOCKED";
+                return doorStatus;
             });
+
+            // Emulation: increase milometer every 5 seconds
+            setInterval(() => {
+                ; // TODO
+                // let totalMileage = readMilometer();
+                // thing.writeProperty("totalMileage", totalMileage);
+                // if (thing.readProperty("maintenanceNeeded")) {
+                //     thing.emitEvent("maintenanceNeeded");
+                // }
+            }, 5000);  
 
             // Finally expose the thing
             thing.expose().then(() => {
@@ -174,26 +198,32 @@ servient.start().then((WoT) => {
             console.log(e);
         });
     function readFromSensor(sensorType) {
-        if (sensorType == "tyrePressure") {
+        let sensorValue;
+        if (sensorType === "tyrePressure") {
             // Decrease pressure between 1 and 2 PSI
             tyrePressure -= getRandomInt(0,2);
-        } else if (sensorType == "oilLevel") {
+            sensorValue = tyrePressure;
+            // console.log("reading sensor - tyrePressure: " + tyrePressure);
+        } else if (sensorType === "oilLevel") {
             // Decrease oil level between 1 and 10%
             oilLevel -= getRandomInt(0,10);
+            sensorValue = oilLevel;
+            // console.log("reading sensor - oilLevel: " + oilLevel);
         }
+        return sensorValue
     }
     function notify(subscribers, msg) {
         // Actual implementation of notifying subscribers with a message can go here
         console.log(msg);
     } 
     function readMilometerServiceInterval() {
-        return mileageServiceInterval;
+        return nextServiceMileage;
     }   
     function readMilometer() {
         // Emulate mileage by increasing it randomly between 0 and 200 km
         mileageIncrease = getRandomInt(0, 200);
         totalMileage += mileageIncrease;
-        mileageServiceInterval += mileageIncrease;
+        nextServiceMileage -= mileageIncrease;
         return totalMileage;
     }
     function getRandomInt(min, max) {

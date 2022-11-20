@@ -13,8 +13,8 @@ servient.start().then((WoT) => {
     let nextServiceMileage = 30000;
     let maintenanceNeeded;
     // Initialise tyre pressure, oil level, and door status
-    let tyrePressure = getRandomInt(20, 35); // [PSI]
-    let oilLevel = getRandomInt(0,100); // [%]
+    let tyrePressure = 35; // [PSI]
+    let oilLevel = 100; // [%]
     let doorStatus = "UNLOCKED";
     WoT.produce({
         title: "smart-vehicle",
@@ -167,26 +167,76 @@ servient.start().then((WoT) => {
             thing.setPropertyWriteHandler("maintenanceNeeded", async (val) => {
                 maintenanceNeeded = await val.value();
             });
-            // Set up a handler for lockDoor action
+            // Set up a action handler for lockDoor
             thing.setActionHandler("lockDoor", async () => {
                 doorStatus = "LOCKED";
                 return doorStatus;
             });
-            // Set up a handler for unlockDoor action
+            // Set up a action handler for unlockDoor
             thing.setActionHandler("unlockDoor", async () => {
                 doorStatus = "UNLOCKED";
                 return doorStatus;
             });
 
-            // Emulation: increase milometer every 5 seconds
+            // Emulation: increase milometer every second
             setInterval(() => {
-                ; // TODO
-                // let totalMileage = readMilometer();
-                // thing.writeProperty("totalMileage", totalMileage);
-                // if (thing.readProperty("maintenanceNeeded")) {
-                //     thing.emitEvent("maintenanceNeeded");
-                // }
+                totalMileage = readMilometer();
+                // If counter for next service mileage is less than 500, set maintenance needed
+                if (nextServiceMileage < 500) {
+                    if (!maintenanceNeeded) {
+                        maintenanceNeeded = true;
+                        // Write log message to console only once
+                        // Notify a "maintainer" when the value has changed
+                        // (the notify function here simply logs a message to the console)
+                        notify(
+                                "admin@leetfleet.com",
+                                `maintenanceNeeded property has changed, new value is: ${maintenanceNeeded}`
+                            );    
+                    }
+                    thing.emitPropertyChange("maintenanceNeeded");
+                    thing.emitEvent("maintenanceNeeded");
+                }
+            }, 1000);  
+
+            // Emulation: decrease oil level every five seconds
+            setInterval(() => {
+                oilLevel = readFromSensor("oilLevel");
+                // If oil level drops below 70%, then maintenance is needed
+                if (oilLevel < 70) {
+                    if (!maintenanceNeeded) {
+                        maintenanceNeeded = true;
+                        // Write log message to console only once
+                        // Notify a "maintainer" when the value has changed
+                        // (the notify function here simply logs a message to the console)
+                        notify(
+                                "admin@leetfleet.com",
+                                `maintenanceNeeded property has changed, new value is: ${maintenanceNeeded}`
+                            );    
+                    }
+                    thing.emitPropertyChange("maintenanceNeeded");
+                    thing.emitEvent("maintenanceNeeded");
+                }
             }, 5000);  
+
+            // Emulation: decrease tyre pressure every ten seconds
+            setInterval(() => {
+                tyrePressure = readFromSensor("tyrePressure");
+                // If oil level drops below 20 PSI, then maintenance is needed
+                if (oilLevel < 20) {
+                    if (!maintenanceNeeded) {
+                        maintenanceNeeded = true;
+                        // Write log message to console only once
+                        // Notify a "maintainer" when the value has changed
+                        // (the notify function here simply logs a message to the console)
+                        notify(
+                                "admin@leetfleet.com",
+                                `maintenanceNeeded property has changed, new value is: ${maintenanceNeeded}`
+                            );    
+                    }
+                    thing.emitPropertyChange("maintenanceNeeded");
+                    thing.emitEvent("maintenanceNeeded");
+                }
+            }, 10000);  
 
             // Finally expose the thing
             thing.expose().then(() => {
@@ -200,15 +250,15 @@ servient.start().then((WoT) => {
     function readFromSensor(sensorType) {
         let sensorValue;
         if (sensorType === "tyrePressure") {
-            // Decrease pressure between 1 and 2 PSI
-            tyrePressure -= getRandomInt(0,2);
+            // Decrease pressure between 1 and 3 PSI
+            tyrePressure -= getRandomInt(0,3);
             sensorValue = tyrePressure;
-            // console.log("reading sensor - tyrePressure: " + tyrePressure);
+            console.log("Reading sensor - tyrePressure: " + tyrePressure);
         } else if (sensorType === "oilLevel") {
-            // Decrease oil level between 1 and 10%
-            oilLevel -= getRandomInt(0,10);
+            // Decrease oil level between 1 and 5%
+            oilLevel -= getRandomInt(0,5);
             sensorValue = oilLevel;
-            // console.log("reading sensor - oilLevel: " + oilLevel);
+            console.log("Reading sensor - oilLevel: " + oilLevel);
         }
         return sensorValue
     }
@@ -220,10 +270,12 @@ servient.start().then((WoT) => {
         return nextServiceMileage;
     }   
     function readMilometer() {
-        // Emulate mileage by increasing it randomly between 0 and 200 km
-        mileageIncrease = getRandomInt(0, 200);
+        // Emulate mileage by increasing it randomly between 0 and 500 km
+        mileageIncrease = getRandomInt(0, 500);
         totalMileage += mileageIncrease;
         nextServiceMileage -= mileageIncrease;
+        console.log("Reading milometer: " + totalMileage);
+        console.log("Distance left until next service is due: " + nextServiceMileage);
         return totalMileage;
     }
     function getRandomInt(min, max) {

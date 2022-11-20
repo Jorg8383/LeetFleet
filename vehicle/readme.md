@@ -79,4 +79,18 @@ PUT http://localhost:8080/smart-vehicle/properties/maintenanceNeeded
 The payload is JSON and the value is an boolean. It also responds with "204 No Content" on success.
 
 
+## Actions
+
+### Action: lockDoor
+
+The action "lockDoor" locks the vehicle door and returns the status "LOCKED" along with "200 OK" on success.
+
+POST http://localhost:8080/smart-vehicle/actions/lockDoor
+
+
+### Action: unLockDoor
+
+The action "unlockDoor" unlocks the vehicle door and returns the status "UNLOCKED" along with "200 OK" on success.
+
+POST http://localhost:8080/smart-vehicle/actions/unLockDoor
 

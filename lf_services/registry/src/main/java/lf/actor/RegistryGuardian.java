@@ -40,7 +40,7 @@ public class RegistryGuardian extends AbstractBehavior<RegistryGuardian.BootStra
 
     // ENCAPSULATION:
     @IgnoreError  // Ignore unused error for registry - spawned but not used.
-    private final ActorRef<Registry.Command> registry;
+    private final ActorRef<Registry.Message> registry;
 
     //=========================================================================
 

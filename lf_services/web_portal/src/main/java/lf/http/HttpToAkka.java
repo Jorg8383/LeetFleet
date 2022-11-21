@@ -6,7 +6,7 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.remote.WireFormats;
 import akka.util.Timeout;
 import lf.core.WebPortal;
-import lf.redisPojo.Vehicle;
+import lf.model.Vehicle;
 //import org.apache.logging.log4j.core.appender.routing.Route;
 import scala.concurrent.duration.Duration;
 import akka.http.javadsl.server.Route;

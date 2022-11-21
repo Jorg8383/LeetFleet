@@ -33,8 +33,8 @@ WoTHelpers.fetch("http://localhost:8080/smart-vehicle").then(async (td) => {
                 // Let's read the total mileage and distance till next service is due
                 let totalMileage = await (await thing.readProperty("totalMileage")).value();
                 log("Total mileage:", totalMileage);
-                let nextServiceMileage = await (await thing.readProperty("nextServiceMileage")).value();
-                log("Distance until next service is due:", nextServiceMileage);
+                let nextServiceDistance = await (await thing.readProperty("nextServiceDistance")).value();
+                log("Distance until next service is due:", nextServiceDistance);
 
                 // Let's read the door status
                 let doorStatus = await (await thing.readProperty("doorStatus")).value();
@@ -51,8 +51,8 @@ WoTHelpers.fetch("http://localhost:8080/smart-vehicle").then(async (td) => {
                 thing.observeProperty("totalMileage", async (data) => {
                     log("Observed 'totalMileage' property has changed! New value is:", await data.value());
                 });
-                thing.observeProperty("nextServiceMileage", async (data) => {
-                    log("Observed 'nextServiceMileage' property has changed! New value is:", await data.value());
+                thing.observeProperty("nextServiceDistance", async (data) => {
+                    log("Observed 'nextServiceDistance' property has changed! New value is:", await data.value());
                 });
 
                 // Let's set up a handler for each event

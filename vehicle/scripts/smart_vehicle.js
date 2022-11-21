@@ -16,6 +16,11 @@ servient.start().then((WoT) => {
     let tyrePressure = 35; // [PSI]
     let oilLevel = 100; // [%]
     let doorStatus = "UNLOCKED";
+    // Status variables - used to emit corresponding events only once
+    let tyrePressureIsLow = false;
+    let oilLevelIsLow = false;
+    let nextServiceIsDue = false;
+    let maintenanceNeddedHistory = false;
     WoT.produce({
         title: "smart-vehicle",
         description: `A smart vehicle that connects with our fleet manager`,
@@ -83,19 +88,19 @@ servient.start().then((WoT) => {
             },
         },
         events: {
-            lowOnOil: {
+            eventLowOnOil: {
                 description: `Low on oil.`,
                 data: {
                     type: "string",
                 },
             },
-            lowTyrePressure: {
+            eventLowTyrePressure: {
                 description: `Low tyre pressure.`,
                 data: {
                     type: "string",
                 },
             },
-            maintenanceNeeded: {
+            eventMaintenanceNeeded: {
                 description: `Maintenance needed.`,
                 data: {
                     type: "string",
@@ -123,13 +128,17 @@ servient.start().then((WoT) => {
                 // If counter for next service mileage is less than 500, set maintenance needed
                 if (nextServiceMileage < 500) {
                     maintenanceNeeded = true;
-                    thing.emitPropertyChange("maintenanceNeeded");
                     // Notify a "maintainer" when the value has changed
                     // (the notify function here simply logs a message to the console)
                     notify(
                         "admin@leetfleet.com",
                         `maintenanceNeeded property has changed, new value is: ${maintenanceNeeded}`
                     );
+                    if (maintenanceNeddedHistory != maintenanceNeeded) {
+                        maintenanceNeddedHistory = maintenanceNeeded;
+                        thing.emitPropertyChange("maintenanceNeeded");
+                    }
+                    thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);        
                 }
             });
             // Now initialize properties
@@ -163,10 +172,10 @@ servient.start().then((WoT) => {
                 }
                 throw Error("Please specify id variable as uriVariables.");
             });
-            // Add write handler for maintenanceNedded property, enabling to reset it
-            thing.setPropertyWriteHandler("maintenanceNeeded", async (val) => {
-                maintenanceNeeded = await val.value();
-            });
+            // // Add write handler for maintenanceNedded property, enabling to reset it
+            // thing.setPropertyWriteHandler("maintenanceNeeded", async (val) => {
+            //     maintenanceNeeded = await val.value();
+            // });
             // Set up a action handler for lockDoor
             thing.setActionHandler("lockDoor", async () => {
                 doorStatus = "LOCKED";
@@ -183,7 +192,8 @@ servient.start().then((WoT) => {
                 totalMileage = readMilometer();
                 // If counter for next service mileage is less than 500, set maintenance needed
                 if (nextServiceMileage < 500) {
-                    if (!maintenanceNeeded) {
+                    if (!nextServiceIsDue) {
+                        nextServiceIsDue = true;
                         maintenanceNeeded = true;
                         // Write log message to console only once
                         // Notify a "maintainer" when the value has changed
@@ -192,9 +202,12 @@ servient.start().then((WoT) => {
                                 "admin@leetfleet.com",
                                 `maintenanceNeeded property has changed, new value is: ${maintenanceNeeded}`
                             );    
+                        if (maintenanceNeddedHistory != maintenanceNeeded) {
+                            maintenanceNeddedHistory = maintenanceNeeded;
+                            thing.emitPropertyChange("maintenanceNeeded");
+                        }
+                        thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);        
                     }
-                    thing.emitPropertyChange("maintenanceNeeded");
-                    thing.emitEvent("maintenanceNeeded");
                 }
             }, 1000);  
 
@@ -203,7 +216,8 @@ servient.start().then((WoT) => {
                 oilLevel = readFromSensor("oilLevel");
                 // If oil level drops below 70%, then maintenance is needed
                 if (oilLevel < 70) {
-                    if (!maintenanceNeeded) {
+                    if (!oilLevelIsLow) {
+                        oilLevelIsLow = true;
                         maintenanceNeeded = true;
                         // Write log message to console only once
                         // Notify a "maintainer" when the value has changed
@@ -212,9 +226,12 @@ servient.start().then((WoT) => {
                                 "admin@leetfleet.com",
                                 `maintenanceNeeded property has changed, new value is: ${maintenanceNeeded}`
                             );    
+                            if (maintenanceNeddedHistory != maintenanceNeeded) {
+                                maintenanceNeddedHistory = maintenanceNeeded;
+                                thing.emitPropertyChange("maintenanceNeeded");
+                            }
+                            thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - oil level is low.`);        
                     }
-                    thing.emitPropertyChange("maintenanceNeeded");
-                    thing.emitEvent("maintenanceNeeded");
                 }
             }, 5000);  
 
@@ -223,7 +240,8 @@ servient.start().then((WoT) => {
                 tyrePressure = readFromSensor("tyrePressure");
                 // If oil level drops below 20 PSI, then maintenance is needed
                 if (oilLevel < 20) {
-                    if (!maintenanceNeeded) {
+                    if (!tyrePressureIsLow) {
+                        tyrePressureIsLow = true;
                         maintenanceNeeded = true;
                         // Write log message to console only once
                         // Notify a "maintainer" when the value has changed
@@ -232,9 +250,12 @@ servient.start().then((WoT) => {
                                 "admin@leetfleet.com",
                                 `maintenanceNeeded property has changed, new value is: ${maintenanceNeeded}`
                             );    
+                        if (maintenanceNeddedHistory != maintenanceNeeded) {
+                            maintenanceNeddedHistory = maintenanceNeeded;
+                            thing.emitPropertyChange("maintenanceNeeded");
+                        }
+                        thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - tyre pressure is low.`);        
                     }
-                    thing.emitPropertyChange("maintenanceNeeded");
-                    thing.emitEvent("maintenanceNeeded");
                 }
             }, 10000);  
 

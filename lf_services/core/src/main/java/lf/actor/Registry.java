@@ -6,11 +6,11 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import lf.core.FleetManager;
+import lf.core.WebPortal;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lf.core.AbstractFleetManager;
-import lf.core.WebPortal;
 
 import java.util.*;
 
@@ -24,7 +24,7 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
     //
     // Typically, an actor handles more than one specific message type and then there
     // is one common interface that all messages that the actor can handle implements.
-    interface Message {}
+    public interface Message {}
 
     // Messages *are* the Actor’s public API, it is a good practice to define messages with good
     // names and rich semantic and domain specific meaning, even if they just wrap your data type.
@@ -47,8 +47,8 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
     }
 
     public final static class QueryWebPortal implements Message {
-      public final ActorRef<NotifyWebPortal> fleetManRef;
-      public QueryWebPortal(ActorRef<NotifyWebPortal> fleetManRef) {
+      public final ActorRef<FleetManager.Message> fleetManRef;
+      public QueryWebPortal(ActorRef<FleetManager.Message> fleetManRef) {
         this.fleetManRef = fleetManRef;
       }
     }
@@ -78,7 +78,7 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
     }
     public final static class QueryFleetManager implements Message {
       public final long fleetId;
-      public final ActorRef<AbstractFleetManager> replyTo;
+      public final ActorRef<FleetManager> replyTo;
       public Lookup(String name, ActorRef<GetUserResponse> replyTo) {
         this.name = name;
         this.replyTo = replyTo;
@@ -94,8 +94,8 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
 
     // Track which id's map to which 'ClientInfos' (as the responses
     // can arrive in any order).
-    private static HashMap<Long, ActorRef<AbstractFleetManager>> registry
-                        = new HashMap<Long, ActorRef<AbstractFleetManager>>();
+    private static HashMap<Long, ActorRef<FleetManager>> registry
+                        = new HashMap<Long, ActorRef<FleetManager>>();
 
     // public final static class ThingyThing???? {
     //   public final String name;
@@ -118,6 +118,7 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
     // ADD TO CONTEXT
     private Registry(ActorContext<Message> context) {
       super(context);
+      // constructor stuff here - like a call to register?  How to get registry ref!?!?!?!?
     }
 
     //=========================================================================
@@ -145,7 +146,7 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
 
     private Behavior<Message> onQueryWebPortal(QueryWebPortal message) {
       users.removeIf(user -> user.name.equals(message.name));
-      message.replyTo.tell(new ActionPerformed(String.format("User %s deleted.", message.name)));
+      message.replyTo.tell(new FleetManager.NotifyWebPortal(getContext().getSelf()));
       return this;
     }
 
@@ -179,46 +180,4 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
       return this;
     }
 
-  }
-
-
-
-
-
-
-
-
-
-
-  public final static class RegWebPortalSuccess implements Message {
-    public final ActorRef<Registry.Message> registryRef;
-    public RegWebPortalSuccess(ActorRef<Registry.Message> registryRef) {
-      this.registryRef = registryRef;
-    }
-  }
-  public final static class NotifyWebPortal implements Message {
-    public final ActorRef<Registry.Message> registryRef;
-    public NotifyWebPortal(ActorRef<Registry.Message> registryRef) {
-      this.registryRef = registryRef;
-    }
-  }
-  public final static class NotifyDiscoveredList implements Message {
-    public final List<ActorRef<AbstractFleetManager>> fleetMgrList
-                          = new ArrayList<ActorRef<AbstractFleetManager>>();
-    public final ActorRef<Registry.Message> registryRef;
-    public NotifyDiscoveredList(List<ActorRef<AbstractFleetManager>> fleetMgrList, ActorRef<Registry.Message> registryRef) {
-      this.fleetMgrList = fleetMgrList;
-      this.registryRef = registryRef;
-    }
-  }
-
-
-  public final static class NotifyFleetManager implements Message {
-    public final long fleetId;
-
-    public final ActorRef<Registry.Message> registryRef;
-    public NotifyFleetManager(List<ActorRef<AbstractFleetManager>> fleetMgrList, ActorRef<Registry.Message> registryRef) {
-      this.fleetMgrList = fleetMgrList;
-      this.registryRef = registryRef;
-    }
   }

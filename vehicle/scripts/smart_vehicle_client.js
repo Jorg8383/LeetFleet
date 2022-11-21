@@ -48,6 +48,12 @@ WoTHelpers.fetch("http://localhost:8080/smart-vehicle").then(async (td) => {
                 thing.observeProperty("maintenanceNeeded", async (data) => {
                     log("Observed 'maintenanceNeeded' property has changed! New value is:", await data.value());
                 });
+                thing.observeProperty("totalMileage", async (data) => {
+                    log("Observed 'totalMileage' property has changed! New value is:", await data.value());
+                });
+                thing.observeProperty("nextServiceMileage", async (data) => {
+                    log("Observed 'nextServiceMileage' property has changed! New value is:", await data.value());
+                });
 
                 // Let's set up a handler for each event
                 thing.subscribeEvent("eventLowOnOil", async (data) => {

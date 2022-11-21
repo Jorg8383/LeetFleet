@@ -59,12 +59,14 @@ servient.start().then((WoT) => {
                 type: "integer",
                 description: `The total mileage of the vehicle.`,
                 minimum: 0,
+                observable: true,
             },
             nextServiceMileage: {
                 type: "integer",
                 description: `Mileage counter for service intervals.`,
-                minimum: 0,
+                minimum: -1000000,
                 maximum: 30000,
+                observable: true,
             },
             doorStatus: {
                 title: "Door status",
@@ -141,9 +143,9 @@ servient.start().then((WoT) => {
                     thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);        
                 }
             });
-            // Now initialize properties
-            nextServiceMileage = readMilometerServiceInterval();
-            totalMileage = readMilometer();
+            // // Now initialize properties
+            // nextServiceMileage = readMilometerServiceInterval();
+            // totalMileage = readMilometer();
 
             // Override a write handler for availableResourceLevel property,
             // utilizing the uriVariables properly
@@ -189,7 +191,11 @@ servient.start().then((WoT) => {
 
             // Emulation: increase milometer every second
             setInterval(() => {
-                totalMileage = readMilometer();
+                readMilometer();
+                // totalMileage = milometer.totalMileage;
+                // nextServiceMileage = milometer.nextServiceMileage;
+                thing.emitPropertyChange("totalMileage");
+                thing.emitPropertyChange("nextServiceMileage");        
                 // If counter for next service mileage is less than 500, set maintenance needed
                 if (nextServiceMileage < 500) {
                     if (!nextServiceIsDue) {
@@ -297,7 +303,8 @@ servient.start().then((WoT) => {
         nextServiceMileage -= mileageIncrease;
         console.log("Reading milometer: " + totalMileage);
         console.log("Distance left until next service is due: " + nextServiceMileage);
-        return totalMileage;
+        return
+        // return {'totalMileage': totalMileage, 'nextServiceMileage': nextServiceMileage};
     }
     function getRandomInt(min, max) {
         // round min value upwards to next integer value

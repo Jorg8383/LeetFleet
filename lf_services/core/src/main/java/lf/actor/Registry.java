@@ -38,7 +38,7 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
     // names and rich semantic and domain specific meaning, even if they just wrap your data type.
     // This will make it easier to use, understand and debug actor-based system
     public final static class RegisterWebPortal implements Message {
-      public final ActorRef<WebPortal> regPortalRef;
+      public final ActorRef<WebPortal.Message> regPortalRef;
       public final ActorRef<RegWebPortalSuccess> replyRef;
       public RegisterWebPortal(ActorRef<WebPortal> regPortalRef, ActorRef<RegWebPortalSuccess> replyRef) {
         this.regPortalRef = regPortalRef;

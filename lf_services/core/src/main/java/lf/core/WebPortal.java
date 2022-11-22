@@ -2,17 +2,23 @@ package lf.core;
 
 import lf.actor.Registry;
 
+import java.util.List;
+
+import akka.actor.typed.ActorRef;
+
 public interface WebPortal {
 
+  public interface Message {}
+
     public final static class RegWebPortalSuccess implements Message {
-        public final ActorRef<Registry.Message> registryRef;
-        public RegWebPortalSuccess(ActorRef<Registry.Message> registryRef) {
+        public final ActorRef<WebPortal.Message> registryRef;
+        public RegWebPortalSuccess(ActorRef<WebPortal.Message> registryRef) {
           this.registryRef = registryRef;
         }
       }
 
 
-      public final static class NotifyFleetManager implements Message {
+      public final static class FleetManagerRefNotice implements Message {
         public final long fleetId;
 
         public final ActorRef<Registry.Message> registryRef;

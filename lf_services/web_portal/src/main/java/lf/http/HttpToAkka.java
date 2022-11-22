@@ -5,7 +5,8 @@ import akka.actor.typed.ActorSystem;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.remote.WireFormats;
 import akka.util.Timeout;
-import lf.redisPojo.Vehicle;
+import lf.core.WebPortal;
+import lf.model.Vehicle;
 //import org.apache.logging.log4j.core.appender.routing.Route;
 import scala.concurrent.duration.Duration;
 import akka.http.javadsl.server.Route;
@@ -29,7 +30,7 @@ import redis.clients.jedis.Protocol;
 import redis.clients.jedis.UnifiedJedis;
 import redis.clients.jedis.providers.PooledConnectionProvider;
 
-public class HttpToAkka extends AllDirectives {
+public class HttpToAkka extends AllDirectives implements WebPortal {
   private static final Logger log = LogManager.getLogger(HttpToAkka.class);
 
   private static String akkaHostname = "localhost";  // Sensible defaults

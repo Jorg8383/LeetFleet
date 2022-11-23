@@ -38,6 +38,15 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message>  {
       }
     }
 
+    public final static class FirstMessageFromWebPortal implements Message {
+      public final String theProof;
+      public final ActorRef<WebPortal.Message> portalRef;
+      public FirstMessageFromWebPortal(String theProof, ActorRef<WebPortal.Message> portalRef) {
+        this.theProof = theProof;
+        this.portalRef = portalRef;
+      }
+    }
+
     // ENCAPSULATION:
 
     // The web-portal actor gets a special, reserved ID.
@@ -69,6 +78,7 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message>  {
       return newReceiveBuilder()
           .onMessage(FleetManagerList.class, this::onFleetManagerList)
           .onMessage(FleetManagerRef.class, this::onFleetManagerRef)
+          .onMessage(FirstMessageFromWebPortal.class, this::onFirstMessageFromWebPortal)
           .build();
     }
 
@@ -86,7 +96,8 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message>  {
       // (initial) communication to all managers. We Will expect a reply with
       // the appropriate fleetId for this vehicle in due course...
       for (ActorRef<FleetManager.Message> fleetManagerRef : fleetManagerRefs) {
-        fleetManagerRef.tell(new WHAT_WHAT_WHAT(, getContext().getSelf()));
+        //fleetManagerRef.tell(new WHAT_WHAT_WHAT(, getContext().getSelf()));
+        System.out.println("FIX ME FIX ME FIX ME");
       }
       return this;
     }
@@ -96,7 +107,14 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message>  {
       // so forward this vehicle communication to that managers.
 
       // CAN WE SHUTDOWN THIS ACTOR HERE???!?!?!?
-      message.fleetManagerRef.tell(new WHAT_WHAT_WHAT(, getContext().getSelf()));
+      //message.fleetManagerRef.tell(new WHAT_WHAT_WHAT(, getContext().getSelf()));
+      System.out.println("FIX ME FIX ME FIX ME");
+      return this;
+    }
+
+    private Behavior<Message> onFirstMessageFromWebPortal(FirstMessageFromWebPortal message) {
+      message.portalRef.tell(new WebPortal.FirstMessageToWebPortal(message.theProof, getContext().getSelf()));
+
       return this;
     }
 

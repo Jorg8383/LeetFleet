@@ -109,7 +109,23 @@ public class HttpToAkka extends AllDirectives implements WebPortal {
         // Java Lambda: the -> separates the parameters (left-side) from the implementation (right side).
         path("hello", () ->
           get(() -> complete("<h1>Say hello to akka-http</h1>")))
+                      get(() ->
+            path(segment("car").slash(longSegment()), id ->
+                    onComplete(
+                      () -> CompletableFuture.supplyAsync(initilizeCar(id)),
+                        maybeResult -> maybeResult
+                        // Return result that's expected by WOT
+                        .map(func(result -> complete("id = " + result)))
+                        .recover(new PFBuilder<Throwable, Route>()
+                            .matchAny(ex -> complete(StatusCodes.InternalServerError(),
+                            "An error occured" + ex.getMessage()))
+                            
+                            .build())
+              .get()
+            )
+        );
     );
+           
         // get(() ->
         //     path(segment("client").slash(longSegment()), id ->
         //             complete(Clients.get(id))

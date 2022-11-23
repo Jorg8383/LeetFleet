@@ -23,7 +23,7 @@ services:
       #   * After 60 seconds if at least 10000 changes were performed
       # You can set these explicitly:
       #  -> save 3600 1 300 100 60 10000
-      - REDIS_ARGS=--dir /leetfleet --dbfilename leetfleet.rdb --logfile /logs/redis-stack.log
+      - REDIS_ARGS=--logfile /logs/redis-stack.log --dbfilename leetfleet.rdb --dir /leetfleet
   # core:
   #   build: core
   #   ports:

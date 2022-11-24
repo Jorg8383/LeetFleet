@@ -2,20 +2,16 @@ package lf.http;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
-import akka.actor.typed.Behavior;
 import akka.actor.typed.Scheduler;
 import akka.actor.typed.javadsl.Behaviors;
-import akka.remote.WireFormats;
-import akka.util.Timeout;
 import lf.actor.VehicleEvent;
 import lf.core.WebPortal;
-import lf.model.Vehicle;
 //import org.apache.logging.log4j.core.appender.routing.Route;
 import java.time.Duration;
 import akka.http.javadsl.server.Route;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
-import akka.http.javadsl.model.RequestEntity;
+import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.server.AllDirectives;
 
 import java.util.Properties;
@@ -25,14 +21,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPooled;
-import redis.clients.jedis.Protocol;
-import redis.clients.jedis.UnifiedJedis;
-import redis.clients.jedis.providers.PooledConnectionProvider;
 
 import static akka.actor.typed.javadsl.AskPattern.ask;
 
@@ -88,6 +76,17 @@ public class HttpToAkka extends AllDirectives implements WebPortal {
       .thenAccept(unbound -> system.terminate()); // and shutdown when done
   }
 
+  private CompletionStage<WebPortal.FirstMessageToWebPortal> tomsTestMethod() {
+    String proofOfLife = "One small step for one man...";
+    // First we spawn a new VehicleEvent actor...
+    // NOTES: The context is "The actor context" - the view of the actor 'cell' from the actor.
+    // It exposes contextual information for the actor and the current message.
+    ActorRef<VehicleEvent.Message> vehicleEventActor
+      = ActorSystem.create(VehicleEvent.create(), "fred");
+
+    return ask(vehicleEventActor, ref -> new VehicleEvent.FirstMessageFromWebPortal(proofOfLife, ref), askTimeout, scheduler);
+  }
+
 
   // We describe HTTP “routes” and how they should be handled.
   // Each route is composed of one or more level of Directives that narrows down to handling "one specific type of request"
@@ -139,25 +138,20 @@ public class HttpToAkka extends AllDirectives implements WebPortal {
         // Akka HTTP routes can interact with actors.
         // This route contains a request-response interaction with an actor.
         // (The resulting response is rendered as JSON and returned when the response arrives from the actor.)
+        //
+        // Understanding the nested directives soup...
+        // https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/index.html
+        //
+        // https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/alphabetically.html
+        // onSuccess: This method will be invoked once when/if a Future that this callback is registered on becomes successfully completed
+        // rejectEmptyResponse: replaces a response with no content with an empty rejection.
         path("firstTest", () ->
-            get(() -> {
-              String proofOfLife = "One small step for one man...";
-              // First we spawn a new VehicleEvent actor...
-              // NOTES: The context is "The actor context" - the view of the actor 'cell' from the actor.
-              // It exposes contextual information for the actor and the current message.
-              ActorRef<VehicleEvent.Message> vehicleEventActor
-                = ActorSystem.create(VehicleEvent.create(), null);
-
-              // Next we create a completionStage (which will complete (or timeout) in due course...)
-              // (The 'ask' method here is the magic sauce...)
-              CompletionStage<WebPortal.Message> responseFromVehicleEventActor
-                  = ask(vehicleEventActor, ref -> new VehicleEvent.FirstMessageFromWebPortal(proofOfLife, ref), askTimeout, scheduler);
-
-              // Finally the completeOKWithFuture takes the completionStage (which we hope will tunr into a future value) and completes the request!
-              // 	completeOKWithFuture : Completes the request by marshalling the given future value into an http response.
-              //return completeOKWithFuture(responseFromVehicleEvent, Jackson.marshaller());
-              return completeOKWithFuture(responseFromVehicleEventActor);
-            }))
+            get(() ->
+              onSuccess(tomsTestMethod(), theMessage ->
+                complete(StatusCodes.OK, theMessage.theProof)
+              )
+            )
+        )
     );
 
     // get(() ->

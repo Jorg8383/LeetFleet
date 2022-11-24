@@ -40,8 +40,8 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message>  {
 
     public final static class FirstMessageFromWebPortal implements Message {
       public final String theProof;
-      public final ActorRef<WebPortal.Message> portalRef;
-      public FirstMessageFromWebPortal(String theProof, ActorRef<WebPortal.Message> portalRef) {
+      public final ActorRef<WebPortal.FirstMessageToWebPortal> portalRef;
+      public FirstMessageFromWebPortal(String theProof, ActorRef<WebPortal.FirstMessageToWebPortal> portalRef) {
         this.theProof = theProof;
         this.portalRef = portalRef;
       }

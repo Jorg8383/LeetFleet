@@ -7,6 +7,7 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Receive;
 
 import lf.actor.Registry;
+import lf.actor.WebPortalInterface;
 
 public abstract class FleetManager extends AbstractBehavior<FleetManager.Message> {
 
@@ -26,10 +27,10 @@ public abstract class FleetManager extends AbstractBehavior<FleetManager.Message
     }
 
     public final static class NotifyWebPortal implements Message {
-        public final ActorRef<WebPortal.Message> portalRef;
+        public final ActorRef<WebPortalInterface.Message> portalRef;
         public final ActorRef<Registry.Message> registryRef;
 
-        public NotifyWebPortal(ActorRef<WebPortal.Message> portalRef, ActorRef<Registry.Message> registryRef) {
+        public NotifyWebPortal(ActorRef<WebPortalInterface.Message> portalRef, ActorRef<Registry.Message> registryRef) {
             this.portalRef = portalRef;
             this.registryRef = registryRef;
         }

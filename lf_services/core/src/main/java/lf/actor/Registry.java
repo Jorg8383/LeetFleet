@@ -7,10 +7,23 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import lf.core.FleetManager;
-import lf.core.WebPortal;
 
 import java.util.*;
 
+// READ THESE FIRST:
+// What is an Actor?
+// https://doc.akka.io/docs/akka/current/general/actors.html#what-is-an-actor-
+// https://doc.akka.io/docs/akka/current/typed/actors.html
+//
+// NOTE: Actors have an explicit lifecycle, they are not automatically destroyed
+// when no longer referenced. After having created one, it is YOUR responsibility
+// to make sure that it will eventually be terminated as well
+// Messages are sent to an "actor Reference" and behind this façade there is a
+// Behavior that receives the message and acts upon it.
+
+/**
+ *
+ */
 public class Registry extends AbstractBehavior<Registry.Message>  {
 
     // MESSAGES:
@@ -35,8 +48,8 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
     // names and rich semantic and domain specific meaning, even if they just wrap your data type.
     // This will make it easier to use, understand and debug actor-based system
     public final static class RegisterWebPortal implements Message {
-      public final ActorRef<WebPortal.Message> portalRef;
-      public RegisterWebPortal(ActorRef<WebPortal.Message> portalRef) {
+      public final ActorRef<WebPortalInterface.Message> portalRef;
+      public RegisterWebPortal(ActorRef<WebPortalInterface.Message> portalRef) {
         this.portalRef = portalRef;
       }
     }
@@ -85,7 +98,7 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
 
     // The web-portal actor gets a special, reserved ID.
     public static long WEB_PORTAL_ID = 5000;
-    private static ActorRef<WebPortal.Message> WEB_PORTAL_REF;
+    private static ActorRef<WebPortalInterface.Message> WEB_PORTAL_REF;
 
     private static long SEED_ID = 10000;
 
@@ -139,7 +152,7 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
       // Store the all important ref to the portal
       WEB_PORTAL_REF = message.portalRef;
 
-      message.portalRef.tell(new WebPortal.RegWebPortalSuccess(getContext().getSelf()));
+      message.portalRef.tell(new WebPortalInterface.RegWebPortalSuccess(getContext().getSelf()));
       return this;
     }
 

@@ -7,7 +7,6 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import lf.core.FleetManager;
-import lf.core.WebPortal;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -40,8 +39,8 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message>  {
 
     public final static class FirstMessageFromWebPortal implements Message {
       public final String theProof;
-      public final ActorRef<WebPortal.Message> portalRef;
-      public FirstMessageFromWebPortal(String theProof, ActorRef<WebPortal.Message> portalRef) {
+      public final ActorRef<WebPortalInterface.Message> portalRef;
+      public FirstMessageFromWebPortal(String theProof, ActorRef<WebPortalInterface.Message> portalRef) {
         this.theProof = theProof;
         this.portalRef = portalRef;
       }
@@ -113,7 +112,7 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message>  {
     }
 
     private Behavior<Message> onFirstMessageFromWebPortal(FirstMessageFromWebPortal message) {
-      message.portalRef.tell(new WebPortal.FirstMessageToWebPortal(message.theProof, getContext().getSelf()));
+      message.portalRef.tell(new WebPortalInterface.FirstMessageToWebPortal(message.theProof, getContext().getSelf()));
 
       return this;
     }

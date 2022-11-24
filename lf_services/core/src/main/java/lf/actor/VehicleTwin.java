@@ -7,7 +7,6 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import lf.core.FleetManager;
-import lf.core.WebPortal;
 import lf.model.Vehicle;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.UnifiedJedis;

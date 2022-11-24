@@ -1,11 +1,8 @@
-package lf.core;
-
-import lf.actor.Registry;
-import lf.actor.VehicleEvent;
+package lf.actor;
 
 import akka.actor.typed.ActorRef;
 
-public interface WebPortal {
+public interface WebPortalInterface {
 
   public interface Message {
   };

@@ -1,11 +1,11 @@
-package lf.core;
-
-import lf.actor.Registry;
-import lf.actor.VehicleEvent;
+package lf.actor;
 
 import akka.actor.typed.ActorRef;
 
-public interface WebPortal {
+/**
+ *
+ */
+public class WebPortalMessages {
 
   public interface Message {
   };
@@ -25,11 +25,8 @@ public interface WebPortal {
 
   public final static class FirstMessageToWebPortal implements Message {
     public final String theProof;
-    public final ActorRef<VehicleEvent.Message> vehicleEventRef;
-
-    public FirstMessageToWebPortal(String theProof, ActorRef<VehicleEvent.Message> vehicleEventRef) {
+    public FirstMessageToWebPortal(String theProof) {
       this.theProof = theProof;
-      this.vehicleEventRef = vehicleEventRef;
     }
   }
 

@@ -1,4 +1,4 @@
-package lf.core;
+package lf.actor;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
@@ -6,9 +6,7 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Receive;
 
-import lf.actor.Registry;
-
-public abstract class FleetManager extends AbstractBehavior<FleetManager.Message> {
+public abstract class AbstractFleetManager extends AbstractBehavior<AbstractFleetManager.Message> {
 
     // MESSAGES:
     //
@@ -26,10 +24,10 @@ public abstract class FleetManager extends AbstractBehavior<FleetManager.Message
     }
 
     public final static class NotifyWebPortal implements Message {
-        public final ActorRef<WebPortal.Message> portalRef;
+        public final ActorRef<WebPortalMessages.Message> portalRef;
         public final ActorRef<Registry.Message> registryRef;
 
-        public NotifyWebPortal(ActorRef<WebPortal.Message> portalRef, ActorRef<Registry.Message> registryRef) {
+        public NotifyWebPortal(ActorRef<WebPortalMessages.Message> portalRef, ActorRef<Registry.Message> registryRef) {
             this.portalRef = portalRef;
             this.registryRef = registryRef;
         }
@@ -45,7 +43,7 @@ public abstract class FleetManager extends AbstractBehavior<FleetManager.Message
     // }
 
     // ADD TO CONTEXT
-    private FleetManager(ActorContext<Message> context) {
+    private AbstractFleetManager(ActorContext<Message> context) {
         super(context);
     }
 

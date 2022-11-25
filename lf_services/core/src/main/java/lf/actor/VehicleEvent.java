@@ -6,8 +6,6 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import lf.core.FleetManager;
-import lf.core.WebPortal;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,18 +19,18 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message>  {
     public interface Message {}
 
     public final static class FleetManagerList implements Message {
-      public final Collection<ActorRef<FleetManager.Message>> fleetManagerRefs;
+      public final Collection<ActorRef<AbstractFleetManager.Message>> fleetManagerRefs;
       public final ActorRef<Registry.Message> registryRef;
-      public FleetManagerList(Collection<ActorRef<FleetManager.Message>> fleetManagerRefs, ActorRef<Registry.Message> registryRef) {
+      public FleetManagerList(Collection<ActorRef<AbstractFleetManager.Message>> fleetManagerRefs, ActorRef<Registry.Message> registryRef) {
         this.fleetManagerRefs = fleetManagerRefs;
         this.registryRef = registryRef;
       }
     }
 
     public final static class FleetManagerRef implements Message {
-      public final ActorRef<FleetManager.Message> fleetManagerRef;
+      public final ActorRef<AbstractFleetManager.Message> fleetManagerRef;
       public final ActorRef<Registry.Message> registryRef;
-      public FleetManagerRef(ActorRef<FleetManager.Message> fleetManagerRef, ActorRef<Registry.Message> registryRef) {
+      public FleetManagerRef(ActorRef<AbstractFleetManager.Message> fleetManagerRef, ActorRef<Registry.Message> registryRef) {
         this.fleetManagerRef = fleetManagerRef;
         this.registryRef = registryRef;
       }
@@ -40,8 +38,8 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message>  {
 
     public final static class FirstMessageFromWebPortal implements Message {
       public final String theProof;
-      public final ActorRef<WebPortal.FirstMessageToWebPortal> portalRef;
-      public FirstMessageFromWebPortal(String theProof, ActorRef<WebPortal.FirstMessageToWebPortal> portalRef) {
+      public final ActorRef<WebPortalMessages.FirstMessageToWebPortal> portalRef;
+      public FirstMessageFromWebPortal(String theProof, ActorRef<WebPortalMessages.FirstMessageToWebPortal> portalRef) {
         this.theProof = theProof;
         this.portalRef = portalRef;
       }
@@ -51,7 +49,7 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message>  {
 
     // The web-portal actor gets a special, reserved ID.
     public static long fleetMgrId;
-    public static ActorRef<FleetManager.Message> fleetMgrRef;
+    public static ActorRef<AbstractFleetManager.Message> fleetMgrRef;
     public static String messageFromVehicle;  // <<---- THIS IS THE MILLION DOLLAR QUESTION - WHAT IS THE PAYLOAD FROM THE VEHICLE
 
     // CREATE THIS ACTOR
@@ -90,12 +88,12 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message>  {
 
     private Behavior<Message> onFleetManagerList(FleetManagerList message) {
       // Store the all important ref to the portal
-      Collection<ActorRef<FleetManager.Message>> fleetManagerRefs = message.fleetManagerRefs;
+      Collection<ActorRef<AbstractFleetManager.Message>> fleetManagerRefs = message.fleetManagerRefs;
 
       // We don't know which fleet this vehicle belongs to, so forward this
       // (initial) communication to all managers. We Will expect a reply with
       // the appropriate fleetId for this vehicle in due course...
-      for (ActorRef<FleetManager.Message> fleetManagerRef : fleetManagerRefs) {
+      for (ActorRef<AbstractFleetManager.Message> fleetManagerRef : fleetManagerRefs) {
         //fleetManagerRef.tell(new WHAT_WHAT_WHAT(, getContext().getSelf()));
         System.out.println("FIX ME FIX ME FIX ME");
       }
@@ -113,7 +111,7 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message>  {
     }
 
     private Behavior<Message> onFirstMessageFromWebPortal(FirstMessageFromWebPortal message) {
-      message.portalRef.tell(new WebPortal.FirstMessageToWebPortal(message.theProof, getContext().getSelf()));
+      message.portalRef.tell(new WebPortalMessages.FirstMessageToWebPortal(message.theProof));
 
       return this;
     }

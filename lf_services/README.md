@@ -12,6 +12,8 @@ RockSham Foods: 2554
 YouBear       : 2555
 
 
+To Test the web portal (no docker) we can:
+mvn exec:java -Dexec.args="-a localhost" -pl web_portal
 
 
 

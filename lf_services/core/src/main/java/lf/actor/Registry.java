@@ -6,7 +6,6 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import lf.core.FleetManager;
 
 import java.util.*;
 
@@ -48,15 +47,15 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
     // names and rich semantic and domain specific meaning, even if they just wrap your data type.
     // This will make it easier to use, understand and debug actor-based system
     public final static class RegisterWebPortal implements Message {
-      public final ActorRef<WebPortalInterface.Message> portalRef;
-      public RegisterWebPortal(ActorRef<WebPortalInterface.Message> portalRef) {
+      public final ActorRef<WebPortalMessages.Message> portalRef;
+      public RegisterWebPortal(ActorRef<WebPortalMessages.Message> portalRef) {
         this.portalRef = portalRef;
       }
     }
 
     public final static class RegisterFleetManager implements Message {
-      public final ActorRef<FleetManager.Message> fleetManRef;
-      public RegisterFleetManager(ActorRef<FleetManager.Message> fleetManRef) {
+      public final ActorRef<AbstractFleetManager.Message> fleetManRef;
+      public RegisterFleetManager(ActorRef<AbstractFleetManager.Message> fleetManRef) {
         this.fleetManRef = fleetManRef;
       }
     }
@@ -72,8 +71,8 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
         // I HAVE NO IDEA if a FleetManager will ever need the WebPortal reference
         // I just left this in as an example of how to get the WebPortal ActorRef.
         public final static class QueryWebPortal implements Message {
-      public final ActorRef<FleetManager.Message> fleetManRef;
-      public QueryWebPortal(ActorRef<FleetManager.Message> fleetManRef) {
+      public final ActorRef<AbstractFleetManager.Message> fleetManRef;
+      public QueryWebPortal(ActorRef<AbstractFleetManager.Message> fleetManRef) {
         this.fleetManRef = fleetManRef;
       }
     }
@@ -98,14 +97,14 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
 
     // The web-portal actor gets a special, reserved ID.
     public static long WEB_PORTAL_ID = 5000;
-    private static ActorRef<WebPortalInterface.Message> WEB_PORTAL_REF;
+    private static ActorRef<WebPortalMessages.Message> WEB_PORTAL_REF;
 
     private static long SEED_ID = 10000;
 
     // Track which id's map to which 'ClientInfos' (as the responses
     // can arrive in any order).
-    private static HashMap<Long, ActorRef<FleetManager.Message>> registry
-                        = new HashMap<Long, ActorRef<FleetManager.Message>>();
+    private static HashMap<Long, ActorRef<AbstractFleetManager.Message>> registry
+                        = new HashMap<Long, ActorRef<AbstractFleetManager.Message>>();
 
     // public final static class ThingyThing???? {
     //   public final String name;
@@ -152,7 +151,7 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
       // Store the all important ref to the portal
       WEB_PORTAL_REF = message.portalRef;
 
-      message.portalRef.tell(new WebPortalInterface.RegWebPortalSuccess(getContext().getSelf()));
+      message.portalRef.tell(new WebPortalMessages.RegWebPortalSuccess(getContext().getSelf()));
       return this;
     }
 
@@ -166,7 +165,7 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
       registry.put(new_fleet_id, message.fleetManRef);
 
       // We inform the FleetManager that registration was successful
-      message.fleetManRef.tell(new FleetManager.RegistrationSuccess(new_fleet_id, getContext().getSelf()));
+      message.fleetManRef.tell(new AbstractFleetManager.RegistrationSuccess(new_fleet_id, getContext().getSelf()));
       return this;
     }
 
@@ -177,7 +176,7 @@ public class Registry extends AbstractBehavior<Registry.Message>  {
     }
 
     private Behavior<Message> onQueryWebPortal(QueryWebPortal message) {
-      message.fleetManRef.tell(new FleetManager.NotifyWebPortal(WEB_PORTAL_REF, getContext().getSelf()));
+      message.fleetManRef.tell(new AbstractFleetManager.NotifyWebPortal(WEB_PORTAL_REF, getContext().getSelf()));
       return this;
     }
 

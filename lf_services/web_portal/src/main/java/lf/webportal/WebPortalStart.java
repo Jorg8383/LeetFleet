@@ -24,7 +24,7 @@ public class WebPortalStart {
   private static final Logger log = LogManager.getLogger(WebPortalStart.class);
 
   private static String akkaHostname = "localhost"; // Sensible defaults
-  private static int akkaPort = 2550;
+  private static int akkaPort = 2551;
   private static String httpHostname = "localhost";
   private static int httpPort = 8080;
   private static String redisHostname = "localhost";
@@ -54,17 +54,18 @@ public class WebPortalStart {
 
       // Pass the ***Guardian*** Ref in to the constructor for the Routes class
       // This gives us full access to the Guardians actor context for this system.
-      VehicleEventRoutes vehicleEventRoutes = new VehicleEventRoutes(context.getSystem(), webPortalGuardianRef);
+      WebPortalRoutes vehicleEventRoutes = new WebPortalRoutes(context.getSystem(), webPortalGuardianRef);
 
       // Now start the server!
       startHttpServer(vehicleEventRoutes.vehicleEventRoutes(), context.getSystem());
 
       return Behaviors.empty();
     });
+    // #server-bootstrapping
 
     // boot up server using the route as defined below
-    ActorSystem<NotUsed> system = ActorSystem.create(rootBehavior, "leet-fleet", fullConfig);
-    // #server-bootstrapping
+    //ActorSystem<NotUsed> system = ActorSystem.create(rootBehavior, "leet-fleet", fullConfig);
+    ActorSystem.create(rootBehavior, "leet-fleet", fullConfig);
 
     try {
       System.out.println(">>> Press ENTER to exit <<<");
@@ -81,7 +82,7 @@ public class WebPortalStart {
   static void startHttpServer(Route route, ActorSystem<?> system) {
 
     CompletionStage<ServerBinding> futureBinding
-      = Http.get(system).newServerAt(akkaHostname, akkaPort).bind(route);
+      = Http.get(system).newServerAt(httpHostname, httpPort).bind(route);
 
     futureBinding.whenComplete((binding, exception) -> {
       if (binding != null) {

@@ -17,7 +17,7 @@ import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
 import lf.actor.VehicleEvent;
 import lf.actor.WebPortalGuardian;
-import lf.actor.WebPortalInterface;
+import lf.actor.WebPortalMessages;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
  * Routes can be defined in separated classes like shown in here
  */
 // #user-routes-class
-public class VehicleEventRoutes {
+public class WebPortalRoutes extends WebPortalMessages {
   // #user-routes-class
-  private final static Logger log = LoggerFactory.getLogger(VehicleEventRoutes.class);
+  private final static Logger log = LoggerFactory.getLogger(WebPortalRoutes.class);
 
   private final ActorRef<WebPortalGuardian.Message> webPortalGuardianRef; // We can use this actor to spawn more
                                                                           // actors...
@@ -36,7 +36,7 @@ public class VehicleEventRoutes {
   private final Scheduler scheduler;
 
   // Constructor...
-  public VehicleEventRoutes(ActorSystem<?> system, ActorRef<WebPortalGuardian.Message> webPortalGuardianRef) {
+  public WebPortalRoutes(ActorSystem<?> system, ActorRef<WebPortalGuardian.Message> webPortalGuardianRef) {
     this.webPortalGuardianRef = webPortalGuardianRef;
     this.scheduler = system.scheduler();
     this.askTimeout = system.settings().config().getDuration("akka.routes.ask-timeout");
@@ -46,17 +46,21 @@ public class VehicleEventRoutes {
 
   // ROUTE METHODS
 
-  private CompletionStage<WebPortalInterface.FirstMessageToWebPortal> firstTest() {
-    String proofOfLife = "One small step for one man...";
+  private CompletionStage<WebPortalMessages.FirstMessageToWebPortal> firstTest() {
+    // NOTES: The "context" is "The actor context" - the view of the actor 'cell' from the actor.
+    //        It exposes contextual information for the actor and the current message.
+    //
+    // The ask-pattern implements the initiator side of a request–reply protocol.
+    // The party that asks may be within or without an Actor, since the implementation will fabricate
+    // a (hidden) ActorRef that is bound to a CompletableFuture. This ActorRef will need to be
+    // injected in the message that is sent to the target Actor in order to function as a reply-to
+    // address, therefore the argument to the ask method is not the message itself but a function
+    // that given the reply-to address will create the message.
 
-    // ***** CANT DO THIS _ IT CREATES A WHOLE NEW ACTOR SYSTEM FROM CONFIG
-    // First we spawn a new VehicleEvent actor...
-    // NOTES: The context is "The actor context" - the view of the actor 'cell' from the actor.
-    // It exposes contextual information for the actor and the current message.
-    ActorRef<VehicleEvent.Message> vehicleEventActor
-      = ActorSystem.create(VehicleEvent.create(), "fred");
-
-    return ask(vehicleEventActor, ref -> new VehicleEvent.FirstMessageFromWebPortal(proofOfLife, ref), askTimeout, scheduler);
+    // We send a message to the Guardian (it's our gateway into the actor system).
+    // NOTE: What is the type of ActorRef 'ref' you might ask?  Ask it's hidden and all that?
+    //       It appears to be type matched to the return type of the CompletionStage.
+    return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.ForwardToHandler("One small step for one man...", ref), askTimeout, scheduler);
   }
 
   // private CompletionStage<UserRegistry.GetUserResponse> getUser(String name) {
@@ -130,8 +134,8 @@ public class VehicleEventRoutes {
         // rejectEmptyResponse: replaces a response with no content with an empty rejection.
         path("firstTest", () ->
             get(() ->
-              onSuccess(firstTest(), theMessage ->
-                complete(StatusCodes.OK, theMessage.theProof)
+              onSuccess(firstTest(),
+                theMessage -> complete(StatusCodes.OK, theMessage.theProof)
               )
             )
         )

@@ -41,15 +41,16 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     // This will make it easier to use, understand and debug actor-based system
     public static class BootStrap implements Message {
         public final String note;
-
         public BootStrap(String note) {
             this.note = note;
         }
     }
 
-    public final static class RequestVehicleEventActor implements Message {
-        public final ActorRef<WebPortalInterface.Message> replyTo;
-        public RequestVehicleEventActor(ActorRef<WebPortalInterface.Message> replyTo) {
+    public final static class ForwardToHandler implements Message {
+        public final String message;
+        public final ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo;
+        public ForwardToHandler(String message, ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo) {
+            this.message = message;
             this.replyTo = replyTo;
         }
     }
@@ -82,7 +83,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     public Receive<WebPortalGuardian.Message> createReceive() {
         return newReceiveBuilder()
                 .onMessage(WebPortalGuardian.BootStrap.class, this::onBootStrap)
-                .onMessage(WebPortalGuardian.RequestVehicleEventActor.class, this::onRequestVehicleEventActor)
+                .onMessage(WebPortalGuardian.ForwardToHandler.class, this::onForwardToHandler)
 
                 .build();
     }
@@ -99,12 +100,14 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     }
 
     // The type of the messages handled by this behavior is declared to be of class message
-    private Behavior<WebPortalGuardian.Message> onRequestVehicleEventActor(RequestVehicleEventActor message)
+    private Behavior<WebPortalGuardian.Message> onForwardToHandler(ForwardToHandler message)
     {
-        // Create
-        ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), null);
+        // Create a VehicleEvent actor to handle this request.
+        ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred");  //  <- TEMP TEMP TEMP TEMP TEMP - WE NEED TO INVENT A REAL NAMING CONVENTION!
+
         // We inform the FleetManager that registration was successful
-        message.replyTo.tell(new WebPortalInterface.NewVehicleEventActorRef(vehicleEventRef));
+        getContext().getLog().info("in onForwardToHandler, the message type is!{}!", message.getClass());
+        vehicleEventRef.tell(new VehicleEvent.FirstMessageFromWebPortal(message.message, message.replyTo));
         return this;
     }
 

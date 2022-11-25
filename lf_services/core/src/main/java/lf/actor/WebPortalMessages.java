@@ -2,7 +2,10 @@ package lf.actor;
 
 import akka.actor.typed.ActorRef;
 
-public interface WebPortalInterface {
+/**
+ *
+ */
+public class WebPortalMessages {
 
   public interface Message {
   };
@@ -22,18 +25,8 @@ public interface WebPortalInterface {
 
   public final static class FirstMessageToWebPortal implements Message {
     public final String theProof;
-    public final ActorRef<VehicleEvent.Message> vehicleEventRef;
-
-    public FirstMessageToWebPortal(String theProof, ActorRef<VehicleEvent.Message> vehicleEventRef) {
+    public FirstMessageToWebPortal(String theProof) {
       this.theProof = theProof;
-      this.vehicleEventRef = vehicleEventRef;
-    }
-  }
-
-  public final static class NewVehicleEventActorRef implements Message {
-    public final ActorRef<VehicleEvent.Message> vehicleEventRef;
-    public NewVehicleEventActorRef(ActorRef<VehicleEvent.Message> vehicleEventRef) {
-      this.vehicleEventRef = vehicleEventRef;
     }
   }
 

@@ -28,7 +28,7 @@ public class HttpToAkka extends AllDirectives implements WebPortal {
   private static final Logger log = LogManager.getLogger(HttpToAkka.class);
 
   private static String akkaHostname = "localhost";  // Sensible defaults
-  private static int    akkaPort = 2550;
+  private static int    akkaPort = 2551;
   private static String httpHostname = "localhost";
   private static int    httpPort = 8080;
   private static String redisHostname = "localhost";
@@ -78,6 +78,8 @@ public class HttpToAkka extends AllDirectives implements WebPortal {
 
   private CompletionStage<WebPortal.FirstMessageToWebPortal> tomsTestMethod() {
     String proofOfLife = "One small step for one man...";
+
+    // ***** CANT DO THIS _ IT CREATES A WHOLE NEW ACTOR SYSTEM FROM CONFIG
     // First we spawn a new VehicleEvent actor...
     // NOTES: The context is "The actor context" - the view of the actor 'cell' from the actor.
     // It exposes contextual information for the actor and the current message.

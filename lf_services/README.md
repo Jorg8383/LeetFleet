@@ -3,6 +3,8 @@
 # Ports for LeetFleet System
 Redis         : 6379
 RedisInsight  : 8001
+# HTTP Server
+WebPortal     : 8080
 # Akka Cluster
 Registry      : 2550
 WebPortal     : 2551

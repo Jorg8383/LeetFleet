@@ -56,7 +56,6 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
     // ENCAPSULATION:
     @IgnoreError // Ignore unused error for registry - spawned but not used.
-    private final ActorRef<WebPortalGuardian.Message> webPortalGuardian;
 
     // =========================================================================
 
@@ -74,11 +73,6 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     // that points to the actor instance
     private WebPortalGuardian(ActorContext<WebPortalGuardian.Message> context) {
         super(context);
-        // #create-actors
-        // Spawning - location transparency - this actor could be anywhere in the
-        // cluster
-        webPortalGuardian = context.spawn(WebPortalGuardian.create(), "webPortalGuardian");
-        // #create-actors
     }
 
     // =========================================================================
@@ -88,7 +82,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     public Receive<WebPortalGuardian.Message> createReceive() {
         return newReceiveBuilder()
                 .onMessage(WebPortalGuardian.BootStrap.class, this::onBootStrap)
-                .onMessage(WebPortalGuardian.BootStrap.class, this::onBootStrap)
+                .onMessage(WebPortalGuardian.RequestVehicleEventActor.class, this::onRequestVehicleEventActor)
 
                 .build();
     }
@@ -105,12 +99,12 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     }
 
     // The type of the messages handled by this behavior is declared to be of class message
-    private Behavior<WebPortalGuardian.Message> onRegFleetManager(RequestVehicleEventActor message)
+    private Behavior<WebPortalGuardian.Message> onRequestVehicleEventActor(RequestVehicleEventActor message)
     {
         // Create
         ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), null);
         // We inform the FleetManager that registration was successful
-        message.replyTo.tell(new FleetManager.RegistrationSuccess("Here ya go!", vehicleEventRef));
+        message.replyTo.tell(new WebPortalInterface.NewVehicleEventActorRef(vehicleEventRef));
         return this;
     }
 

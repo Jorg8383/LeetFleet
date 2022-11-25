@@ -30,4 +30,11 @@ public interface WebPortalInterface {
     }
   }
 
+  public final static class NewVehicleEventActorRef implements Message {
+    public final ActorRef<VehicleEvent.Message> vehicleEventRef;
+    public NewVehicleEventActorRef(ActorRef<VehicleEvent.Message> vehicleEventRef) {
+      this.vehicleEventRef = vehicleEventRef;
+    }
+  }
+
 }

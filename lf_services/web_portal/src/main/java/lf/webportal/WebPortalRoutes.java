@@ -71,7 +71,7 @@ public class WebPortalRoutes extends WebPortalMessages {
         ref -> new WebPortalGuardian.ForwardToHandler("One small step for one man...", ref), askTimeout, scheduler);
   }
 
-  private CompletionStage<WebPortalMessages.CarIntitializeMessage> secondTest(VehicleClass vehicle) {
+  private CompletionStage<WebPortalMessages.CarIntitializeMessage> newVehicleToGuardian(VehicleClass vehicle) {
     return AskPattern.ask(webPortalGuardianRef,
         ref -> new WebPortalGuardian.ForwardToHandlerVehicle(vehicle, ref), askTimeout, scheduler);
   }
@@ -164,8 +164,9 @@ public class WebPortalRoutes extends WebPortalMessages {
         path("firstTest", () -> get(() -> onSuccess(firstTest(),
             theMessage -> complete(StatusCodes.OK, theMessage.theProof)))),
         path("new-vehicle",
-            () -> post(() -> entity(Jackson.unmarshaller(VehicleClass.class), vehicle -> onSuccess(secondTest(vehicle),
-                theMessage -> complete(StatusCodes.OK, theMessage.vehicle, Jackson.marshaller()))))));
+            () -> post(() -> entity(Jackson.unmarshaller(VehicleClass.class),
+                vehicle -> onSuccess(newVehicleToGuardian(vehicle),
+                    theMessage -> complete(StatusCodes.OK, theMessage.vehicle, Jackson.marshaller()))))));
     // #all-routes
   }
 

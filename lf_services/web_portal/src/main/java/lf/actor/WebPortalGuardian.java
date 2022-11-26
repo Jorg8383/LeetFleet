@@ -146,7 +146,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
                                                                                                             // CONVENTION!
 
         // We inform the FleetManager that registration was successful
-        getContext().getLog().info("in onForwardToHandler, the message type is!{}!", message.getClass());
+        getContext().getLog().info("in onForwardToHandlerVehicle, the message type is!{}!", message.getClass());
         vehicleEventRef.tell(new VehicleEvent.InitialVehicleMessage(message.message, message.replyTo));
         return this;
     }

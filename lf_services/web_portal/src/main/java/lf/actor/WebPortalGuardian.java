@@ -65,7 +65,6 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         public ForwardToHandlerVehicle(
                 VehicleClass message, ActorRef<WebPortalMessages.CarIntitializeMessage> replyTo) {
             this.message = message;
-            this.message.setFleetId("Success Lads");
             this.replyTo = replyTo;
         }
     }
@@ -99,6 +98,8 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         return newReceiveBuilder()
                 .onMessage(WebPortalGuardian.BootStrap.class, this::onBootStrap)
                 .onMessage(WebPortalGuardian.ForwardToHandler.class, this::onForwardToHandler)
+                .onMessage(WebPortalGuardian.ForwardToHandlerVehicle.class,
+                        this::onForwardToHandlerVehicle)
 
                 .build();
     }
@@ -130,6 +131,23 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         // We inform the FleetManager that registration was successful
         getContext().getLog().info("in onForwardToHandler, the message type is!{}!", message.getClass());
         vehicleEventRef.tell(new VehicleEvent.FirstMessageFromWebPortal(message.message, message.replyTo));
+        return this;
+    }
+
+    private Behavior<WebPortalGuardian.Message> onForwardToHandlerVehicle(ForwardToHandlerVehicle message) {
+        // Create a VehicleEvent actor to handle this request.
+        ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred"); // <- TEMP
+                                                                                                            // TEMP TEMP
+                                                                                                            // TEMP TEMP
+                                                                                                            // - WE NEED
+                                                                                                            // TO INVENT
+                                                                                                            // A REAL
+                                                                                                            // NAMING
+                                                                                                            // CONVENTION!
+
+        // We inform the FleetManager that registration was successful
+        getContext().getLog().info("in onForwardToHandler, the message type is!{}!", message.getClass());
+        vehicleEventRef.tell(new VehicleEvent.InitialVehicleMessage(message.message, message.replyTo));
         return this;
     }
 

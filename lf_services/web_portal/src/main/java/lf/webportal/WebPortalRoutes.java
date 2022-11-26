@@ -163,9 +163,9 @@ public class WebPortalRoutes extends WebPortalMessages {
         // rejection.
         path("firstTest", () -> get(() -> onSuccess(firstTest(),
             theMessage -> complete(StatusCodes.OK, theMessage.theProof)))),
-        path("secondtest",
+        path("new-vehicle",
             () -> post(() -> entity(Jackson.unmarshaller(VehicleClass.class), vehicle -> onSuccess(secondTest(vehicle),
-                theMessage -> complete(StatusCodes.OK, theMessage.vehicle.fleetId))))));
+                theMessage -> complete(StatusCodes.OK, theMessage.vehicle, Jackson.marshaller()))))));
     // #all-routes
   }
 

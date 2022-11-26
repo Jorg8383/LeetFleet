@@ -25,8 +25,17 @@ public class WebPortalMessages {
 
   public final static class FirstMessageToWebPortal implements Message {
     public final String theProof;
+
     public FirstMessageToWebPortal(String theProof) {
       this.theProof = theProof;
+    }
+  }
+
+  public final static class CarIntitializeMessage implements Message {
+    public VehicleClass vehicle;
+
+    public CarIntitializeMessage(VehicleClass vehicle) {
+      this.vehicle = vehicle;
     }
   }
 

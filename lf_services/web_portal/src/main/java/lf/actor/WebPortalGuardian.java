@@ -41,6 +41,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     // This will make it easier to use, understand and debug actor-based system
     public static class BootStrap implements Message {
         public final String note;
+
         public BootStrap(String note) {
             this.note = note;
         }
@@ -49,8 +50,22 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     public final static class ForwardToHandler implements Message {
         public final String message;
         public final ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo;
+
         public ForwardToHandler(String message, ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo) {
             this.message = message;
+            this.replyTo = replyTo;
+        }
+    }
+
+    // Definitely better ways to do this.
+    public final static class ForwardToHandlerVehicle implements Message {
+        public final VehicleClass message;
+        public final ActorRef<WebPortalMessages.CarIntitializeMessage> replyTo;
+
+        public ForwardToHandlerVehicle(
+                VehicleClass message, ActorRef<WebPortalMessages.CarIntitializeMessage> replyTo) {
+            this.message = message;
+            this.message.setFleetId("Success Lads");
             this.replyTo = replyTo;
         }
     }
@@ -99,11 +114,18 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         return this;
     }
 
-    // The type of the messages handled by this behavior is declared to be of class message
-    private Behavior<WebPortalGuardian.Message> onForwardToHandler(ForwardToHandler message)
-    {
+    // The type of the messages handled by this behavior is declared to be of class
+    // message
+    private Behavior<WebPortalGuardian.Message> onForwardToHandler(ForwardToHandler message) {
         // Create a VehicleEvent actor to handle this request.
-        ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred");  //  <- TEMP TEMP TEMP TEMP TEMP - WE NEED TO INVENT A REAL NAMING CONVENTION!
+        ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred"); // <- TEMP
+                                                                                                            // TEMP TEMP
+                                                                                                            // TEMP TEMP
+                                                                                                            // - WE NEED
+                                                                                                            // TO INVENT
+                                                                                                            // A REAL
+                                                                                                            // NAMING
+                                                                                                            // CONVENTION!
 
         // We inform the FleetManager that registration was successful
         getContext().getLog().info("in onForwardToHandler, the message type is!{}!", message.getClass());

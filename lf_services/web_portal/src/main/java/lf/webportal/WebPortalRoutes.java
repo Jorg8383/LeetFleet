@@ -19,6 +19,7 @@ import lf.actor.VehicleClass;
 import lf.actor.VehicleEvent;
 import lf.actor.WebPortalGuardian;
 import lf.actor.WebPortalMessages;
+import lf.model.Vehicle;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,33 +48,35 @@ public class WebPortalRoutes extends WebPortalMessages {
 
   // ROUTE METHODS
 
-  private CompletionStage<WebPortalMessages.FirstMessageToWebPortal> firstTest() {
-    // NOTES: The "context" is "The actor context" - the view of the actor 'cell'
-    // from the actor.
-    // It exposes contextual information for the actor and the current message.
-    //
-    // The ask-pattern implements the initiator side of a request–reply protocol.
-    // The party that asks may be within or without an Actor, since the
-    // implementation will fabricate
-    // a (hidden) ActorRef that is bound to a CompletableFuture. This ActorRef will
-    // need to be
-    // injected in the message that is sent to the target Actor in order to function
-    // as a reply-to
-    // address, therefore the argument to the ask method is not the message itself
-    // but a function
-    // that given the reply-to address will create the message.
+  // private CompletionStage<WebPortalMessages.FirstMessageToWebPortal>
+  // firstTest() {
+  // NOTES: The "context" is "The actor context" - the view of the actor 'cell'
+  // from the actor.
+  // It exposes contextual information for the actor and the current message.
+  //
+  // The ask-pattern implements the initiator side of a request–reply protocol.
+  // The party that asks may be within or without an Actor, since the
+  // implementation will fabricate
+  // a (hidden) ActorRef that is bound to a CompletableFuture. This ActorRef will
+  // need to be
+  // injected in the message that is sent to the target Actor in order to function
+  // as a reply-to
+  // address, therefore the argument to the ask method is not the message itself
+  // but a function
+  // that given the reply-to address will create the message.
 
-    // We send a message to the Guardian (it's our gateway into the actor system).
-    // NOTE: What is the type of ActorRef 'ref' you might ask? Ask it's hidden and
-    // all that?
-    // It appears to be type matched to the return type of the CompletionStage.
-    return AskPattern.ask(webPortalGuardianRef,
-        ref -> new WebPortalGuardian.ForwardToHandler("One small step for one man...", ref), askTimeout, scheduler);
-  }
+  // We send a message to the Guardian (it's our gateway into the actor system).
+  // NOTE: What is the type of ActorRef 'ref' you might ask? Ask it's hidden and
+  // all that?
+  // It appears to be type matched to the return type of the CompletionStage.
+  // return AskPattern.ask(webPortalGuardianRef,
+  // ref -> new WebPortalGuardian.ForwardToHandler("One small step for one
+  // man...", ref), askTimeout, scheduler);
+  // }
 
-  private CompletionStage<WebPortalMessages.CarIntitializeMessage> newVehicleToGuardian(VehicleClass vehicle) {
+  private CompletionStage<WebPortalMessages.FirstMessageToWebPortal> newVehicleToGuardian(Vehicle vehicle) {
     return AskPattern.ask(webPortalGuardianRef,
-        ref -> new WebPortalGuardian.ForwardToHandlerVehicle(vehicle, ref), askTimeout, scheduler);
+        ref -> new WebPortalGuardian.ForwardToHandler(vehicle, ref), askTimeout, scheduler);
   }
 
   // private CompletionStage<UserRegistry.GetUserResponse> getUser(String name) {
@@ -161,10 +164,10 @@ public class WebPortalRoutes extends WebPortalMessages {
         // callback is registered on becomes successfully completed
         // rejectEmptyResponse: replaces a response with no content with an empty
         // rejection.
-        path("firstTest", () -> get(() -> onSuccess(firstTest(),
-            theMessage -> complete(StatusCodes.OK, theMessage.theProof)))),
+        // path("firstTest", () -> get(() -> onSuccess(firstTest(),
+        // theMessage -> complete(StatusCodes.OK, theMessage.theProof)))),
         path("new-vehicle",
-            () -> post(() -> entity(Jackson.unmarshaller(VehicleClass.class),
+            () -> post(() -> entity(Jackson.unmarshaller(Vehicle.class),
                 vehicle -> onSuccess(newVehicleToGuardian(vehicle),
                     theMessage -> complete(StatusCodes.OK, theMessage.vehicle, Jackson.marshaller()))))));
     // #all-routes

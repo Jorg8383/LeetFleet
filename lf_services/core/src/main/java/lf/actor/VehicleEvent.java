@@ -6,6 +6,7 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import lf.model.Vehicle;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -41,22 +42,23 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
     }
   }
 
+  // public final static class FirstMessageFromWebPortal implements Message {
+  // public final String theProof;
+  // public final ActorRef<WebPortalMessages.FirstMessageToWebPortal> portalRef;
+
+  // public FirstMessageFromWebPortal(String theProof,
+  // ActorRef<WebPortalMessages.FirstMessageToWebPortal> portalRef) {
+  // this.theProof = theProof;
+  // this.portalRef = portalRef;
+  // }
+  // }
+
   public final static class FirstMessageFromWebPortal implements Message {
-    public final String theProof;
+    public final Vehicle vehicle;
     public final ActorRef<WebPortalMessages.FirstMessageToWebPortal> portalRef;
 
-    public FirstMessageFromWebPortal(String theProof, ActorRef<WebPortalMessages.FirstMessageToWebPortal> portalRef) {
-      this.theProof = theProof;
-      this.portalRef = portalRef;
-    }
-  }
-
-  public final static class InitialVehicleMessage implements Message {
-    public final VehicleClass vehicle;
-    public final ActorRef<WebPortalMessages.CarIntitializeMessage> portalRef;
-
-    public InitialVehicleMessage(
-        VehicleClass vehicle, ActorRef<WebPortalMessages.CarIntitializeMessage> portalRef) {
+    public FirstMessageFromWebPortal(
+        Vehicle vehicle, ActorRef<WebPortalMessages.FirstMessageToWebPortal> portalRef) {
       this.vehicle = vehicle;
       this.vehicle.setFleetId("success lads");
       this.portalRef = portalRef;
@@ -95,9 +97,10 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
     return newReceiveBuilder()
         .onMessage(FleetManagerList.class, this::onFleetManagerList)
         .onMessage(FleetManagerRef.class, this::onFleetManagerRef)
-        .onMessage(FirstMessageFromWebPortal.class, this::onFirstMessageFromWebPortal)
+        // .onMessage(FirstMessageFromWebPortal.class,
+        // this::onFirstMessageFromWebPortal)
         .onMessage(
-            InitialVehicleMessage.class, this::onInitialVehicleMessage)
+            FirstMessageFromWebPortal.class, this::onInitialVehicleMessage)
 
         .build();
   }
@@ -132,14 +135,16 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
     return this;
   }
 
-  private Behavior<Message> onFirstMessageFromWebPortal(FirstMessageFromWebPortal message) {
-    message.portalRef.tell(new WebPortalMessages.FirstMessageToWebPortal(message.theProof));
+  // private Behavior<Message>
+  // onFirstMessageFromWebPortal(FirstMessageFromWebPortal message) {
+  // message.portalRef.tell(new
+  // WebPortalMessages.FirstMessageToWebPortal(message.theProof));
 
-    return this;
-  }
+  // return this;
+  // }
 
-  private Behavior<Message> onInitialVehicleMessage(InitialVehicleMessage message) {
-    message.portalRef.tell(new WebPortalMessages.CarIntitializeMessage(message.vehicle));
+  private Behavior<Message> onInitialVehicleMessage(FirstMessageFromWebPortal message) {
+    message.portalRef.tell(new WebPortalMessages.FirstMessageToWebPortal(message.vehicle));
 
     return this;
   }

@@ -1,6 +1,7 @@
 package lf.actor;
 
 import akka.actor.typed.ActorRef;
+import lf.model.Vehicle;
 
 /**
  *
@@ -23,18 +24,18 @@ public class WebPortalMessages {
     }
   }
 
+  // public final static class FirstMessageToWebPortal implements Message {
+  // public final String theProof;
+
+  // public FirstMessageToWebPortal(String theProof) {
+  // this.theProof = theProof;
+  // }
+  // }
+
   public final static class FirstMessageToWebPortal implements Message {
-    public final String theProof;
+    public Vehicle vehicle;
 
-    public FirstMessageToWebPortal(String theProof) {
-      this.theProof = theProof;
-    }
-  }
-
-  public final static class CarIntitializeMessage implements Message {
-    public VehicleClass vehicle;
-
-    public CarIntitializeMessage(VehicleClass vehicle) {
+    public FirstMessageToWebPortal(Vehicle vehicle) {
       this.vehicle = vehicle;
     }
   }

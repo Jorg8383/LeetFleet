@@ -4,6 +4,7 @@ import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
 import jnr.ffi.annotations.IgnoreError;
+import lf.model.Vehicle;
 
 /**
  * The guardian is the top level actor that bootstraps the WebPortal application
@@ -47,23 +48,24 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         }
     }
 
-    public final static class ForwardToHandler implements Message {
-        public final String message;
-        public final ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo;
+    // public final static class ForwardToHandler implements Message {
+    // public final String message;
+    // public final ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo;
 
-        public ForwardToHandler(String message, ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo) {
-            this.message = message;
-            this.replyTo = replyTo;
-        }
-    }
+    // public ForwardToHandler(String message,
+    // ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo) {
+    // this.message = message;
+    // this.replyTo = replyTo;
+    // }
+    // }
 
     // Definitely better ways to do this.
-    public final static class ForwardToHandlerVehicle implements Message {
-        public final VehicleClass message;
-        public final ActorRef<WebPortalMessages.CarIntitializeMessage> replyTo;
+    public final static class ForwardToHandler implements Message {
+        public final Vehicle message;
+        public final ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo;
 
-        public ForwardToHandlerVehicle(
-                VehicleClass message, ActorRef<WebPortalMessages.CarIntitializeMessage> replyTo) {
+        public ForwardToHandler(
+                Vehicle message, ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo) {
             this.message = message;
             this.replyTo = replyTo;
         }
@@ -97,9 +99,10 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     public Receive<WebPortalGuardian.Message> createReceive() {
         return newReceiveBuilder()
                 .onMessage(WebPortalGuardian.BootStrap.class, this::onBootStrap)
-                .onMessage(WebPortalGuardian.ForwardToHandler.class, this::onForwardToHandler)
-                .onMessage(WebPortalGuardian.ForwardToHandlerVehicle.class,
-                        this::onForwardToHandlerVehicle)
+                // .onMessage(WebPortalGuardian.ForwardToHandler.class,
+                // this::onForwardToHandler)
+                .onMessage(WebPortalGuardian.ForwardToHandler.class,
+                        this::onForwardToHandler)
 
                 .build();
     }
@@ -117,6 +120,27 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
     // The type of the messages handled by this behavior is declared to be of class
     // message
+    // private Behavior<WebPortalGuardian.Message>
+    // onForwardToHandler(ForwardToHandler message) {
+    // // Create a VehicleEvent actor to handle this request.
+    // ActorRef<VehicleEvent.Message> vehicleEventRef =
+    // getContext().spawn(VehicleEvent.create(), "Fred"); // <- TEMP
+    // // TEMP TEMP
+    // // TEMP TEMP
+    // // - WE NEED
+    // // TO INVENT
+    // // A REAL
+    // // NAMING
+    // // CONVENTION!
+
+    // // We inform the FleetManager that registration was successful
+    // getContext().getLog().info("in onForwardToHandler, the message type is!{}!",
+    // message.getClass());
+    // vehicleEventRef.tell(new
+    // VehicleEvent.FirstMessageFromWebPortal(message.message, message.replyTo));
+    // return this;
+    // }
+
     private Behavior<WebPortalGuardian.Message> onForwardToHandler(ForwardToHandler message) {
         // Create a VehicleEvent actor to handle this request.
         ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred"); // <- TEMP
@@ -129,25 +153,8 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
                                                                                                             // CONVENTION!
 
         // We inform the FleetManager that registration was successful
-        getContext().getLog().info("in onForwardToHandler, the message type is!{}!", message.getClass());
-        vehicleEventRef.tell(new VehicleEvent.FirstMessageFromWebPortal(message.message, message.replyTo));
-        return this;
-    }
-
-    private Behavior<WebPortalGuardian.Message> onForwardToHandlerVehicle(ForwardToHandlerVehicle message) {
-        // Create a VehicleEvent actor to handle this request.
-        ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred"); // <- TEMP
-                                                                                                            // TEMP TEMP
-                                                                                                            // TEMP TEMP
-                                                                                                            // - WE NEED
-                                                                                                            // TO INVENT
-                                                                                                            // A REAL
-                                                                                                            // NAMING
-                                                                                                            // CONVENTION!
-
-        // We inform the FleetManager that registration was successful
         getContext().getLog().info("in onForwardToHandlerVehicle, the message type is!{}!", message.getClass());
-        vehicleEventRef.tell(new VehicleEvent.InitialVehicleMessage(message.message, message.replyTo));
+        vehicleEventRef.tell(new VehicleEvent.FirstMessageFromWebPortal(message.message, message.replyTo));
         return this;
     }
 

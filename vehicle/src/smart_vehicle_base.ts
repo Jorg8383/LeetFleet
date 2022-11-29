@@ -39,7 +39,9 @@ export class WotDevice {
     varMaintenanceNedded = false;
     varMaintenanceNeddedHistory = false;
 
-    // Thing Model -> fill in the empty quotation marks
+    // ------------------------------------------------------------------------
+    // Thing Model
+    // ------------------------------------------------------------------------
     private thingModel: WoT.ExposedThingInit = {
         "@context": ["https://www.w3.org/2019/wot/td/v1", { "@language": "en" }],
         "@type": "",
@@ -53,56 +55,52 @@ export class WotDevice {
         },
         security: "nosec_sc",
         properties: {
-            fleetId: {
+            propFleetId: {
                 type: "string",
             },
-            oilLevel: {
+            propOilLevel: {
                 type: "integer",
                 minimum: 0,
                 maximum: 100,
-                observable: true,
                 readOnly: true
             },
-            tyrePressure: {
+            propTyrePressure: {
                 type: "integer",
                 minimum: 0,
                 maximum: 50,
-                observable: true,
                 readOnly: true
             },
-            totalMileage: {
+            propTotalMileage: {
                 type: "integer",
                 description: `The total mileage of the vehicle.`,
                 minimum: 0,
-                observable: true,
                 readOnly: true
             },
-            nextServiceDistance: {
+            propNextServiceDistance: {
                 type: "integer",
                 description: `Mileage counter for service intervals.`,
                 minimum: -1000000,
                 maximum: 30000,
-                observable: true,
             },
-            doorStatus: {
+            propDoorStatus: {
                 title: "Door status",
                 type: "string",
                 enum: ["LOCKED", "UNLOCKED"],
                 observable: true,
                 readonly: true
             },
-            maintenanceNeeded: {
+            propMaintenanceNeeded: {
                 type: "boolean",
                 description: `Indicates when maintenance is needed. The property is observable. Automatically set to true if oil or tyre pressure is too low.`,
                 observable: true,
             },
         },
         actions: {
-            lockDoor: {
+            actionLockDoor: {
                 description: `Lock the car door`,
                 output: { type: "string" },
             },
-            unlockDoor: {
+            actionUnlockDoor: {
                 description: `Unlock the car door`,
                 output: { type: "string" },
             },
@@ -133,7 +131,6 @@ export class WotDevice {
     private tdDirectory: string;
 
     // property declarations
-    private myProperty: WoT.InteractionInput;
     private propOilLevel: WoT.InteractionInput;
     private propTyrePressure: WoT.InteractionInput;
     private propMaintenanceNeeded: WoT.InteractionInput;
@@ -142,12 +139,18 @@ export class WotDevice {
     private propDoorStatus: WoT.InteractionInput;
     private propFleetId: WoT.InteractionInput;
 
+    // ------------------------------------------------------------------------
+    // Constructor
+    // ------------------------------------------------------------------------
     constructor(deviceWoT: typeof WoT, tdDirectory?: string) {
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         if (tdDirectory) this.tdDirectory = tdDirectory;
     }
 
+    // ------------------------------------------------------------------------
+    // Produce the Thing, expose it, and intialise properties and actions
+    // ------------------------------------------------------------------------
     public async startDevice() {
         console.log(`Producing Thing: ${this.thingModel.title}`);
         const exposedThing = await this.deviceWoT.produce(this.thingModel);
@@ -155,9 +158,10 @@ export class WotDevice {
 
         this.thing = exposedThing;
         this.td = exposedThing.getThingDescription();
-        this.initializeProperties(); // Initialize properties and add their handlers
-        this.initializeActions(); // Initialize actions and add their handlers
+        this.initialiseProperties(); // Initialize properties and add their handlers
+        this.initialiseActions(); // Initialize actions and add their handlers
         // Events do not need to be initialzed, can be emited from anywhere
+        this.emulateBehaviour();
 
         console.log(`Exposing Thing: ${this.thingModel.title}`);
         await this.thing.expose(); // Expose thing
@@ -166,9 +170,13 @@ export class WotDevice {
         if (this.tdDirectory) {
             this.register(this.tdDirectory);
         }
-        //  this.listenToMyEvent(); // used to listen to specific events provided by a library. If you don't have events, simply remove it
+        
+        
     }
 
+    // ------------------------------------------------------------------------
+    // Register Thing Description with directory
+    // ------------------------------------------------------------------------
     public register(directory: string) {
         console.log("Registering TD in directory: " + directory);
         request.post(directory, { json: this.thing.getThingDescription() }, (error: any, response: { statusCode: number; }, body: any) => {
@@ -186,121 +194,161 @@ export class WotDevice {
         });
     }
 
-    // private async myPropertyReadHandler(options?: WoT.InteractionOptions) {
-    //     // read something
-    //     return this.myProperty;
-    // }
-    // private async myPropertyWriteHandler(inputData: WoT.InteractionOutput, options?: WoT.InteractionOptions) {
-    //     // write something to property
-    //     this.myProperty = await inputData.value();
-    // }
-
-    // private myProperty: WoT.InteractionInput;
-    // private propOilLevel: WoT.InteractionInput;
-    // private propTyrePressure: WoT.InteractionInput;
-    // private propMaintenanceNeeded: WoT.InteractionInput;
-    // private propTotalMileage: WoT.InteractionInput;
-    // private propNextServiceDistance: WoT.InteractionInput;
-    // private propDoorStatus: WoT.InteractionInput;
-
     // ------------------------------------------------------------------------
     // Property Handlers
     // ------------------------------------------------------------------------
     
-    // Oil level
+    // Fleet ID
+    private async propFleetIdReadHandler(options?: WoT.InteractionOptions) {
+        return this.propFleetId;
+    }
+
+    private async propFleetIdWriteHandler(inputData: WoT.InteractionOutput, options?: WoT.InteractionOptions) {        
+        this.propFleetId = await inputData.value();
+        this.thing.emitPropertyChange("propFleetId");
+    }
+
+    // Oil Level
     private async propOilLevelReadHandler(options?: WoT.InteractionOptions) {
         this.propOilLevel = this.readFromSensor("oilLevel");
         return this.propOilLevel;
     }
 
-    // Tyre pressure
+    // Tyre Pressure
     private async propTyrePressureReadHandler(options?: WoT.InteractionOptions) {
         this.propOilLevel = this.readFromSensor("tyrePressure");
         return this.propTyrePressure;
     }
 
-    // Maintenance needed
+    // Maintenance Needed
     private async propMaintenanceNeededReadHandler(options?: WoT.InteractionOptions) {
-        if (this.varNextServiceDistance < 500) {
-            this.propMaintenanceNeeded = true;
-            this.varMaintenanceNedded = true;
-            // Notify a "maintainer" when the value has changed
-            // (the notify function here simply logs a message to the console)
-            this.notify(
-                "admin@leetfleet.com",
-                `maintenanceNeeded property has changed, new value is: ${this.varMaintenanceNeddedHistory}`
-            );
-            if (this.varMaintenanceNeddedHistory != this.varMaintenanceNedded) {
-                this.varMaintenanceNeddedHistory = this.varMaintenanceNedded;
-                this.thing.emitPropertyChange("maintenanceNeeded");
-            }
-            this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);        
-        }
-        return this.propTyrePressure;
+        this.propMaintenanceNeeded = this.isMaintenanceNeeded();
+        return this.propMaintenanceNeeded;
     }
 
-
-
-    private async propMaintenanceNeededWriteHandler(inputData: WoT.InteractionOutput, options?: WoT.InteractionOptions) {
+    private async propMaintenanceNeededWriteHandler(inputData: WoT.InteractionOutput, options?: WoT.InteractionOptions) {        
         this.propMaintenanceNeeded = await inputData.value();
+        this.thing.emitPropertyChange("propMaintenanceNeeded");
     }
 
+    // Total Mileage
+    private async propTotalMileageReadHandler(options?: WoT.InteractionOptions) {
+        this.propTotalMileage = this.readOdometer();
+        return this.propTotalMileage;
+    }
+
+    // Next-Service-Distance
+    private async propNextServiceDistanceReadHandler(options?: WoT.InteractionOptions) {
+        this.propNextServiceDistance = this.readOdometerServiceInterval();
+        return this.propNextServiceDistance;
+    }
+
+    private async propNextServiceDistanceWriteHandler(inputData: WoT.InteractionOutput, options?: WoT.InteractionOptions) {        
+        this.propNextServiceDistance = await inputData.value();
+        this.thing.emitPropertyChange("propNextServiceDistance");
+    }
+
+    // Door Status
+    private async propDoorStatusReadHandler(options?: WoT.InteractionOptions) {
+        return this.propDoorStatus;
+    }
 
     // ------------------------------------------------------------------------
     // Action Handlers
     // ------------------------------------------------------------------------
-    private async myActionHandler(inputData?: WoT.InteractionOutput, options?: WoT.InteractionOptions) {
+
+    // Action handler for "lock door"
+    private async lockDoorActionHandler(inputData?: WoT.InteractionOutput, options?: WoT.InteractionOptions) {
         // do something with inputData if available
         let dataValue: string | number | boolean | object | WoT.DataSchemaValue[];
         if (inputData) {
             dataValue = await inputData.value();
         }
-
-        if (dataValue) {
-            this.thing.emitEvent("myEvent", null); // Emiting an event (may be removed; only for demonstration purposes)
-        }
-
-        let outputData = "";
-
-        // resolve that with outputData if available, else resolve that action was successful without returning anything
-        if (outputData) {
+        // resolve that with outputData if available,
+        // otherwise resolve action was successful without returning anything
+        let outputData = "LOCKED";
+        if (outputData.length != 0) {
             return outputData;
         } else {
             return null;
         }
     }
 
-    private listenToMyEvent() {
-        ;
-        /*
-        specialLibrary.getMyEvent()//change specialLibrary to your library
-        .then((thisEvent) => {
-            this.thing.emitEvent("myEvent",""); //change quotes to your own event data
-        });
-        */
+    // Action handler for "unlock door"
+    private async unlockDoorActionHandler(inputData?: WoT.InteractionOutput, options?: WoT.InteractionOptions) {
+        // do something with inputData if available
+        let dataValue: string | number | boolean | object | WoT.DataSchemaValue[];
+        if (inputData) {
+            dataValue = await inputData.value();
+        }
+        // resolve that with outputData if available,
+        // otherwise resolve action was successful without returning anything
+        let outputData = "UNLOCKED";
+        if (outputData.length != 0) {
+            return outputData;
+        } else {
+            return null;
+        }
     }
 
-    private initializeProperties() {
+    // ------------------------------------------------------------------------
+    // Initialise properties
+    // ------------------------------------------------------------------------
+    private initialiseProperties() {
+        // Property Fleet ID
+        this.propFleetId = "unknown";
+        this.thing.setPropertyReadHandler("propFleetId", this.propFleetIdReadHandler);
+        this.thing.setPropertyWriteHandler("propFleetId", this.propFleetIdWriteHandler);
+
         // Property Oil Level
         this.propOilLevel = 100; // [%]; // replace quotes with the initial value
-        this.thing.setPropertyReadHandler("oilLevel", this.propOilLevelReadHandler); // not applicable for write-only
+        this.thing.setPropertyReadHandler("propOilLevel", this.propOilLevelReadHandler);
 
         // Property Tyre Pressure
         this.propTyrePressure = 35; // [PSI]
-        this.thing.setPropertyReadHandler("tyrePressure", this.propTyrePressureReadHandler); // not applicable for write-only
+        this.thing.setPropertyReadHandler("propTyrePressure", this.propTyrePressureReadHandler);
+
+        // Property Maintenance Needed
+        this.propMaintenanceNeeded = false;
+        this.thing.setPropertyReadHandler("propMaintenanceNeeded", this.propMaintenanceNeededReadHandler);
+        this.thing.setPropertyWriteHandler("propMaintenanceNeeded", this.propMaintenanceNeededWriteHandler);
+
+        // Property Total Mileage
+        this.propTotalMileage = 0;
+        this.thing.setPropertyReadHandler("propTotalMileage", this.propTotalMileageReadHandler);
+
+        // Property Next-Service-Distance
+        this.propNextServiceDistance = 30000;
+        this.thing.setPropertyReadHandler("propNextServiceDistance", this.propNextServiceDistanceReadHandler);
+        this.thing.setPropertyWriteHandler("propNextServiceDistance", this.propNextServiceDistanceWriteHandler);
+
+        // Property Door Status
+        this.propDoorStatus = "UNLOCKED";
+        this.thing.setPropertyReadHandler("propDoorStatus", this.propDoorStatusReadHandler);
 
     }
 
-    private initializeActions() {
-        //fill in add actions
-        this.thing.setActionHandler("myAction", async (inputData) => {
-            let dataValue = await inputData.value();
-            if (!ajv.validate(this.td.actions.myAction.input, dataValue)) {
-                throw new Error("Invalid input");
-            } else {
-                return this.myActionHandler(inputData);
-            }
+    // ------------------------------------------------------------------------
+    // Initialise actions
+    // ------------------------------------------------------------------------
+    private initialiseActions() {
+        // Set up a action handler for lockDoor
+        this.thing.setActionHandler("actionLockDoor", async () => {
+            return this.lockDoorActionHandler();
         });
+        // Set up a action handler for unlockDoor
+        this.thing.setActionHandler("actionUnlockDoor", async () => {
+            return this.unlockDoorActionHandler();
+        });
+
+        // this.thing.setActionHandler("myAction", async (inputData) => {
+        //     let dataValue = await inputData.value();
+        //     if (!ajv.validate(this.td.actions.myAction.input, dataValue)) {
+        //         throw new Error("Invalid input");
+        //     } else {
+        //         return this.myActionHandler(inputData);
+        //     }
+        // });
     }
 
     private readFromSensor(sensorType) {
@@ -324,11 +372,11 @@ export class WotDevice {
         console.log(msg);
     } 
 
-    private readMilometerServiceInterval() {
+    private readOdometerServiceInterval() {
         return this.varNextServiceDistance;
     } 
 
-    private readMilometer() {
+    private readOdometer() {
         // Emulate mileage by increasing it randomly between 0 and 500 km
         let mileageIncrease;
         mileageIncrease = this.getRandomInt(0, 500);
@@ -336,9 +384,10 @@ export class WotDevice {
         this.varNextServiceDistance -= mileageIncrease;
         console.log("Reading milometer: " + this.varTotalMileage);
         console.log("Distance left until next service is due: " + this.varNextServiceDistance);
-        return
+        return this.varTotalMileage;
         // return {'totalMileage': totalMileage, 'nextServiceDistance': nextServiceDistance};
     }
+    
     private getRandomInt(min, max) {
         // round min value upwards to next integer value
         min = Math.ceil(min);
@@ -346,5 +395,29 @@ export class WotDevice {
         max = Math.floor(max);
         // return a random value where max is inclusive and minimum is exclusive
         return Math.floor(Math.random() * (max - min) + min);
+    }
+
+    private isMaintenanceNeeded() {
+        if (this.varNextServiceDistance < 500) {
+            this.varMaintenanceNedded = true;
+            // Notify a "maintainer" when the value has changed
+            // (the notify function here simply logs a message to the console)
+            this.notify(
+                "admin@leetfleet.com",
+                `maintenanceNeeded property has changed, new value is: ${this.varMaintenanceNeddedHistory}`
+            );
+            this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);        
+        } else {
+            this.varMaintenanceNedded = false;
+        }
+        if (this.varMaintenanceNeddedHistory != this.varMaintenanceNedded) {
+            this.varMaintenanceNeddedHistory = this.varMaintenanceNedded;
+            this.thing.emitPropertyChange("maintenanceNeeded");
+        }
+        return this.varMaintenanceNedded
+    }
+
+    private emulateBehaviour() {
+        ;
     }
 }

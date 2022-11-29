@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "ES2016",
+        "lib": ["ES2016", "dom"],
+        "module": "commonjs",
+        "outDir": "dist",
+        "alwaysStrict": true,
+        "sourceMap": true,
+        "noLib": false,
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true
+    },
+    "exclude": ["node_modules"],
+    "include": ["src/**/*"]
+}

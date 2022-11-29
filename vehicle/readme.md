@@ -1,3 +1,7 @@
+- npm install
+- npm run build
+- npm run start
+
 # Smart-Vehicle
 
 To run the servient of the smart-vehicle run:

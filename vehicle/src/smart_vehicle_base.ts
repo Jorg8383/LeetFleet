@@ -53,6 +53,9 @@ export class WotDevice {
         },
         security: "nosec_sc",
         properties: {
+            fleetId: {
+                type: "string",
+            },
             oilLevel: {
                 type: "integer",
                 minimum: 0,

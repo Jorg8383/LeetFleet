@@ -5,8 +5,8 @@ import * as WoT from "wot-typescript-definitions";
 
 import request = require("request");
 
-//  import Ajv = require("ajv");
-//  var ajv = new Ajv();
+// import Ajv = require("ajv");
+// var ajv = new Ajv();
 
 const Ajv = require("ajv");
 const ajv = new Ajv(); // options can be passed, e.g. {allErrors: true}
@@ -189,12 +189,18 @@ export class WotDevice {
     
     // Fleet ID
     private async propFleetIdReadHandler(options?: WoT.InteractionOptions) {
+        console.log("Reading 'propFleetId'...." + this.propFleetId);
         return this.propFleetId;
     }
 
     private async propFleetIdWriteHandler(inputData: WoT.InteractionOutput, options?: WoT.InteractionOptions) {        
-        this.propFleetId = await inputData.value();
-        this.thing.emitPropertyChange("propFleetId");
+        let dataValue = await inputData.value();
+        if (!ajv.validate(this.td.properties.propFleetId, dataValue)) {
+            throw new Error("Writing the property 'propFleetId' failed due to a invalid input value.")
+        } else {
+            this.propFleetId = dataValue;
+            this.thing.emitPropertyChange("propFleetId");
+        }   
     }
 
     // Oil Level
@@ -216,8 +222,13 @@ export class WotDevice {
     }
 
     private async propMaintenanceNeededWriteHandler(inputData: WoT.InteractionOutput, options?: WoT.InteractionOptions) {        
-        this.propMaintenanceNeeded = await inputData.value();
-        this.thing.emitPropertyChange("propMaintenanceNeeded");
+        let dataValue = await inputData.value();
+        if (!ajv.validate(this.td.properties.propMaintenanceNeeded, dataValue)) {
+            throw new Error("Writing the property 'propMaintenanceNeeded' failed due to a invalid input value.")
+        } else {
+            this.propMaintenanceNeeded = dataValue;
+            this.thing.emitPropertyChange("propMaintenanceNeeded");
+        }   
     }
 
     // Total Mileage
@@ -232,9 +243,14 @@ export class WotDevice {
         return this.propNextServiceDistance;
     }
 
-    private async propNextServiceDistanceWriteHandler(inputData: WoT.InteractionOutput, options?: WoT.InteractionOptions) {        
-        this.propNextServiceDistance = await inputData.value();
-        this.thing.emitPropertyChange("propNextServiceDistance");
+    private async propNextServiceDistanceWriteHandler(inputData: WoT.InteractionOutput, options?: WoT.InteractionOptions) {    
+        let dataValue = await inputData.value();
+        if (!ajv.validate(this.td.properties.propNextServiceDistance, dataValue)) {
+            throw new Error("Writing the property 'propNextServiceDistance' failed due to a invalid input value.")
+        } else {
+            this.propNextServiceDistance = dataValue;
+            this.thing.emitPropertyChange("propNextServiceDistance");    
+        }   
     }
 
     // Door Status
@@ -249,10 +265,10 @@ export class WotDevice {
     // Action handler for "lock door"
     private async lockDoorActionHandler(inputData?: WoT.InteractionOutput, options?: WoT.InteractionOptions) {
         // do something with inputData if available
-        let dataValue: string | number | boolean | object | WoT.DataSchemaValue[];
-        if (inputData) {
-            dataValue = await inputData.value();
-        }
+        // let dataValue: string | number | boolean | object | WoT.DataSchemaValue[];
+        // if (inputData) {
+        //     dataValue = await inputData.value();
+        // }
         // resolve that with outputData if available,
         // otherwise resolve action was successful without returning anything
         let outputData = "LOCKED";
@@ -266,10 +282,10 @@ export class WotDevice {
     // Action handler for "unlock door"
     private async unlockDoorActionHandler(inputData?: WoT.InteractionOutput, options?: WoT.InteractionOptions) {
         // do something with inputData if available
-        let dataValue: string | number | boolean | object | WoT.DataSchemaValue[];
-        if (inputData) {
-            dataValue = await inputData.value();
-        }
+        // let dataValue: string | number | boolean | object | WoT.DataSchemaValue[];
+        // if (inputData) {
+        //     dataValue = await inputData.value();
+        // }
         // resolve that with outputData if available,
         // otherwise resolve action was successful without returning anything
         let outputData = "UNLOCKED";
@@ -286,6 +302,7 @@ export class WotDevice {
     private initialiseProperties() {
         // Property Fleet ID
         this.propFleetId = "unknown";
+        console.log("propFleetId:" + this.propFleetId);
         this.thing.setPropertyReadHandler("propFleetId", this.propFleetIdReadHandler);
         this.thing.setPropertyWriteHandler("propFleetId", this.propFleetIdWriteHandler);
 

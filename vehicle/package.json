@@ -18,7 +18,7 @@
   "dependencies": {
     "@node-wot/binding-http": "^0.8.2",
     "@node-wot/core": "^0.8.2",
-    "ajv": "^7.2.4",
+    "ajv": "8.11.2",
     "request": "2.88.0"
   },
   "scripts": {

@@ -15,7 +15,7 @@ Servient = require("@node-wot/core").Servient
 HttpServer = require("@node-wot/binding-http").HttpServer
 
 //Creating the instances of the binding servers
-var httpServer = new HttpServer({port: 8080});
+var httpServer = new HttpServer({port: 8090});
 
 //Building the servient object
 var servient = new Servient();

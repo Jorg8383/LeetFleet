@@ -149,7 +149,8 @@ public class WebPortalRoutes extends WebPortalMessages {
   PathMatcher1<String> milagePath = PathMatchers
       .segment("wot").slash(segment("total_mileage").concat(segment()));
 
-  // PathMatcher0 milagePath = PathMatchers.segment("wot").slash("total_mileage");
+  // PathMatcher1<String> milagePath = PathMatchers
+  // .segment("wot").slash(parameter("total_mileage", milage ->));
 
   public Route vehicleEventRoutes() {
     // We are using an 'actor per request' pattern. So:
@@ -180,7 +181,10 @@ public class WebPortalRoutes extends WebPortalMessages {
                 vehicle -> onSuccess(newVehicleToGuardian(vehicle),
                     theMessage -> complete(StatusCodes.OK, theMessage.vehicle, Jackson.marshaller()))))),
 
-        get(() -> path(milagePath, id -> complete("id is: " + id))));
+        // get(() -> path(milagePath, id -> complete("id is: " + id))));
+
+        get(() -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+            fleetId -> complete("Fleetid is" + fleetId + "vehicleid is " + vehicleId)))));
     /// wot/total_mileage?vehicle_id=sssssss&fleet_id=ssssss
     // #all-routes
   }

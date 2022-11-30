@@ -1,21 +1,21 @@
-package lf.registry;
+package lf.fleetman;
 
 import akka.actor.typed.ActorSystem;
-import lf.actor.RegistryGuardian;
+import lf.actor.CarelessGuardian;
 import lf.core.LeetFSvcStart;
-import lf.message.LeetFServiceGuardian.BootStrap;
+import lf.message.LeetFServiceGuardian;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.typesafe.config.Config;
 
-public class RegistryStart extends LeetFSvcStart {
-  private static final Logger log = LogManager.getLogger(RegistryStart.class);
+public class CarelessStart extends LeetFSvcStart {
+  private static final Logger log = LogManager.getLogger(CarelessStart.class);
 
   public static void main(String[] args) {
-    akkaHostname = "registry"; // Sensible defaults
-    akkaPort     = 2550;
+    akkaHostname = "careless"; // Sensible defaults
+    akkaPort     = 2552;
 
     configFromArgs(args);
 
@@ -27,15 +27,15 @@ public class RegistryStart extends LeetFSvcStart {
     // The bootstrap of your application is typically done within the guardian actor.
 
     //#actor-system
-    final ActorSystem<BootStrap> registryGuardian
-                  = ActorSystem.create(RegistryGuardian.create(), "leet-fleet", config);
+    final ActorSystem<LeetFServiceGuardian.BootStrap> carelessGuardian
+                  = ActorSystem.create(CarelessGuardian.create(), "leet-fleet", config);
     //#actor-system
 
     //#main-send-messages
-    registryGuardian.tell(new BootStrap("Leet-Fleet"));
+    carelessGuardian.tell(new LeetFServiceGuardian.BootStrap("Leet-Fleet"));
     //#main-send-messages
 
-    gracefulInteractiveTermination(registryGuardian);
+    gracefulInteractiveTermination(carelessGuardian);
 
   }
 

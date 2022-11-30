@@ -16,7 +16,7 @@
         <module>paranoid</module>
         <!-- Manager registry -->
         <module>registry</module>
-        <module>web_portal</module>
+        <module>webportal</module>
         <!-- <module>wot_portal</module> -->
     </modules>
 

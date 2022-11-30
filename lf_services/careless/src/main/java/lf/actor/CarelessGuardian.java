@@ -4,12 +4,13 @@ import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
 import jnr.ffi.annotations.IgnoreError;
+import lf.message.FleetManager.Message;
 import lf.message.LeetFServiceGuardian.BootStrap;
 
 /**
  * The guardian is the top level actor that bootstraps the Registry application
  */
-public class RegistryGuardian extends AbstractBehavior<BootStrap> {
+public class CarelessGuardian extends AbstractBehavior<BootStrap> {
 
     // MESSAGES:
     //
@@ -18,14 +19,14 @@ public class RegistryGuardian extends AbstractBehavior<BootStrap> {
     // For Service actors we make an exception - so startup logic can be shared.
 
     // ENCAPSULATION:
-    @IgnoreError  // Ignore unused error for registry - spawned but not referenced.
-    private final ActorRef<Registry.Message> registry;
+    @IgnoreError  // Ignore unused error for carelessFleetManager - spawned but not referenced.
+    private final ActorRef<Message> carelessFleetManager;
 
     //=========================================================================
 
     // CREATE THIS ACTOR
     public static Behavior<BootStrap> create() {
-        return Behaviors.setup(RegistryGuardian::new);
+        return Behaviors.setup(CarelessGuardian::new);
     }
 
     // ADD TO CONTEXT
@@ -34,11 +35,11 @@ public class RegistryGuardian extends AbstractBehavior<BootStrap> {
     // Instead, you create Actor instances using factory spawn methods. Spawn
     // does not return an actor instance, but a reference (akka.actor.typed.ActorRef)
     // that points to the actor instance
-    private RegistryGuardian(ActorContext<BootStrap> context) {
+    private CarelessGuardian(ActorContext<BootStrap> context) {
         super(context);
         //#create-actors
         // Spawning - location transparency - this actor could be anywhere in the cluster
-        registry = context.spawn(Registry.create(), "registry");
+        carelessFleetManager = context.spawn(CarelessFleetManager.create(), "carelessFleetManager");
         //#create-actors
     }
 
@@ -53,8 +54,7 @@ public class RegistryGuardian extends AbstractBehavior<BootStrap> {
     }
 
     private Behavior<BootStrap> onBootStrap(BootStrap message) {
-        getContext().getLog().info("Starting Registry for {}!", message.note);
-        // Do we neeed the registry Actor ref for anything???
+        getContext().getLog().info("Starting FleetManager for {}!", message.note);
         return this;
     }
 }

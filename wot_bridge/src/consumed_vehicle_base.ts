@@ -1,53 +1,42 @@
-// import * as WoT from "wot-typescript-definitions";
+import * as WoT from "wot-typescript-definitions";
+import request = require("request");
 
 // Required steps to create a servient for a client
 const { Servient, Helpers } = require("@node-wot/core");
 const { HttpClientFactory } = require('@node-wot/binding-http');
 
-const servient = new Servient();
-servient.addClientFactory(new HttpClientFactory(null));
-const WoTHelpers = new Helpers(servient);
+export class ConsumedThing {
+    public thing: WoT.ConsumedThing
+    public td_url: string
+    public servient = Servient
+    public wotHelpers = Helpers
 
-WoTHelpers.fetch("http://localhost:8080/smart-vehicle").then(async (td) => {
-    try {
-        servient.start().then(async (WoT) => {
-            // Here we're consuming the thing
-            try {
-                const thing = await WoT.consume(td);
-                console.log("Consumed thing: " + thing.getThingDescription().title);
+    constructor(td_url: string) {
+        this.td_url = td_url;
+        this.servient = new Servient();
+        this.servient.addClientFactory(new HttpClientFactory(null));
+        this.wotHelpers = new Helpers(this.servient);
 
-                await thing.observeProperty("maintenanceNeeded", async (data) => {
-                    console.info("Observed 'maintenanceNeeded' property has changed! New value is:", await data.value());
-                });
-                await thing.observeProperty("totalMileage", async (data) => {
-                    console.info("Observed 'totalMileage' property has changed! New value is:", await data.value());
-                });
-                await thing.observeProperty("nextServiceDistance", async (data) => {
-                    console.info("Observed 'nextServiceDistance' property has changed! New value is:", await data.value());
-                });
-                await thing.observeProperty("doorStatus", async(data) => {
-                    console.info("Door status has changed! Door status is now: ", await data.value());
-                });
+        this.thing = ConsumedThing.tdConsume(this.td_url);
 
-                await thing.subscribeEvent("eventLowOnOil", async (data) => {
-                    // For now let's simply log the message when the event is emitted
-                    console.log("eventLowOnOil:", await data.value());
-                });
-                await thing.subscribeEvent("eventLowTyrePressure", async (data) => {
-                    // For now let's simply log the message when the event is emitted
-                    console.log("eventLowTyrePressure:", await data.value());
-                });
-                await thing.subscribeEvent("eventMaintenanceNeeded", async (data) => {
-                    // For now let's simply log the message when the event is emitted
-                    console.log("eventMaintenanceNeeded:", await data.value());
-                });
-            } catch (err) {
-                console.error("Script error:", err);
+    }
+
+    // Read with rhythm Doo-Doo-Doo-DooDoo-DooDoo
+    // I-don't-know-ifthis-willwork!
+    
+    private static tdConsume(url: string): WoT.ConsumedThing {
+
+        return request(url, function (error, response, body) {
+            if (error) {
+                console.log("Error occurred when making get request on td url...\n");
+                console.log(error);
+                return error; // Don't have an elegant way to handle this yet
+            } else {
+                console.log("Successful Request: " + response.statusCode);
+                console.log("TD url was queried successfully\n");
+                let json = JSON.parse(body);
+                return WoT.consume(json);
             }
         });
     }
-    catch (err) {
-        console.error("Script error:", err);
-    }
-}).catch((err) => { console.error("Fetch error:", err); })
-
+}

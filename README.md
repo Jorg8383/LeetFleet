@@ -118,22 +118,6 @@ wot_portal (???)
 web_portal (httptoakka)
 
 
-1) registry/router (broker) (good name?) (maybe even the first actor???)
-
-2) web_portal (HttpToAkka) registers with registry
-3) fleet managers register with registry (x3)
-    -> DodoCola
-    -> RockShamFoods
-    -> YouBear
-    -> NoFleet
-
-i) web portal gets message
-ii) Tells message to registry/router actor (message has to have a car id)
-iii) registry sends to all fleetmanagers
-iv) all but ignores the message
-v) the fleet the vhicle belongs to ... does the thing...
-   -> create a car actor
-   -> store shit in the database
 
 
 Spring container

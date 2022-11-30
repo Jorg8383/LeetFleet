@@ -13,7 +13,10 @@ import akka.http.javadsl.marshallers.jackson.Jackson;
 import static akka.http.javadsl.server.Directives.*;
 
 import akka.http.javadsl.model.StatusCodes;
+import akka.http.javadsl.server.PathMatcher0;
+import akka.http.javadsl.server.PathMatcher1;
 import akka.http.javadsl.server.PathMatchers;
+import static akka.http.javadsl.server.PathMatchers.segment;
 import akka.http.javadsl.server.Route;
 import lf.actor.VehicleClass;
 import lf.actor.VehicleEvent;
@@ -142,6 +145,12 @@ public class WebPortalRoutes extends WebPortalMessages {
    * your Web App)
    */
   // #all-routes
+
+  PathMatcher1<String> milagePath = PathMatchers
+      .segment("wot").slash(segment("total_mileage").concat(segment()));
+
+  // PathMatcher0 milagePath = PathMatchers.segment("wot").slash("total_mileage");
+
   public Route vehicleEventRoutes() {
     // We are using an 'actor per request' pattern. So:
     // For every single request we spawn a 'VehicleEvent' actor.
@@ -169,7 +178,10 @@ public class WebPortalRoutes extends WebPortalMessages {
         path("new-vehicle",
             () -> post(() -> entity(Jackson.unmarshaller(Vehicle.class),
                 vehicle -> onSuccess(newVehicleToGuardian(vehicle),
-                    theMessage -> complete(StatusCodes.OK, theMessage.vehicle, Jackson.marshaller()))))));
+                    theMessage -> complete(StatusCodes.OK, theMessage.vehicle, Jackson.marshaller()))))),
+
+        get(() -> path(milagePath, id -> complete("id is: " + id))));
+    /// wot/total_mileage?vehicle_id=sssssss&fleet_id=ssssss
     // #all-routes
   }
 

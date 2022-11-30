@@ -17,13 +17,16 @@ WoTHelpers.fetch("http://localhost:8080/smart-vehicle").then(async (td) => {
                 console.log("Consumed thing: " + thing.getThingDescription().title);
 
                 await thing.observeProperty("maintenanceNeeded", async (data) => {
-                    console.log("Observed 'maintenanceNeeded' property has changed! New value is:", await data.value());
+                    console.info("Observed 'maintenanceNeeded' property has changed! New value is:", await data.value());
                 });
                 await thing.observeProperty("totalMileage", async (data) => {
-                    console.log("Observed 'totalMileage' property has changed! New value is:", await data.value());
+                    console.info("Observed 'totalMileage' property has changed! New value is:", await data.value());
                 });
                 await thing.observeProperty("nextServiceDistance", async (data) => {
-                    console.log("Observed 'nextServiceDistance' property has changed! New value is:", await data.value());
+                    console.info("Observed 'nextServiceDistance' property has changed! New value is:", await data.value());
+                });
+                await thing.observeProperty("doorStatus", async(data) => {
+                    console.info("Door status has changed! Door status is now: ", await data.value());
                 });
 
                 await thing.subscribeEvent("eventLowOnOil", async (data) => {

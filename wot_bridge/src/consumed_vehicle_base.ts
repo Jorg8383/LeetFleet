@@ -18,12 +18,13 @@ export class ConsumedThing {
         this.wotHelpers = new Helpers(this.servient);
 
         this.thing = ConsumedThing.tdConsume(this.td_url);
-
+        this.observeProperties(this.thing);
+        this.subscribe(this.thing);
     }
 
     // Read with rhythm Doo-Doo-Doo-DooDoo-DooDoo
     // I-don't-know-ifthis-willwork!
-    
+
     private static tdConsume(url: string): WoT.ConsumedThing {
 
         return request(url, function (error, response, body) {
@@ -38,5 +39,41 @@ export class ConsumedThing {
                 return WoT.consume(json);
             }
         });
+    }
+
+    private observeProperties(thing: WoT.ConsumedThing) {
+        thing.observeProperty("totalMileage", async (data) => {
+            console.log("Observed 'totalMileage' property has changed! New value is:", await data.value());
+        }).then(
+            // Not sure what the promise here is but something happens...
+        );
+
+        thing.observeProperty("maintenanceNeeded", async (data) => {
+            console.log("Observed 'maintenanceNeeded' property has changed! New value is:", await data.value());
+        }).then(
+            // Not sure what the promise here is but something happens...
+        );
+
+        thing.observeProperty("nextServiceDistance", async (data) => {
+            console.log("Observed 'nextServiceDistance' property has changed! New value is:", await data.value());
+        }).then(
+            // Not sure what the promise here is but something happens...
+        );
+    }
+
+    private subscribe(thing: WoT.ConsumedThing) {
+        thing.subscribeEvent("eventLowOnOil", async (data) => {
+            console.log("eventLowOnOil:", await data.value());
+        }).then(
+            // Still don't know what the promises do here...
+            // Sing it with me now...
+            // I-don't-know-ifthis--willwork
+        );
+        thing.subscribeEvent("eventLowTyrePressure", async (data) => {
+            console.log("eventLowTyrePressure:", await data.value());
+        }).then();
+        thing.subscribeEvent("eventMaintenanceNeeded", async (data) => {
+            console.log("eventMaintenanceNeeded:", await data.value());
+        }).then();
     }
 }

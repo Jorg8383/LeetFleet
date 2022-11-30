@@ -4,10 +4,10 @@
 
 2) web_portal (HttpToAkka) registers with registry
 3) fleet managers register with registry (x3)
-    -> DodoCola
-    -> RockShamFoods
-    -> YouBear
-    -> NoFleet
+    -> careless
+    -> fastidious
+    -> paranoid
+    -> fleetless
 
 i
 # Ports for LeetFleet System
@@ -16,12 +16,12 @@ RedisInsight  : 8001
 # HTTP Server
 WebPortal     : 8080
 # Akka Cluster
-Registry      : 2550
-WebPortal     : 2551
-Fleetless     : 2552
-Kodakola      : 2553
-RockSham Foods: 2554
-YouBear       : 2555
+Registry  : 2550
+WebPortal : 2551
+Careless  : 2552
+Fastidious: 2553
+Fleetless : 2554
+Paranoid  : 2555
 
 
 To Test the web portal (no docker) we can:

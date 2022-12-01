@@ -1,6 +1,7 @@
 //Where your concrete implementation is included
 // WotDevice = require("./dist/base.js").WotDevice
-WotDevice = require("./dist/consumed_vehicle_base.js").WotDevice
+const {ConsumedThing} = require("./dist/consumed_vehicle_base");
+consumedVehicle = require("./dist/consumed_vehicle_base.js").ConsumedThing
 
 /*
 This project supports the registration of the generated TD to a TD directory
@@ -15,7 +16,7 @@ Servient = require("@node-wot/core").Servient
 HttpServer = require("@node-wot/binding-http").HttpServer
 
 //Creating the instances of the binding servers
-var httpServer = new HttpServer({port: 8080});
+var httpServer = new HttpServer({port: 10000});
 
 //Building the servient object
 var servient = new Servient();
@@ -23,5 +24,5 @@ var servient = new Servient();
 servient.addServer(httpServer);
 
 servient.start().then((WoT) => {
-    wotDevice = new WotDevice(WoT, TD_DIRECTORY); // TODO change the wotDevice to something that makes more sense
+    let consumedThing = new ConsumedThing("http://localhost:8080/smart-vehicle"); // TODO change the wotDevice to something that makes more sense
 });

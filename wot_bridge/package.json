@@ -2,7 +2,7 @@
   "name": "wot-leetfleet-bridge",
   "version": "1.0.0",
   "description": "W3C WoT interface for base smart_vehicle_base.ts",
-  "main": "wot_bridge.js",
+  "main": "index.js",
   "keywords": [
     "wot",
     "w3c"
@@ -24,7 +24,7 @@
   "scripts": {
     "build": "tsc -b",
     "buildAll": "npm install; tsc;",
-    "start": "node wot_bridge.js",
+    "start": "node index.js",
     "clean": "rm -rf node_modules; rm -rf dist; rm -rf package-lock.json"
   }
 }

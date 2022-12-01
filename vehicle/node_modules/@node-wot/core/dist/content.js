@@ -1,0 +1,25 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DefaultContent = exports.Content = void 0;
+const content_serdes_1 = require("./content-serdes");
+const protocol_helpers_1 = __importDefault(require("./protocol-helpers"));
+class Content {
+    constructor(type, body) {
+        this.type = type;
+        this.body = body;
+    }
+    toBuffer() {
+        return protocol_helpers_1.default.readStreamFully(this.body);
+    }
+}
+exports.Content = Content;
+class DefaultContent extends Content {
+    constructor(body) {
+        super(content_serdes_1.ContentSerdes.DEFAULT, body);
+    }
+}
+exports.DefaultContent = DefaultContent;
+//# sourceMappingURL=content.js.map

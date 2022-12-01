@@ -1,31 +1,56 @@
-# LeetFleet
+# LeetFleet (lf_services)
 
-1) registry/router (broker) (good name?) (maybe even the first actor???)
+## Startup Sequence
+To create required docker network: docker network create leetfleet_net
+To run the whole shooting match: docker compose up
 
-2) web_portal (HttpToAkka) registers with registry
-3) fleet managers register with registry (x3)
-    -> DodoCola
-    -> RockShamFoods
-    -> YouBear
-    -> NoFleet
+### Individual Start:
+1) Dummy Cloud Storage
+   There are lots of arguments for REDIS. Easiest approach is to run:
+    - docker compose -f docker-comp-redis.yml up
+    ...to run redis on it's own
+    - docker compose up
+    ... to run docker-compose.yml and run redis as part of the leetfleet ecosystem.
 
-i
+2) Registry
+   NOTE: `registry` is **THE FIRST** Cluster Seed Node. It MUST start first for the Cluster to function
+   No real point in running locally, unless debugging, but:
+   mvn exec:java -Dexec.args="-a localhost" -pl registry
+   ... or...
+   docker run --network-alias registry --network leetfleet_net registry:latest
+
+3) Fleet Managers (all - simply insert chosen manager name)
+   - careless
+   - fastidious
+   - fleetless
+   - paranoid
+   NOTE: `registry` or `webportal` MUST be running (Cluster Seed Nodes)
+   No real point in running locally, unless debugging, but:
+   mvn exec:java -Dexec.args="-a localhost" -pl careless
+   ... or...
+   docker run --network-alias careless --network leetfleet_net careless:latest
+
+4) webportal (HttpToAkka) registers with registry
+   mvn exec:java -Dexec.args="-a localhost" -pl webportal
+   docker run --network-alias webportal --network leetfleet_net webportal:latest
+
+
 # Ports for LeetFleet System
 Redis         : 6379
 RedisInsight  : 8001
 # HTTP Server
 WebPortal     : 8080
 # Akka Cluster
-Registry      : 2550
-WebPortal     : 2551
-Fleetless     : 2552
-Kodakola      : 2553
-RockSham Foods: 2554
-YouBear       : 2555
+Registry  : 2550 (*** AKKA Seed Node, at least one Seed Node must be started for Cluster to Function)
+WebPortal : 2551 (*** AKKA Seed Node, at least one Seed Node must be started for Cluster to Function)
+Careless  : 2552
+Fastidious: 2553
+Fleetless : 2554
+Paranoid  : 2555
 
 
 To Test the web portal (no docker) we can:
-mvn exec:java -Dexec.args="-a localhost" -pl web_portal
+mvn exec:java -Dexec.args="-a localhost" -pl webportal
 
 
 

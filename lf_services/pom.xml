@@ -10,14 +10,14 @@
     <modules>
         <module>core</module>
         <!-- Fleet Managers -->
+        <module>careless</module>
         <module>fleetless</module>
-        <module>kodakola</module>
-        <module>rockshamfoods</module>
-        <module>youbear</module>
+        <module>fastidious</module>
+        <module>paranoid</module>
         <!-- Manager registry -->
         <module>registry</module>
-        <module>web_portal</module>
-        <!-- <module>wot_portal</module> -->
+        <module>webportal</module>
+        <!-- <module>wotportal</module> -->
     </modules>
 
     <properties>

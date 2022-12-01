@@ -17,6 +17,13 @@ public class Vehicle {
     private String doorStatus;
     private String maintenanceNeeded;
 
+    public static Vehicle createForMileage(String vehicleId, String fleetId, Float totalMileage)
+    {
+        return new Vehicle(
+            vehicleId, fleetId, new Float(0), totalMileage,
+            new Float(0),  new Long(0), "", "");
+    }
+
     public Vehicle(String vehicleId, String fleetId, Float tyrePressure, Float totalMileage, Float oilLevel,
             Long nextServiceMileage, String doorStatus, String maintenanceNeeded) {
         this.vehicleId = vehicleId;

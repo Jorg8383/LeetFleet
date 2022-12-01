@@ -2,10 +2,24 @@ package lf.registry;
 
 import akka.actor.typed.ActorSystem;
 import lf.actor.RegistryGuardian;
+import lf.core.LeetFServiceStart;
+import lf.message.LeetFServiceGuardian.BootStrap;
 
-import java.io.IOException;
-public class RegistryStart {
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.typesafe.config.Config;
+
+public class RegistryStart extends LeetFServiceStart {
+  private static final Logger log = LogManager.getLogger(RegistryStart.class);
+
   public static void main(String[] args) {
+    akkaHostname = "registry"; // Sensible defaults
+    akkaPort     = 2550;
+
+    configFromArgs(args);
+
+    Config config = buildOverrideAkkaConfig();
 
     // An ActorSystem is the intial entry point into Akka.
     // Usually only one ActorSystem is created per application.
@@ -13,20 +27,16 @@ public class RegistryStart {
     // The bootstrap of your application is typically done within the guardian actor.
 
     //#actor-system
-    final ActorSystem<RegistryGuardian.BootStrap> registryGuardian
-                  = ActorSystem.create(RegistryGuardian.create(), "leet-fleet");
+    final ActorSystem<BootStrap> registryGuardian
+                  = ActorSystem.create(RegistryGuardian.create(), "leet-fleet", config);
     //#actor-system
 
     //#main-send-messages
-    registryGuardian.tell(new RegistryGuardian.BootStrap("Leet-Fleet"));
+    registryGuardian.tell(new BootStrap("Leet-Fleet"));
     //#main-send-messages
 
-    try {
-      System.out.println(">>> Press ENTER to exit <<<");
-      System.in.read();
-    } catch (IOException ignored) {
-    } finally {
-      registryGuardian.terminate();
-    }
+    gracefulInteractiveTermination(registryGuardian);
+
   }
+
 }

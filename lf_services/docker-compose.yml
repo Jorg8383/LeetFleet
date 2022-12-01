@@ -24,14 +24,29 @@ services:
       # You can set these explicitly:
       #  -> save 3600 1 300 100 60 10000
       - REDIS_ARGS=--logfile /logs/redis-stack.log --dbfilename leetfleet.rdb --dir /leetfleet
-  # core:
-  #   build: core
-  #   ports:
-  #     - 8080:8080
-  #   depends_on:
-  #     - redis
-  # client:
-  #   image: "client:latest"
-  #   depends_on:
-  #     - "wish_I_knew"
+  registry:
+    image: "registry:latest"
+    depends_on:
+      - "redis"
+  # Fleet Managers
+  careless:
+    image: "careless:latest"
+    depends_on:
+      - "redis"
+      - "registry"
+  fastidious:
+    image: "fastidious:latest"
+    depends_on:
+      - "redis"
+      - "registry"
+  fleetless:
+    image: "fleetless:latest"
+    depends_on:
+      - "redis"
+      - "registry"
+  paranoid:
+    image: "paranoid:latest"
+    depends_on:
+      - "redis"
+      - "registry"
 

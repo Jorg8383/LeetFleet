@@ -264,6 +264,7 @@ class WotDevice {
             // resolve that with outputData if available,
             // otherwise resolve action was successful without returning anything
             let outputData = "LOCKED";
+            this.propDoorStatus = outputData;
             if (outputData.length != 0) {
                 return outputData;
             }
@@ -283,6 +284,7 @@ class WotDevice {
             // resolve that with outputData if available,
             // otherwise resolve action was successful without returning anything
             let outputData = "UNLOCKED";
+            this.propDoorStatus = outputData;
             if (outputData.length != 0) {
                 return outputData;
             }
@@ -406,4 +408,4 @@ class WotDevice {
     }
 }
 exports.WotDevice = WotDevice;
-//# sourceMappingURL=smart_vehicle_base%20copy.js.map
+//# sourceMappingURL=smart_vehicle_base_old.js.map

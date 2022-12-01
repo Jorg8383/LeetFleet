@@ -269,6 +269,7 @@ export class WotDevice {
         // resolve that with outputData if available,
         // otherwise resolve action was successful without returning anything
         let outputData = "LOCKED";
+        this.propDoorStatus = outputData;
         if (outputData.length != 0) {
             return outputData;
         } else {
@@ -286,6 +287,7 @@ export class WotDevice {
         // resolve that with outputData if available,
         // otherwise resolve action was successful without returning anything
         let outputData = "UNLOCKED";
+        this.propDoorStatus = outputData;
         if (outputData.length != 0) {
             return outputData;
         } else {

@@ -183,8 +183,53 @@ public class WebPortalRoutes extends WebPortalMessages {
 
         // get(() -> path(milagePath, id -> complete("id is: " + id))));
 
-        get(() -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
-            fleetId -> complete("Fleetid is" + fleetId + "vehicleid is " + vehicleId)))));
+        // get(() -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+        // fleetId -> complete("Fleetid is" + fleetId + "vehicleid is " +
+        // vehicleId)))));
+
+        concat(pathPrefix("wot",
+            () -> concat(pathPrefix("total_mileage", () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                fleetId -> complete(
+                    "Total Mileage request - Fleetid is " + fleetId + " vehicleid is " + vehicleId))))))),
+
+        concat(pathPrefix("wot",
+            () -> concat(pathPrefix("next_service_distance",
+                () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                    fleetId -> complete(
+                        "next_service_distance - Fleetid is " + fleetId + " vehicleid is " + vehicleId))))))),
+        concat(pathPrefix("wot",
+            () -> concat(pathPrefix("door_status", () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                fleetId -> complete("door_status request - Fleetid is " + fleetId + " vehicleid is " + vehicleId))))))),
+        concat(pathPrefix("wot",
+            () -> concat(pathPrefix("maintenance_needed",
+                () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                    fleetId -> complete(
+                        "maintenance_needed request - Fleetid is " + fleetId + " vehicleid is " + vehicleId))))))),
+        concat(pathPrefix("wot",
+            () -> concat(pathPrefix("lock_door", () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                fleetId -> complete("lock_door request - Fleetid is " + fleetId + " vehicleid is " + vehicleId))))))),
+        concat(pathPrefix("wot",
+            () -> concat(pathPrefix("unlock_door", () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                fleetId -> complete("unlock_door request - Fleetid is " + fleetId + " vehicleid is " + vehicleId))))))),
+        concat(pathPrefix("wot",
+            () -> concat(pathPrefix("low_on_oil", () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                fleetId -> complete("low_on_oil request - Fleetid is " + fleetId + " vehicleid is " + vehicleId))))))),
+        concat(pathPrefix("wot",
+            () -> concat(pathPrefix("low_tire_pressure",
+                () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                    fleetId -> complete(
+                        "low_tire_pressure - Fleetid is " + fleetId + " vehicleid is " + vehicleId))))))),
+
+        concat(pathPrefix("wot",
+            () -> concat(pathPrefix("maintenance_need", () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                fleetId -> complete(
+                    "maintenance_need request - Fleetid is " + fleetId + " vehicleid is " + vehicleId)))))))
+
+    );
+    // parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+    // fleetId -> complete("Fleetid is" + fleetId + "vehicleid is " +
+    // vehicleId)))));
+
     /// wot/total_mileage?vehicle_id=sssssss&fleet_id=ssssss
     // #all-routes
   }

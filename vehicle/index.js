@@ -7,9 +7,7 @@ This project supports the registration of the generated TD to a TD directory
 Fill in the directory URI where the HTTP POST request to send the TD will be made
 If you leave it empty, registration thread will never execute, otherwise it will try to register every 10 seconds 
 */
-const TD_DIRECTORY = "http://0.0.0.0:9000:/api/things/"
-// const TD_DIRECTORY = "http://localhost:9000:/api/things/"
-
+const TD_DIRECTORY = "http://0.0.0.0:9000/api/things/"
 
 Servient = require("@node-wot/core").Servient
 //Importing the required bindings
@@ -24,8 +22,8 @@ var servient = new Servient();
 servient.addServer(httpServer);
 
 servient.start().then((WoT) => {
-    // SmartVehicle1 = new SmartVehicle1(WoT, TD_DIRECTORY);
-    SmartVehicle1 = new SmartVehicle1(WoT); 
+    SmartVehicle1 = new SmartVehicle1(WoT, TD_DIRECTORY);
+    // SmartVehicle1 = new SmartVehicle1(WoT); 
     SmartVehicle1.startDevice();
     SmartVehicle1.emulateDevice();
 });

@@ -6,7 +6,8 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-
+import akka.actor.typed.receptionist.Receptionist;
+import lf.message.FleetManager;
 import lf.message.FleetManager.Message;
 import lf.message.FleetManager.RegistrationSuccess;
 
@@ -21,12 +22,26 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
 
     // CREATE THIS ACTOR
     public static Behavior<Message> create() {
-        return Behaviors.setup(CarelessFleetManager::new);
+        return Behaviors.setup(
+            // Register this actor with the receptionist
+            context -> {
+                context
+                    .getSystem()
+                    .receptionist()
+                    .tell(Receptionist.register(FleetManager.fleetManagerServiceKey, context.getSelf()));
+
+                return Behaviors.setup(CarelessFleetManager::new);
+            }
+        );
     }
 
     // ADD TO CONTEXT
     protected CarelessFleetManager(ActorContext<Message> context) {
         super(context);
+        // send a message to the registry to register!!!!  FFS
+
+        // akka://my-sys@host.example.com:5678/user/service-b
+        // registry.tell(new Registry.RegisterFleetManager(getContext().getSelf()));
     }
 
     // =========================================================================

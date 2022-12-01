@@ -15,9 +15,9 @@ import org.apache.logging.log4j.LogManager;
 /**
  * Shared logic for Starting a LeetFleet Service System
  */
-public abstract class LeetFSvcStart
+public abstract class LeetFServiceStart
 {
-  private static final Logger log = LogManager.getLogger(LeetFSvcStart.class);
+  private static final Logger log = LogManager.getLogger(LeetFServiceStart.class);
 
   protected static String akkaHostname = "localhost"; // Sensible defaults
   protected static int akkaPort = 0;  // Typically defaulted in the Implementing Class

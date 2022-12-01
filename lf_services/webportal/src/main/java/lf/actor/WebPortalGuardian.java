@@ -143,6 +143,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
     private Behavior<WebPortalGuardian.Message> onForwardToHandler(ForwardToHandler message) {
         // Create a VehicleEvent actor to handle this request.
+        // Investigate use of context.spawnAnonymous(VehicleEvent.create()); - can we drop unique names for throw-away actors???
         ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred"); // <- TEMP
                                                                                                             // TEMP TEMP
                                                                                                             // TEMP TEMP

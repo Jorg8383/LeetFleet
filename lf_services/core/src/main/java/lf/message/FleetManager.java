@@ -1,13 +1,17 @@
 package lf.message;
 
 import akka.actor.typed.ActorRef;
+import akka.actor.typed.receptionist.ServiceKey;
 import lf.actor.Registry;
-import lf.actor.Registry.Message;
 
 /**
  * Messages understood by the LeetFleet Fleet Managers
  */
 public class FleetManager {
+
+    // Create a ServiceKey so we can find the Registry using the Receptioninst
+    public static final ServiceKey<FleetManager.Message> fleetManagerServiceKey
+            = ServiceKey.create(FleetManager.Message.class, "fleetManagerService");
 
     // MESSAGES:
     //

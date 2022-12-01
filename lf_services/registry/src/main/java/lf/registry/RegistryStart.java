@@ -2,7 +2,7 @@ package lf.registry;
 
 import akka.actor.typed.ActorSystem;
 import lf.actor.RegistryGuardian;
-import lf.core.LeetFSvcStart;
+import lf.core.LeetFServiceStart;
 import lf.message.LeetFServiceGuardian.BootStrap;
 
 import org.apache.logging.log4j.LogManager;
@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.typesafe.config.Config;
 
-public class RegistryStart extends LeetFSvcStart {
+public class RegistryStart extends LeetFServiceStart {
   private static final Logger log = LogManager.getLogger(RegistryStart.class);
 
   public static void main(String[] args) {

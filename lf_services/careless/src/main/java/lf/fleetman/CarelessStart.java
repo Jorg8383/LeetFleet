@@ -2,7 +2,7 @@ package lf.fleetman;
 
 import akka.actor.typed.ActorSystem;
 import lf.actor.CarelessGuardian;
-import lf.core.LeetFSvcStart;
+import lf.core.LeetFServiceStart;
 import lf.message.LeetFServiceGuardian;
 
 import org.apache.logging.log4j.LogManager;
@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.typesafe.config.Config;
 
-public class CarelessStart extends LeetFSvcStart {
+public class CarelessStart extends LeetFServiceStart {
   private static final Logger log = LogManager.getLogger(CarelessStart.class);
 
   public static void main(String[] args) {

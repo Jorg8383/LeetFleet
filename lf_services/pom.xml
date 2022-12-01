@@ -17,7 +17,7 @@
         <!-- Manager registry -->
         <module>registry</module>
         <module>webportal</module>
-        <!-- <module>wot_portal</module> -->
+        <!-- <module>wotportal</module> -->
     </modules>
 
     <properties>

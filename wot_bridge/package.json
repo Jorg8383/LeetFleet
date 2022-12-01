@@ -24,7 +24,7 @@
   "scripts": {
     "build": "tsc -b",
     "buildAll": "npm install; tsc;",
-    "start": "node index.js",
+    "start": "node wot_bridge.js",
     "clean": "rm -rf node_modules; rm -rf dist; rm -rf package-lock.json"
   }
 }

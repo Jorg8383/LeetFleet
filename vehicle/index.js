@@ -26,4 +26,5 @@ servient.start().then((WoT) => {
     // wotDevice = new WotDevice(WoT, TD_DIRECTORY); // TODO change the wotDevice to something that makes more sense
     wotDevice = new WotDevice(WoT); // TODO change the wotDevice to something that makes more sense
     wotDevice.startDevice();
+    wotDevice.emulate();
 });

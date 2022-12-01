@@ -18,16 +18,15 @@ class WotDevice {
     // Constructor
     // ------------------------------------------------------------------------
     constructor(deviceWoT, tdDirectory) {
-        // Status variables - used for emulation purposes
-        // private varTyrePressure = 35;
-        // private varOilLevel = 100;
-        // private varNextServiceDistance = 30000;
-        // private varTotalMileage = 0;
-        // private varTyrePressureIsLow = false;
-        // private varOilLevelIsLow = false;
-        // private varNextServiceIsDue = false;
-        // private varMaintenanceNedded = false;
-        // private varMaintenanceNeddedHistory = false;
+        // Status variables which are needed for emulation purposes
+        this.varTyrePressure = 35; // PSI
+        this.varOilLevel = 100; // Percent
+        this.varServiceDistance = 15000;
+        this.varTotalMileage = 44;
+        this.varTyrePressureIsLow = false;
+        this.varOilLevelIsLow = false;
+        this.varServiceIsDue = false;
+        this.varMaintenanceNedded = false;
         // ------------------------------------------------------------------------
         // Thing Model
         // ------------------------------------------------------------------------
@@ -158,7 +157,7 @@ class WotDevice {
             this.tdDirectory = tdDirectory;
     }
     // ------------------------------------------------------------------------
-    // Produce the Thing, expose it, and intialise properties and actions
+    // Start Device - This method is invoked externally
     // ------------------------------------------------------------------------
     startDevice() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -260,11 +259,13 @@ class WotDevice {
             }
         }));
         // Property Oil Level
-        this.propOilLevel = 100; // [%]; // replace quotes with the initial value
-        this.thing.setPropertyReadHandler("propOilLevel", () => __awaiter(this, void 0, void 0, function* () { return this.propOilLevel; }));
+        // this.propOilLevel = 80; // [%]; // replace quotes with the initial value
+        // this.thing.setPropertyReadHandler("propOilLevel", async () => this.propOilLevel);
+        this.thing.setPropertyReadHandler("propOilLevel", () => __awaiter(this, void 0, void 0, function* () { return this.propOilLevel = this.varOilLevel; }));
         // Property Tyre Pressure
-        this.propTyrePressure = 35; // [PSI]
-        this.thing.setPropertyReadHandler("propTyrePressure", () => __awaiter(this, void 0, void 0, function* () { return this.propTyrePressure; }));
+        // this.propTyrePressure = 35; // [PSI]
+        // this.thing.setPropertyReadHandler("propTyrePressure", async () => this.propTyrePressure);
+        this.thing.setPropertyReadHandler("propTyrePressure", () => __awaiter(this, void 0, void 0, function* () { return this.propTyrePressure = this.varTyrePressure; }));
         // Property Maintenance Needed
         this.propMaintenanceNeeded = false;
         this.thing.setPropertyReadHandler("propMaintenanceNeeded", () => __awaiter(this, void 0, void 0, function* () { return this.propMaintenanceNeeded; }));
@@ -279,11 +280,11 @@ class WotDevice {
             }
         }));
         // Property Total Mileage
-        this.propTotalMileage = 33;
-        this.thing.setPropertyReadHandler("propTotalMileage", () => __awaiter(this, void 0, void 0, function* () { return this.propTotalMileage; }));
+        // this.propTotalMileage = 33;
+        this.thing.setPropertyReadHandler("propTotalMileage", () => __awaiter(this, void 0, void 0, function* () { return this.propTotalMileage = this.varTotalMileage; }));
         // Property Next-Service-Distance
-        this.propServiceDistance = 30000;
-        this.thing.setPropertyReadHandler("propServiceDistance", () => __awaiter(this, void 0, void 0, function* () { return this.propServiceDistance; }));
+        // this.propServiceDistance = 30000;
+        this.thing.setPropertyReadHandler("propServiceDistance", () => __awaiter(this, void 0, void 0, function* () { return this.propServiceDistance = this.varServiceDistance; }));
         this.thing.setPropertyWriteHandler("propServiceDistance", (inputData, options) => __awaiter(this, void 0, void 0, function* () {
             let dataValue = yield inputData.value();
             if (!ajv.validate(this.td.properties.propServiceDistance, dataValue)) {
@@ -331,70 +332,114 @@ class WotDevice {
         */
     }
     // ------------------------------------------------------------------------
-    // Emulation
+    // Emulation helper functions
     // ------------------------------------------------------------------------
-    // private readFromSensor(sensorType) {
-    //     let sensorValue: number;
-    //     if (sensorType === "tyrePressure") {
-    //         // Decrease pressure between 1 and 3 PSI
-    //         this.varTyrePressure -= this.getRandomInt(0, 3);
-    //         sensorValue = this.varTyrePressure;
-    //         console.log("Reading sensor - tyrePressure: " + this.varTyrePressure);
-    //     } else if (sensorType === "oilLevel") {
-    //         // Decrease oil level between 1 and 5%
-    //         this.varOilLevel -= this.getRandomInt(0, 5);
-    //         sensorValue = this.varOilLevel;
-    //         console.log("Reading sensor - oilLevel: " + this.varOilLevel);
-    //     }
-    //     return sensorValue
-    // }
-    // private notify(subscribers, msg) {
-    //     // Actual implementation of notifying subscribers with a message can go here
-    //     console.log(msg);
-    // }
-    // private readOdometerServiceInterval() {
-    //     return this.varNextServiceDistance;
-    // }
-    // private readOdometer() {
-    //     // Emulate mileage by increasing it randomly between 0 and 500 km
-    //     let mileageIncrease;
-    //     mileageIncrease = this.getRandomInt(0, 500);
-    //     this.varTotalMileage += mileageIncrease;
-    //     this.varNextServiceDistance -= mileageIncrease;
-    //     console.log("Reading milometer: " + this.varTotalMileage);
-    //     console.log("Distance left until next service is due: " + this.varNextServiceDistance);
-    //     return this.varTotalMileage;
-    //     // return {'totalMileage': totalMileage, 'nextServiceDistance': nextServiceDistance};
-    // }
-    // private getRandomInt(min, max) {
-    //     // round min value upwards to next integer value
-    //     min = Math.ceil(min);
-    //     // round max value downwards to next integer value
-    //     max = Math.floor(max);
-    //     // return a random value where max is inclusive and minimum is exclusive
-    //     return Math.floor(Math.random() * (max - min) + min);
-    // }
-    // private isMaintenanceNeeded() {
-    //     if (this.varNextServiceDistance < 500) {
-    //         this.varMaintenanceNedded = true;
-    //         // Notify a "maintainer" when the value has changed
-    //         // (the notify function here simply logs a message to the console)
-    //         this.notify(
-    //             "admin@leetfleet.com",
-    //             `maintenanceNeeded property has changed, new value is: ${this.varMaintenanceNeddedHistory}`
-    //         );
-    //         this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);
-    //     } else {
-    //         this.varMaintenanceNedded = false;
-    //     }
-    //     if (this.varMaintenanceNeddedHistory != this.varMaintenanceNedded) {
-    //         this.varMaintenanceNeddedHistory = this.varMaintenanceNedded;
-    //         this.thing.emitPropertyChange("maintenanceNeeded");
-    //     }
-    //     return this.varMaintenanceNedded
-    // }
+    emulateAndReadSensor(sensorType) {
+        let sensorValue;
+        if (sensorType === "tyrePressure") {
+            // Decrease pressure between 1 and 3 PSI
+            this.varTyrePressure -= this.getRandomInt(0, 3);
+            sensorValue = this.varTyrePressure;
+            console.log("Reading sensor - tyrePressure: " + this.varTyrePressure);
+        }
+        else if (sensorType === "oilLevel") {
+            // Decrease oil level between 1 and 5%
+            this.varOilLevel -= this.getRandomInt(0, 5);
+            sensorValue = this.varOilLevel;
+            console.log("Reading sensor - oilLevel: " + this.varOilLevel);
+        }
+        return sensorValue;
+    }
+    notify(subscribers, msg) {
+        // Actual implementation of notifying subscribers with a message can go here
+        console.log(msg);
+    }
+    emulateOdometer() {
+        // Emulate mileage by increasing it randomly between 0 and 500 km
+        let mileageIncrease;
+        mileageIncrease = this.getRandomInt(0, 500);
+        this.varTotalMileage += mileageIncrease;
+        this.varServiceDistance -= mileageIncrease;
+        console.log("Reading milometer: " + this.varTotalMileage);
+        console.log("Distance left until next service is due: " + this.varServiceDistance);
+        // return this.varTotalMileage;
+        // return {'totalMileage': this.varTotalMileage, 'nextServiceDistance': this.varNextServiceDistance};
+    }
+    getRandomInt(min, max) {
+        // round min value upwards to next integer value
+        min = Math.ceil(min);
+        // round max value downwards to next integer value
+        max = Math.floor(max);
+        // return a random value where max is inclusive and minimum is exclusive
+        return Math.floor(Math.random() * (max - min) + min);
+    }
+    // ------------------------------------------------------------------------
+    // Emulation - This method is invoked externally
+    // ------------------------------------------------------------------------
     emulate() {
         return __awaiter(this, void 0, void 0, function* () {
+            // Emulation: decrease oil level every five seconds
+            setInterval(() => {
+                this.propOilLevel = this.emulateAndReadSensor("oilLevel");
+                // If oil level drops below 70%, then maintenance is needed
+                if (this.propOilLevel < 70) {
+                    if (!this.varOilLevelIsLow) {
+                        this.varOilLevelIsLow = true;
+                        this.propMaintenanceNeeded = true;
+                        // Write log message to console only once
+                        // Notify a "maintainer" when the value has changed
+                        // (the notify function here simply logs a message to the console)
+                        this.notify("admin@leetfleet.com", `propMaintenanceNeeded property has changed, new value is: ${this.propMaintenanceNeeded}`);
+                        if (this.varMaintenanceNeddedHistory != this.propMaintenanceNeeded) {
+                            this.varMaintenanceNeddedHistory = this.propMaintenanceNeeded;
+                            this.thing.emitPropertyChange("propMaintenanceNeeded");
+                        }
+                        this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - oil level is low.`);
+                    }
+                }
+            }, 5000);
+            // Emulation: decrease tyre pressure every ten seconds
+            setInterval(() => {
+                this.propTyrePressure = this.emulateAndReadSensor("tyrePressure");
+                // If oil level drops below 20 PSI, then maintenance is needed
+                if (this.propTyrePressure < 20) {
+                    if (!this.varTyrePressureIsLow) {
+                        this.varTyrePressureIsLow = true;
+                        this.propMaintenanceNeeded = true;
+                        // Write log message to console only once
+                        // Notify a "maintainer" when the value has changed
+                        // (the notify function here simply logs a message to the console)
+                        this.notify("admin@leetfleet.com", `propMaintenanceNeeded property has changed, new value is: ${this.propMaintenanceNeeded}`);
+                        if (this.varMaintenanceNeddedHistory != this.propMaintenanceNeeded) {
+                            this.varMaintenanceNeddedHistory = this.propMaintenanceNeeded;
+                            this.thing.emitPropertyChange("propMaintenanceNeeded");
+                        }
+                        this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - tyre pressure is low.`);
+                    }
+                }
+            }, 10000);
+            // Emulation: increase milometer every second
+            setInterval(() => {
+                this.emulateOdometer();
+                this.thing.emitPropertyChange("propTotalMileage");
+                this.thing.emitPropertyChange("propServiceDistance");
+                // If counter for next service mileage is less than 500, set maintenance needed
+                if (this.varServiceDistance < 500) {
+                    if (!this.varServiceIsDue) {
+                        this.varServiceIsDue = true;
+                        this.propMaintenanceNeeded = true;
+                        // Write log message to console only once
+                        // Notify a "maintainer" when the value has changed
+                        // (the notify function here simply logs a message to the console)
+                        this.notify("admin@leetfleet.com", `propMaintenanceNeeded property has changed, new value is: ${this.propMaintenanceNeeded}`);
+                        if (this.varMaintenanceNeddedHistory != this.propMaintenanceNeeded) {
+                            this.varMaintenanceNeddedHistory = this.propMaintenanceNeeded;
+                            this.thing.emitPropertyChange("propMaintenanceNeeded");
+                        }
+                        this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);
+                    }
+                }
+            }, 1000);
             ;
         });
     }

@@ -1,0 +1,40 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setContextLanguage = exports.findPort = exports.findProtocol = void 0;
+function findProtocol(td) {
+    const base = td.base;
+    const columnLoc = base.indexOf(":");
+    return base.substring(0, columnLoc);
+}
+exports.findProtocol = findProtocol;
+function findPort(td) {
+    const base = td.base;
+    const columnLoc = base.indexOf(":", 6);
+    const divLoc = base.indexOf("/", columnLoc);
+    const returnString = base.substring(columnLoc + 1, divLoc);
+    return parseInt(returnString);
+}
+exports.findPort = findPort;
+function setContextLanguage(thing, language, forceOverride) {
+    if (Array.isArray(thing["@context"])) {
+        const arrayContext = thing["@context"];
+        let languageSet = false;
+        for (const arrayEntry of arrayContext) {
+            if (typeof arrayEntry === "object") {
+                if (arrayEntry["@language"] !== undefined) {
+                    if (forceOverride) {
+                        arrayEntry["@language"] = language;
+                    }
+                    languageSet = true;
+                }
+            }
+        }
+        if (!languageSet) {
+            arrayContext.push({
+                "@language": language,
+            });
+        }
+    }
+}
+exports.setContextLanguage = setContextLanguage;
+//# sourceMappingURL=td-helpers.js.map

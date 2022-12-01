@@ -1,0 +1,13 @@
+import debug from "debug";
+interface Loggers {
+    info: debug.Debugger;
+    debug: debug.Debugger;
+    warn: debug.Debugger;
+    error: debug.Debugger;
+}
+export declare function createInfoLogger(...namespaces: string[]): debug.Debugger;
+export declare function createDebugLogger(...namespaces: string[]): debug.Debugger;
+export declare function createWarnLogger(...namespaces: string[]): debug.Debugger;
+export declare function createErrorLogger(...namespaces: string[]): debug.Debugger;
+export declare function createLoggers(...namespaces: string[]): Loggers;
+export {};

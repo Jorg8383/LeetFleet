@@ -206,11 +206,11 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   // From Receptionist
 
   private Behavior<Message> onListing(ListingResponse msg) {
+    registry = new HashMap<Long, ActorRef<FleetManager.Message>>();
     msg.listing.getServiceInstances(FleetManager.fleetManagerServiceKey)
         .forEach(
           fleetManagerRef -> {
             // Refresh entire registry every time?
-            registry = new HashMap<Long, ActorRef<FleetManager.Message>>();
             getContext().getLog().info("IN REGISTRY GOT A MESSAGE FROM THE RECEPTIONISTT !!!");
             registry.put(SEED_ID++, fleetManagerRef);
             getContext().getLog().info("\tFLEET MANAGER REF SUCCESSFULLY ADDED TO REGISTRY !!!");

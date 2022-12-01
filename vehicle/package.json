@@ -10,21 +10,22 @@
   "author": "UCD",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "16.4.13",
-    "tslint": "5.12.1",
     "typescript": "4.4.3",
-    "wot-typescript-definitions": "0.8.0-SNAPSHOT.23"
-  },
-  "dependencies": {
-    "@node-wot/binding-http": "^0.8.2",
-    "@node-wot/core": "^0.8.2",
-    "ajv": "^7.2.4",
-    "request": "2.88.0"
-  },
-  "scripts": {
+    "wot-typescript-definitions": "0.8.0-SNAPSHOT.23",
+    "@types/node": "16.4.13",
+    "tslint": "5.12.1"
+},
+"dependencies": {
+    "@node-wot/binding-http": "0.8.x",
+    "@node-wot/core": "0.8.x",
+    "request": "2.88.0",
+    "ajv": "^6.12.6"
+},
+"optionalDependencies": {},
+"scripts": {
     "build": "tsc -b",
     "buildAll": "npm install; tsc;",
     "start": "node index.js",
     "clean": "rm -rf node_modules; rm -rf dist; rm -rf package-lock.json"
-  }
+}
 }

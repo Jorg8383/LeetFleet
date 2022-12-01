@@ -32,7 +32,6 @@ class WotDevice {
         this.thingModel = {
             "@context": ["https://www.w3.org/2019/wot/td/v1", { "@language": "en" }],
             "@type": "",
-            id: "urn:dev:ops:smart-vehicle-1",
             title: "smart-vehicle",
             description: "Smart Vehicle",
             securityDefinitions: {
@@ -188,7 +187,8 @@ class WotDevice {
     // ------------------------------------------------------------------------
     register(directory) {
         console.log("Registering TD in directory: " + directory);
-        request.post(directory, { json: this.thing.getThingDescription() }, (error, response, body) => {
+        // request.post(directory, { json: this.thing.getThingDescription() }, (error: any, response: { statusCode: number; }, body: any) => {
+        request.put(directory + this.td.id, { json: this.thing.getThingDescription() }, (error, response, body) => {
             if (!error && response.statusCode < 300) {
                 console.log("TD registered!");
             }

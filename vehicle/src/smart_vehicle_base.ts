@@ -29,7 +29,6 @@ export class WotDevice {
     private thingModel: WoT.ExposedThingInit = {
         "@context": ["https://www.w3.org/2019/wot/td/v1", { "@language": "en" }],
         "@type": "",
-        id: "urn:dev:ops:smart-vehicle-1",
         title: "smart-vehicle",
         description: "Smart Vehicle",
         securityDefinitions: {
@@ -205,8 +204,9 @@ export class WotDevice {
     // ------------------------------------------------------------------------
     public register(directory: string) {
         console.log("Registering TD in directory: " + directory);
-        request.post(directory, { json: this.thing.getThingDescription() }, (error: any, response: { statusCode: number; }, body: any) => {
-            if (!error && response.statusCode < 300) {
+        // request.post(directory, { json: this.thing.getThingDescription() }, (error: any, response: { statusCode: number; }, body: any) => {
+        request.put(directory + this.td.id, { json: this.thing.getThingDescription() }, (error: any, response: { statusCode: number; }, body: any) => {
+                if (!error && response.statusCode < 300) {
                 console.log("TD registered!");
             } else {
                 console.debug(error);

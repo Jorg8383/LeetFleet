@@ -3,6 +3,7 @@ package lf.actor;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
+import akka.actor.typed.receptionist.Receptionist;
 import jnr.ffi.annotations.IgnoreError;
 import lf.model.Vehicle;
 
@@ -71,8 +72,24 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         }
     }
 
+    /**
+     * Message to handle Listing Response from Receptionist.
+     *
+     * NOTE: We need to emply a 'messageAdaptor' to convert the message we recieve
+     *       from the Receptioninst to the one define here that we can understand.
+     */
+    private static class ListingResponse implements Message {
+        final Receptionist.Listing listing;
+        private ListingResponse(Receptionist.Listing listing) {
+            this.listing = listing;
+        }
+    }
+
     // ENCAPSULATION:
     @IgnoreError // Ignore unused error for registry - spawned but not used.
+    public ActorRef<Registry.Message> REGISTRY_REF = null;
+    // We need an 'adaptor' - to convert the Receptionist Listing to one we understand!!
+    private final ActorRef<Receptionist.Listing> listingResponseAdapter;
 
     // =========================================================================
 
@@ -90,6 +107,27 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     // that points to the actor instance
     private WebPortalGuardian(ActorContext<WebPortalGuardian.Message> context) {
         super(context);
+
+        this.listingResponseAdapter =
+            context.messageAdapter(Receptionist.Listing.class, ListingResponse::new);
+
+        // Ask about current state of Registry!
+        context
+            .getSystem()
+            .receptionist()
+            .tell(
+            Receptionist.find(
+                Registry.registryServiceKey, listingResponseAdapter));
+
+        // Subscribe for Registry list updates!
+        context
+            .getSystem()
+            .receptionist()
+            .tell(
+            Receptionist.subscribe(
+                Registry.registryServiceKey, listingResponseAdapter));
+
+
     }
 
     // =========================================================================
@@ -101,9 +139,8 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
                 .onMessage(WebPortalGuardian.BootStrap.class, this::onBootStrap)
                 // .onMessage(WebPortalGuardian.ForwardToHandler.class,
                 // this::onForwardToHandler)
-                .onMessage(WebPortalGuardian.ForwardToHandler.class,
-                        this::onForwardToHandler)
-
+                .onMessage(WebPortalGuardian.ForwardToHandler.class, this::onForwardToHandler)
+                .onMessage(ListingResponse.class, this::onListing)
                 .build();
     }
 
@@ -157,6 +194,21 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         getContext().getLog().info("in onForwardToHandlerVehicle, the message type is!{}!", message.getClass());
         vehicleEventRef.tell(new VehicleEvent.FirstMessageFromWebPortal(message.message, message.replyTo));
         return this;
+    }
+
+    // From Receptionist
+
+    private Behavior<Message> onListing(ListingResponse msg) {
+        // There will only every be one registry in the list in our toy akka system.
+        msg.listing.getServiceInstances(Registry.registryServiceKey)
+            .forEach(
+            registryRef -> {
+                // Refresh entire registry every time?
+                getContext().getLog().info("IN WEB_PORTAL GOT A MESSAGE FROM THE RECEPTIONISTT !!!");
+                REGISTRY_REF = registryRef;
+            }
+            );
+        return Behaviors.same();
     }
 
 }

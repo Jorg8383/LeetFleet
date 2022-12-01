@@ -145,9 +145,26 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
   // }
 
   private Behavior<Message> onInitialVehicleMessage(FirstMessageFromWebPortal message) {
+    // this thing gets in a message which contains a vehicle
     message.portalRef.tell(new WebPortalMessages.FirstMessageToWebPortal(message.vehicle));
+
+    // STORE VEHCILE ATTRIBUTES IN THIS ACTOR
+
+    // NEXt : IS THERE A FLEET ID!???
+    //   IF yes - send a message to the registr to get the actore ref for that fleet manager
+    //   If no - send a message to to the registry for all fleet managers
+
+    // This actor should be able to recieve a message from the registry with a list of fleet manager refs
+
 
     return this;
   }
 
+
+  // new private Behavior<Message> onInitialVehicleMessage(FirstMessageFromWebPortal message) {
+    // message from registry with list of fleet handler refs
+    // forward vehicl (?object)  to fleet handler
+
+    // new private Behavior<Message> onInitialVehicleMessage(FirstMessageFromWebPortal message) {
+    // gets a response from fleet handler to say model updated.
 }

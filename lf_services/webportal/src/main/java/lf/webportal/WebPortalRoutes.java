@@ -1,7 +1,6 @@
 package lf.webportal;
 
 import java.time.Duration;
-import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
 import akka.actor.typed.ActorRef;
@@ -18,8 +17,6 @@ import akka.http.javadsl.server.PathMatcher1;
 import akka.http.javadsl.server.PathMatchers;
 import static akka.http.javadsl.server.PathMatchers.segment;
 import akka.http.javadsl.server.Route;
-import lf.actor.VehicleClass;
-import lf.actor.VehicleEvent;
 import lf.actor.WebPortalGuardian;
 import lf.actor.WebPortalMessages;
 import lf.model.Vehicle;
@@ -187,11 +184,20 @@ public class WebPortalRoutes extends WebPortalMessages {
         // fleetId -> complete("Fleetid is" + fleetId + "vehicleid is " +
         // vehicleId)))));
 
+        // MAKE FLEET ID OPTIONAL??
         concat(pathPrefix("wot",
-            () -> concat(pathPrefix("total_mileage", () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
-                fleetId -> complete(
-                    "Total Mileage request - Fleetid is " + fleetId + " vehicleid is " + vehicleId))))))),
-
+            () -> concat(
+                pathPrefix("total_mileage",
+                    () -> parameter("vehicle_id",
+                    vehicleId -> parameter("fleet_id",
+                    fleet_id -> parameter("total_mileage",
+                    total_mileage -> onSuccess(
+                        newVehicleToGuardian(Vehicle.createForMileage(vehicleId, fleet_id, Float.valueOf(total_mileage))),
+                        theMessage -> complete(StatusCodes.OK, theMessage.vehicle, Jackson.marshaller())
+                    ))))
+                    )
+                )
+            )),
         concat(pathPrefix("wot",
             () -> concat(pathPrefix("next_service_distance",
                 () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",

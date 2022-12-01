@@ -31,7 +31,8 @@ To run the whole shooting match: docker compose up
    docker run --network-alias careless --network leetfleet_net careless:latest
 
 4) webportal (HttpToAkka) registers with registry
-mvn exec:java -Dexec.args="-a localhost" -pl webportal
+   mvn exec:java -Dexec.args="-a localhost" -pl webportal
+   docker run --network-alias webportal --network leetfleet_net webportal:latest
 
 
 # Ports for LeetFleet System

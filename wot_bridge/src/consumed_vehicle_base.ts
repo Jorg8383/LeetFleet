@@ -5,7 +5,7 @@ import request = require("request");
 const { Servient, Helpers } = require("@node-wot/core");
 const { HttpClientFactory } = require('@node-wot/binding-http');
 
-export class ConsumedThing {
+export class ConsumedVehicle {
     public thing: WoT.ConsumedThing
     public td_url: string
     public servient = Servient
@@ -17,7 +17,7 @@ export class ConsumedThing {
         this.servient.addClientFactory(new HttpClientFactory(null));
         this.wotHelpers = new Helpers(this.servient);
 
-        this.thing = ConsumedThing.tdConsume(this.td_url);
+        this.thing = ConsumedVehicle.tdConsume(this.td_url);
         this.observeProperties(this.thing);
         this.subscribe(this.thing);
     }

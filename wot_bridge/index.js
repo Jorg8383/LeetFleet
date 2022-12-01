@@ -1,7 +1,8 @@
 //Where your concrete implementation is included
 // WotDevice = require("./dist/base.js").WotDevice
-const {ConsumedThing} = require("./dist/consumed_vehicle_base");
-consumedVehicle = require("./dist/consumed_vehicle_base.js").ConsumedThing
+const ConsumedVehicle = require("./dist/consumed_vehicle_base");
+// const {ConsumedThing} = require("./dist/consumed_vehicle_base");
+// ConsumedThing = require("./dist/consumed_vehicle_base.js").ConsumedThing
 
 /*
 This project supports the registration of the generated TD to a TD directory
@@ -24,5 +25,5 @@ var servient = new Servient();
 servient.addServer(httpServer);
 
 servient.start().then((WoT) => {
-    let consumedThing = new ConsumedThing("http://localhost:8080/smart-vehicle"); // TODO change the wotDevice to something that makes more sense
+    let consumedThing = new ConsumedVehicle.ConsumedVehicle("http://localhost:8080/smart-vehicle"); // TODO change the wotDevice to something that makes more sense
 });

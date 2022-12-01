@@ -21,12 +21,11 @@ class WotDevice {
         // Status variables which are needed for emulation purposes
         this.varTyrePressure = 35; // PSI
         this.varOilLevel = 100; // Percent
-        this.varServiceDistance = 15000;
-        this.varTotalMileage = 44;
+        this.varServiceDistance = 15000; // km
+        this.varTotalMileage = 44; // km
         this.varTyrePressureIsLow = false;
         this.varOilLevelIsLow = false;
         this.varServiceIsDue = false;
-        this.varMaintenanceNedded = false;
         // ------------------------------------------------------------------------
         // Thing Model
         // ------------------------------------------------------------------------
@@ -46,6 +45,12 @@ class WotDevice {
                 propFleetId: {
                     title: "prop-fleet-id",
                     description: "Property fleet ID",
+                    unit: "",
+                    type: "string",
+                },
+                propVehicleId: {
+                    title: "prop-vehicle-id",
+                    description: "Property vehicle ID",
                     unit: "",
                     type: "string",
                 },
@@ -258,13 +263,12 @@ class WotDevice {
                 this.thing.emitPropertyChange("propFleetId");
             }
         }));
+        // Property Vehicle ID
+        this.propVehicleId = "XAKALAGLG1395940";
+        this.thing.setPropertyReadHandler("propVehicleId", () => __awaiter(this, void 0, void 0, function* () { return this.propVehicleId; }));
         // Property Oil Level
-        // this.propOilLevel = 80; // [%]; // replace quotes with the initial value
-        // this.thing.setPropertyReadHandler("propOilLevel", async () => this.propOilLevel);
         this.thing.setPropertyReadHandler("propOilLevel", () => __awaiter(this, void 0, void 0, function* () { return this.propOilLevel = this.varOilLevel; }));
         // Property Tyre Pressure
-        // this.propTyrePressure = 35; // [PSI]
-        // this.thing.setPropertyReadHandler("propTyrePressure", async () => this.propTyrePressure);
         this.thing.setPropertyReadHandler("propTyrePressure", () => __awaiter(this, void 0, void 0, function* () { return this.propTyrePressure = this.varTyrePressure; }));
         // Property Maintenance Needed
         this.propMaintenanceNeeded = false;
@@ -280,10 +284,8 @@ class WotDevice {
             }
         }));
         // Property Total Mileage
-        // this.propTotalMileage = 33;
         this.thing.setPropertyReadHandler("propTotalMileage", () => __awaiter(this, void 0, void 0, function* () { return this.propTotalMileage = this.varTotalMileage; }));
         // Property Next-Service-Distance
-        // this.propServiceDistance = 30000;
         this.thing.setPropertyReadHandler("propServiceDistance", () => __awaiter(this, void 0, void 0, function* () { return this.propServiceDistance = this.varServiceDistance; }));
         this.thing.setPropertyWriteHandler("propServiceDistance", (inputData, options) => __awaiter(this, void 0, void 0, function* () {
             let dataValue = yield inputData.value();
@@ -376,7 +378,7 @@ class WotDevice {
     // ------------------------------------------------------------------------
     // Emulation - This method is invoked externally
     // ------------------------------------------------------------------------
-    emulate() {
+    emulateDevice() {
         return __awaiter(this, void 0, void 0, function* () {
             // Emulation: decrease oil level every five seconds
             setInterval(() => {

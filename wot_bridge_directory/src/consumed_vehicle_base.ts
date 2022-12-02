@@ -11,13 +11,14 @@ export class WotConsumedDevice {
     public deviceWoT: typeof WoT;
     public td: WoT.ThingDescription;
     private tdUri: string;
-    private wotHiveUri = "http://localhost:9000/api/things/";
+    // private wotHiveUri = "http://localhost:9000/api/things/";
 
     constructor(deviceWoT: typeof WoT, tdId?: string) {
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         if (tdId) {
-            this.tdUri = this.wotHiveUri + tdId;
+            // this.tdUri = this.wotHiveUri + tdId;
+            this.tdUri = tdId;
         }
     }
 
@@ -29,7 +30,7 @@ export class WotConsumedDevice {
         console.log("Thing consumed");
 
         this.thing = consumedThing;
-
+        this.observeProperties(this.thing)
     }
 
     private async retrieveTD() {
@@ -41,6 +42,29 @@ export class WotConsumedDevice {
         } catch (error) {
             console.error(error);
         }
+    }
+
+    private observeProperties(thing: WoT.ConsumedThing) {
+        thing.observeProperty("totalMileage", async (data) => {
+            console.log("Observed 'totalMileage' property has changed! New value is:", await data.value());
+        }).then(data =>
+            console.log("Observed 'totalMileage' property has changed! New value is:", data)
+            // Not sure what the promise here is but something happens...
+        );
+
+        thing.observeProperty("maintenanceNeeded", async (data) => {
+            console.log("Observed 'maintenanceNeeded' property has changed! New value is:", await data.value());
+        }).then(data =>
+            // Not sure what the promise here is but something happens...
+            console.log("Observed 'maintenanceNeeded' property has changed! New value is:", data)
+        );
+
+        thing.observeProperty("nextServiceDistance", async (data) => {
+            console.log("Observed 'nextServiceDistance' property has changed! New value is:", await data.value());
+        }).then(data =>
+                console.log("Observed 'nextServiceDistance' property has changed! New value is:", data)
+            // Not sure what the promise here is but something happens...
+            );
     }
 }
 

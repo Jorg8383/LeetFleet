@@ -16,12 +16,13 @@ exports.WotConsumedDevice = void 0;
 // const { Servient, Helpers } = require("@node-wot/core");
 // const { HttpClientFactory } = require('@node-wot/binding-http');
 class WotConsumedDevice {
+    // private wotHiveUri = "http://localhost:9000/api/things/";
     constructor(deviceWoT, tdId) {
-        this.wotHiveUri = "http://localhost:9000/api/things/";
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         if (tdId) {
-            this.tdUri = this.wotHiveUri + tdId;
+            // this.tdUri = this.wotHiveUri + tdId;
+            this.tdUri = tdId;
         }
     }
     startDevice() {
@@ -32,6 +33,7 @@ class WotConsumedDevice {
             const consumedThing = yield this.deviceWoT.consume(this.td);
             console.log("Thing consumed");
             this.thing = consumedThing;
+            this.observeProperties(this.thing);
         });
     }
     retrieveTD() {
@@ -46,6 +48,23 @@ class WotConsumedDevice {
                 console.error(error);
             }
         });
+    }
+    observeProperties(thing) {
+        thing.observeProperty("totalMileage", (data) => __awaiter(this, void 0, void 0, function* () {
+            console.log("Observed 'totalMileage' property has changed! New value is:", yield data.value());
+        })).then(data => console.log("Observed 'totalMileage' property has changed! New value is:", data)
+        // Not sure what the promise here is but something happens...
+        );
+        thing.observeProperty("maintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
+            console.log("Observed 'maintenanceNeeded' property has changed! New value is:", yield data.value());
+        })).then(data => 
+        // Not sure what the promise here is but something happens...
+        console.log("Observed 'maintenanceNeeded' property has changed! New value is:", data));
+        thing.observeProperty("nextServiceDistance", (data) => __awaiter(this, void 0, void 0, function* () {
+            console.log("Observed 'nextServiceDistance' property has changed! New value is:", yield data.value());
+        })).then(data => console.log("Observed 'nextServiceDistance' property has changed! New value is:", data)
+        // Not sure what the promise here is but something happens...
+        );
     }
 }
 exports.WotConsumedDevice = WotConsumedDevice;

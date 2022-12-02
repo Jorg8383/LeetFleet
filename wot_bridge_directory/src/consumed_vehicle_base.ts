@@ -30,7 +30,8 @@ export class WotConsumedDevice {
         console.log("Thing consumed");
 
         this.thing = consumedThing;
-        this.observeProperties(this.thing)
+        this.observeProperties(this.thing);
+        this.subscribe(this.thing);
     }
 
     private async retrieveTD() {
@@ -47,24 +48,27 @@ export class WotConsumedDevice {
     private observeProperties(thing: WoT.ConsumedThing) {
         thing.observeProperty("totalMileage", async (data) => {
             console.log("Observed 'totalMileage' property has changed! New value is:", await data.value());
-        }).then(data =>
-            console.log("Observed 'totalMileage' property has changed! New value is:", data)
-            // Not sure what the promise here is but something happens...
-        );
+        }).then();
 
         thing.observeProperty("maintenanceNeeded", async (data) => {
             console.log("Observed 'maintenanceNeeded' property has changed! New value is:", await data.value());
-        }).then(data =>
-            // Not sure what the promise here is but something happens...
-            console.log("Observed 'maintenanceNeeded' property has changed! New value is:", data)
-        );
+        }).then();
 
         thing.observeProperty("nextServiceDistance", async (data) => {
             console.log("Observed 'nextServiceDistance' property has changed! New value is:", await data.value());
-        }).then(data =>
-                console.log("Observed 'nextServiceDistance' property has changed! New value is:", data)
-            // Not sure what the promise here is but something happens...
-            );
+        }).then();
+    }
+
+    private subscribe(thing: WoT.ConsumedThing) {
+        thing.subscribeEvent("eventLowOnOil", async (data) => {
+            console.log("eventLowOnOil:", await data.value());
+        }).then();
+        thing.subscribeEvent("eventLowTyrePressure", async (data) => {
+            console.log("eventLowTyrePressure:", await data.value());
+        }).then();
+        thing.subscribeEvent("eventMaintenanceNeeded", async (data) => {
+            console.log("eventMaintenanceNeeded:", await data.value());
+        }).then();
     }
 }
 

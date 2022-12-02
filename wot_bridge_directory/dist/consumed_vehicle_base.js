@@ -34,6 +34,7 @@ class WotConsumedDevice {
             console.log("Thing consumed");
             this.thing = consumedThing;
             this.observeProperties(this.thing);
+            this.subscribe(this.thing);
         });
     }
     retrieveTD() {
@@ -52,19 +53,24 @@ class WotConsumedDevice {
     observeProperties(thing) {
         thing.observeProperty("totalMileage", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("Observed 'totalMileage' property has changed! New value is:", yield data.value());
-        })).then(data => console.log("Observed 'totalMileage' property has changed! New value is:", data)
-        // Not sure what the promise here is but something happens...
-        );
+        })).then();
         thing.observeProperty("maintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("Observed 'maintenanceNeeded' property has changed! New value is:", yield data.value());
-        })).then(data => 
-        // Not sure what the promise here is but something happens...
-        console.log("Observed 'maintenanceNeeded' property has changed! New value is:", data));
+        })).then();
         thing.observeProperty("nextServiceDistance", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("Observed 'nextServiceDistance' property has changed! New value is:", yield data.value());
-        })).then(data => console.log("Observed 'nextServiceDistance' property has changed! New value is:", data)
-        // Not sure what the promise here is but something happens...
-        );
+        })).then();
+    }
+    subscribe(thing) {
+        thing.subscribeEvent("eventLowOnOil", (data) => __awaiter(this, void 0, void 0, function* () {
+            console.log("eventLowOnOil:", yield data.value());
+        })).then();
+        thing.subscribeEvent("eventLowTyrePressure", (data) => __awaiter(this, void 0, void 0, function* () {
+            console.log("eventLowTyrePressure:", yield data.value());
+        })).then();
+        thing.subscribeEvent("eventMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
+            console.log("eventMaintenanceNeeded:", yield data.value());
+        })).then();
     }
 }
 exports.WotConsumedDevice = WotConsumedDevice;

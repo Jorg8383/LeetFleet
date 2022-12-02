@@ -46,16 +46,16 @@ export class WotConsumedDevice {
     }
 
     private observeProperties(thing: WoT.ConsumedThing) {
-        thing.observeProperty("totalMileage", async (data) => {
-            console.log("Observed 'totalMileage' property has changed! New value is:", await data.value());
+        thing.observeProperty("propTotalMileage", async (data) => {
+            console.log("Observed 'propTotalMileage' property has changed! New value is:", await data.value());
         }).then();
 
-        thing.observeProperty("maintenanceNeeded", async (data) => {
-            console.log("Observed 'maintenanceNeeded' property has changed! New value is:", await data.value());
+        thing.observeProperty("propMaintenanceNeeded", async (data) => {
+            console.log("Observed 'propMaintenanceNeeded' property has changed! New value is:", await data.value());
         }).then();
 
-        thing.observeProperty("nextServiceDistance", async (data) => {
-            console.log("Observed 'nextServiceDistance' property has changed! New value is:", await data.value());
+        thing.observeProperty("propServiceDistance", async (data) => {
+            console.log("Observed 'propServiceDistance' property has changed! New value is:", await data.value());
         }).then();
     }
 

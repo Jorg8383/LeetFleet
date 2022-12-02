@@ -51,14 +51,14 @@ class WotConsumedDevice {
         });
     }
     observeProperties(thing) {
-        thing.observeProperty("totalMileage", (data) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Observed 'totalMileage' property has changed! New value is:", yield data.value());
+        thing.observeProperty("propTotalMileage", (data) => __awaiter(this, void 0, void 0, function* () {
+            console.log("Observed 'propTotalMileage' property has changed! New value is:", yield data.value());
         })).then();
-        thing.observeProperty("maintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Observed 'maintenanceNeeded' property has changed! New value is:", yield data.value());
+        thing.observeProperty("propMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
+            console.log("Observed 'propMaintenanceNeeded' property has changed! New value is:", yield data.value());
         })).then();
-        thing.observeProperty("nextServiceDistance", (data) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Observed 'nextServiceDistance' property has changed! New value is:", yield data.value());
+        thing.observeProperty("propServiceDistance", (data) => __awaiter(this, void 0, void 0, function* () {
+            console.log("Observed 'propServiceDistance' property has changed! New value is:", yield data.value());
         })).then();
     }
     subscribe(thing) {

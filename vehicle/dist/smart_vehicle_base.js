@@ -77,14 +77,16 @@ class WotDevice {
                     unit: "",
                     type: "number",
                     minimum: 0,
-                    readOnly: true
+                    readOnly: true,
+                    observable: true
                 },
                 propServiceDistance: {
                     title: "prop-service-distance",
                     description: "Property remaining distance until next service is due",
                     unit: "",
                     type: "number",
-                    maximum: 30000
+                    maximum: 30000,
+                    observable: true
                 },
                 propDoorStatus: {
                     title: "prop-door-status",

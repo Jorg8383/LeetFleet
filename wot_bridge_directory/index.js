@@ -22,7 +22,7 @@ var servient = new Servient();
 //Adding different bindings to the server
 servient.addServer(httpServer);
 
-const deviceId = "http://localhost:9000/api/things/urn:uuid:13b5122b-ac41-452f-a72b-58b969e6a8cc";
+const deviceId = "urn:uuid:13b5122b-ac41-452f-a72b-58b969e6a8cc";
 
 servient.start().then((WoT) => {
     wotDevice = new WotDevice(WoT, deviceId); // TODO change the wotDevice to something that makes more sense

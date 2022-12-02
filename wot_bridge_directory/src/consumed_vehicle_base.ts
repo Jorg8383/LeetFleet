@@ -1,5 +1,6 @@
 import * as WoT from "wot-typescript-definitions";
-import request = require("request");
+// import request = require("request");
+// import rp = require('request-promise');
 
 // // Required steps to create a servient for a client
 // const { Servient, Helpers } = require("@node-wot/core");
@@ -9,38 +10,41 @@ export class WotConsumedDevice {
     public thing: WoT.ConsumedThing;
     public deviceWoT: typeof WoT;
     public td: WoT.ThingDescription;
-    private tdId: string;
-
+    private tdUri: string;
+    private wotHiveUri = "http://localhost:9000/api/things/";
 
     constructor(deviceWoT: typeof WoT, tdId?: string) {
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         if (tdId) {
-            this.tdId = tdId;
+            this.tdUri = this.wotHiveUri + tdId;
         }
     }
 
     public async startDevice() {
-        console.log("Consuming thing..." + this.tdId);
-        this.retrieveTD();
-        // const consumedThing = await this.deviceWoT.consume(this.td);
-        // console.log("Thing consumed");
+        console.log("Consuming thing..." + this.tdUri);
+        this.td = await this.retrieveTD();
+        console.log(this.td);
+        const consumedThing = await this.deviceWoT.consume(this.td);
+        console.log("Thing consumed");
 
-        // this.thing = consumedThing;
+        this.thing = consumedThing;
 
     }
 
     private async retrieveTD() {
-        await request(this.tdId, {json: true }, (error: any, response: { statusCode: number; }, body: any) => {
-            if (!error && response.statusCode < 300) {
-            console.log("TD retrieved!");
-            console.log(body);
-            this.td = body;
-        } else {
-            console.log("TD retrieving failed! Error:" + error);
-        }});
+        try{
+            const response = await fetch(this.tdUri);
+            const body = await response.json();
+            // console.log(body);
+            return body;
+        } catch (error) {
+            console.error(error);
+        }
     }
 }
+
+
 // import * as WoT from "wot-typescript-definitions";
 // import request = require("request");
 

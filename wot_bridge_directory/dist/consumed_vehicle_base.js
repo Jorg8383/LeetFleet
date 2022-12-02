@@ -10,39 +10,41 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WotConsumedDevice = void 0;
-const request = require("request");
+// import request = require("request");
+// import rp = require('request-promise');
 // // Required steps to create a servient for a client
 // const { Servient, Helpers } = require("@node-wot/core");
 // const { HttpClientFactory } = require('@node-wot/binding-http');
 class WotConsumedDevice {
     constructor(deviceWoT, tdId) {
+        this.wotHiveUri = "http://localhost:9000/api/things/";
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         if (tdId) {
-            this.tdId = tdId;
+            this.tdUri = this.wotHiveUri + tdId;
         }
     }
     startDevice() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("Consuming thing..." + this.tdId);
-            this.retrieveTD();
-            // const consumedThing = await this.deviceWoT.consume(this.td);
-            // console.log("Thing consumed");
-            // this.thing = consumedThing;
+            console.log("Consuming thing..." + this.tdUri);
+            this.td = yield this.retrieveTD();
+            console.log(this.td);
+            const consumedThing = yield this.deviceWoT.consume(this.td);
+            console.log("Thing consumed");
+            this.thing = consumedThing;
         });
     }
     retrieveTD() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield request(this.tdId, { json: true }, (error, response, body) => {
-                if (!error && response.statusCode < 300) {
-                    console.log("TD retrieved!");
-                    console.log(body);
-                    this.td = body;
-                }
-                else {
-                    console.log("TD retrieving failed! Error:" + error);
-                }
-            });
+            try {
+                const response = yield fetch(this.tdUri);
+                const body = yield response.json();
+                // console.log(body);
+                return body;
+            }
+            catch (error) {
+                console.error(error);
+            }
         });
     }
 }

@@ -1,0 +1,38 @@
+/// <reference types="node" />
+import { Content } from "./content";
+import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
+import { ReadableStream } from "web-streams-polyfill/ponyfill/es2018";
+export interface ContentCodec {
+    getMediaType(): string;
+    bytesToValue(bytes: Buffer, schema?: DataSchema, parameters?: {
+        [key: string]: string | undefined;
+    }): DataSchemaValue;
+    valueToBytes(value: unknown, schema?: DataSchema, parameters?: {
+        [key: string]: string | undefined;
+    }): Buffer;
+}
+interface ReadContent {
+    type: string;
+    body: Buffer;
+}
+export declare class ContentSerdes {
+    private static instance;
+    static readonly DEFAULT: string;
+    static readonly TD: string;
+    static readonly JSON_LD: string;
+    private codecs;
+    private offered;
+    static get(): ContentSerdes;
+    static getMediaType(contentType: string): string;
+    static getMediaTypeParameters(contentType: string): {
+        [key: string]: string | undefined;
+    };
+    addCodec(codec: ContentCodec, offered?: boolean): void;
+    getSupportedMediaTypes(): Array<string>;
+    getOfferedMediaTypes(): Array<string>;
+    isSupported(contentType: string): boolean;
+    contentToValue(content: ReadContent, schema: DataSchema): DataSchemaValue | undefined;
+    valueToContent(value: DataSchemaValue | ReadableStream, schema: DataSchema | undefined, contentType?: string): Content;
+}
+declare const _default: ContentSerdes;
+export default _default;

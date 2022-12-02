@@ -5,6 +5,7 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
 import akka.actor.typed.receptionist.Receptionist;
 import jnr.ffi.annotations.IgnoreError;
+import lf.message.WebPortal;
 import lf.model.Vehicle;
 
 /**
@@ -62,12 +63,12 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
     // Definitely better ways to do this.
     public final static class ForwardToHandler implements Message {
-        public final Vehicle message;
-        public final ActorRef<WebPortalMessages.MessageToWebPortal> replyTo;
+        public final Vehicle vehicle;
+        public final ActorRef<WebPortal.ResponseVehicleToWebPortal> replyTo;
 
         public ForwardToHandler(
-                Vehicle message, ActorRef<WebPortalMessages.MessageToWebPortal> replyTo) {
-            this.message = message;
+                Vehicle vehicle, ActorRef<WebPortal.ResponseVehicleToWebPortal> replyTo) {
+            this.vehicle = vehicle;
             this.replyTo = replyTo;
         }
     }
@@ -114,19 +115,19 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
         // Ask about current state of Registry!
         context
-                .getSystem()
-                .receptionist()
-                .tell(
-                        Receptionist.find(
-                                Registry.registryServiceKey, listingResponseAdapter));
+            .getSystem()
+            .receptionist()
+            .tell(
+                Receptionist.find(
+                    Registry.registryServiceKey, listingResponseAdapter));
 
         // Subscribe for Registry list updates!
         context
-                .getSystem()
-                .receptionist()
-                .tell(
-                        Receptionist.subscribe(
-                                Registry.registryServiceKey, listingResponseAdapter));
+            .getSystem()
+            .receptionist()
+            .tell(
+                Receptionist.subscribe(
+                    Registry.registryServiceKey, listingResponseAdapter));
 
     }
 
@@ -144,6 +145,8 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
                 .build();
     }
 
+    // From AKKA HTTP
+
     private Behavior<WebPortalGuardian.Message> onBootStrap(WebPortalGuardian.BootStrap message) {
         getContext().getLog().info("Starting WebPortalGuardian for {}!", message.note);
         // CODE DEMONSTRATING AN ACTOR SPAWNING ANOTHER ACTOR BASED ON RECEIPT OF A
@@ -155,45 +158,21 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         return this;
     }
 
-    // The type of the messages handled by this behavior is declared to be of class
-    // message
-    // private Behavior<WebPortalGuardian.Message>
-    // onForwardToHandler(ForwardToHandler message) {
-    // // Create a VehicleEvent actor to handle this request.
-    // ActorRef<VehicleEvent.Message> vehicleEventRef =
-    // getContext().spawn(VehicleEvent.create(), "Fred"); // <- TEMP
-    // // TEMP TEMP
-    // // TEMP TEMP
-    // // - WE NEED
-    // // TO INVENT
-    // // A REAL
-    // // NAMING
-    // // CONVENTION!
-
-    // // We inform the FleetManager that registration was successful
-    // getContext().getLog().info("in onForwardToHandler, the message type is!{}!",
-    // message.getClass());
-    // vehicleEventRef.tell(new
-    // VehicleEvent.FirstMessageFromWebPortal(message.message, message.replyTo));
-    // return this;
-    // }
+    // From AKKA HTTP (via Guardian)
 
     private Behavior<WebPortalGuardian.Message> onForwardToHandler(ForwardToHandler message) {
-        // Create a VehicleEvent actor to handle this request.
-        // Investigate use of context.spawnAnonymous(VehicleEvent.create()); - can we
-        // drop unique names for throw-away actors???
-        ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred"); // <- TEMP
-                                                                                                            // TEMP TEMP
-                                                                                                            // TEMP TEMP
-                                                                                                            // - WE NEED
-                                                                                                            // TO INVENT
-                                                                                                            // A REAL
-                                                                                                            // NAMING
-                                                                                                            // CONVENTION!
 
-        // We inform the FleetManager that registration was successful
-        getContext().getLog().info("in onForwardToHandlerVehicle, the message type is!{}!", message.getClass());
-        vehicleEventRef.tell(new VehicleEvent.MessageFromWebPortal(message.message, message.replyTo, REGISTRY_REF));
+        // ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleEvent.create());  // 'anonymous' actor
+        // ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred");  // 'Normal' named actor
+
+        // Create an (anonymous, disposable) VehicleEvent actor to handle this request.
+        ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleEvent.create());
+
+        // Pass the message details (from the HttpServer, via the WebGuardian) to the VehicleEvent actor
+        // NOTE: We're forwarding the 'replyTo' reference of AKKA HTTP. The response to this message
+        //       will be handled there (and not locally in this Guardian).
+        //getContext().getLog().info("The message type is!{}!", message.getClass());
+        vehicleEventRef.tell(new VehicleEvent.MessageFromWebPortal(message.vehicle, message.replyTo, REGISTRY_REF));
         return this;
     }
 
@@ -205,7 +184,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
                 .forEach(
                         registryRef -> {
                             // Refresh entire registry every time?
-                            getContext().getLog().info("IN WEB_PORTAL GOT A MESSAGE FROM THE RECEPTIONISTT !!!");
+                            getContext().getLog().info("Success. Registry Reference from Receptionist complete.");
                             REGISTRY_REF = registryRef;
                         });
         return Behaviors.same();

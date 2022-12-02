@@ -18,7 +18,7 @@ import akka.http.javadsl.server.PathMatchers;
 import static akka.http.javadsl.server.PathMatchers.segment;
 import akka.http.javadsl.server.Route;
 import lf.actor.WebPortalGuardian;
-import lf.actor.WebPortalMessages;
+import lf.message.WebPortal;
 import lf.model.Vehicle;
 
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * Routes can be defined in separated classes like shown in here
  */
 // #user-routes-class
-public class WebPortalRoutes extends WebPortalMessages {
+public class WebPortalRoutes extends WebPortal {
     // #user-routes-class
     private final static Logger log = LoggerFactory.getLogger(WebPortalRoutes.class);
 
@@ -74,7 +74,7 @@ public class WebPortalRoutes extends WebPortalMessages {
     // man...", ref), askTimeout, scheduler);
     // }
 
-    private CompletionStage<WebPortalMessages.MessageToWebPortal> newVehicleToGuardian(Vehicle vehicle) {
+    private CompletionStage<WebPortal.ResponseVehicleToWebPortal> vehicleToHandlerViaGuardian(Vehicle vehicle) {
         return AskPattern.ask(webPortalGuardianRef,
                 ref -> new WebPortalGuardian.ForwardToHandler(vehicle, ref), askTimeout, scheduler);
     }
@@ -175,7 +175,7 @@ public class WebPortalRoutes extends WebPortalMessages {
                 // theMessage -> complete(StatusCodes.OK, theMessage.theProof)))),
                 path("wot",
                         () -> post(() -> entity(Jackson.unmarshaller(Vehicle.class),
-                                vehicle -> onSuccess(newVehicleToGuardian(vehicle),
+                                vehicle -> onSuccess(vehicleToHandlerViaGuardian(vehicle),
                                         theMessage -> complete(StatusCodes.OK, theMessage.vehicle,
                                                 Jackson.marshaller()))))),
 
@@ -193,7 +193,7 @@ public class WebPortalRoutes extends WebPortalMessages {
                                                 vehicleId -> parameter("fleet_id",
                                                         fleet_id -> parameter("total_mileage",
                                                                 total_mileage -> onSuccess(
-                                                                        newVehicleToGuardian(Vehicle.createForMileage(
+                                                                        vehicleToHandlerViaGuardian(Vehicle.createForMileage(
                                                                                 vehicleId, fleet_id,
                                                                                 Float.valueOf(total_mileage))),
                                                                         theMessage -> complete(StatusCodes.OK,

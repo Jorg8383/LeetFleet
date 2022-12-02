@@ -4,6 +4,9 @@
 To create required docker network: docker network create leetfleet_net
 To run the whole shooting match: docker compose up
 
+### Compose Start:
+By far the easiest method. 'docker compose up' will start an entire configured
+akka cluster.
 ### Individual Start:
 1) Dummy Cloud Storage
    There are lots of arguments for REDIS. Easiest approach is to run:
@@ -31,8 +34,10 @@ To run the whole shooting match: docker compose up
    docker run --network-alias careless --network leetfleet_net careless:latest
 
 4) webportal (HttpToAkka) registers with registry
+   Running locally:
    mvn exec:java -Dexec.args="-a localhost" -pl webportal
-   docker run --network-alias webportal --network leetfleet_net webportal:latest
+   Running Docker image:
+   docker run -p 8080:8080 --network-alias webportal --network leetfleet_net webportal:latest
 
 
 # Ports for LeetFleet System
@@ -49,15 +54,6 @@ Fleetless : 2554
 Paranoid  : 2555
 
 
-To Test the web portal (no docker) we can:
-mvn exec:java -Dexec.args="-a localhost" -pl webportal
-
-
-
-FleetManagers will load supported id's from redis
-
-
-
 
 ) web portal gets message
 ii) Tells message to registry/router actor (message has to have a car id)
@@ -66,9 +62,6 @@ iv) all but ignores the message
 v) the fleet the vhicle belongs to ... does the thing...
    -> create a car actor
    -> store shit in the database
-
-
-
 
 Vehicle Event will send the translated message to the vehicle
 The Vehicle will update it's model and store it!??

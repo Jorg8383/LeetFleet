@@ -24,10 +24,18 @@ services:
       # You can set these explicitly:
       #  -> save 3600 1 300 100 60 10000
       - REDIS_ARGS=--logfile /logs/redis-stack.log --dbfilename leetfleet.rdb --dir /leetfleet
+  # AKKA Seed nodes (registry is #1, webportal is #2)
   registry:
     image: "registry:latest"
     depends_on:
       - "redis"
+  webportal:
+      image: "webportal:latest"
+      depends_on:
+        - "redis"
+        - "registry"
+      ports:
+        - 8080:8080
   # Fleet Managers
   careless:
     image: "careless:latest"

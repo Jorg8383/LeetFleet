@@ -207,14 +207,14 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   // From Receptionist
 
   private Behavior<Message> onListing(ListingResponse msg) {
+    getContext().getLog().info("Receptionist Notification - Fleet Manager Created:");
     registry = new HashMap<Long, ActorRef<FleetManager.Message>>();
     msg.listing.getServiceInstances(FleetManager.fleetManagerServiceKey)
         .forEach(
             fleetManagerRef -> {
               // Refresh entire registry every time?
-              getContext().getLog().info("IN REGISTRY GOT A MESSAGE FROM THE RECEPTIONISTT !!!");
               registry.put(SEED_ID++, fleetManagerRef);
-              getContext().getLog().info("\tFLEET MANAGER REF SUCCESSFULLY ADDED TO REGISTRY !!!");
+              getContext().getLog().info("\t(fleet manager ref added to registry cache)");
             });
     return Behaviors.same();
   }

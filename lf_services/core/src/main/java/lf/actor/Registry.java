@@ -29,8 +29,8 @@ import java.util.*;
 public class Registry extends AbstractBehavior<Registry.Message> {
 
   // Create a ServiceKey so we can find the Registry using the Receptioninst
-  public static final ServiceKey<Registry.Message> registryServiceKey
-                  = ServiceKey.create(Registry.Message.class, "registryService");
+  public static final ServiceKey<Registry.Message> registryServiceKey = ServiceKey.create(Registry.Message.class,
+      "registryService");
 
   // MESSAGES:
   //
@@ -89,10 +89,10 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   }
 
   public final static class QueryFleetManager implements Message {
-    public final long fleetId;
+    public final String fleetId;
     public final ActorRef<VehicleEvent.Message> vehicleRef;
 
-    public QueryFleetManager(long fleetId, ActorRef<VehicleEvent.Message> vehicleRef) {
+    public QueryFleetManager(String fleetId, ActorRef<VehicleEvent.Message> vehicleRef) {
       this.fleetId = fleetId;
       this.vehicleRef = vehicleRef;
     }
@@ -102,10 +102,11 @@ public class Registry extends AbstractBehavior<Registry.Message> {
    * Message to handle Listing Response from Receptionist.
    *
    * NOTE: We need to emply a 'messageAdaptor' to convert the message we recieve
-   *       from the Receptioninst to the one define here that we can understand.
+   * from the Receptioninst to the one define here that we can understand.
    */
   private static class ListingResponse implements Message {
     final Receptionist.Listing listing;
+
     private ListingResponse(Receptionist.Listing listing) {
       this.listing = listing;
     }
@@ -119,9 +120,11 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   // can arrive in any order).
   private static HashMap<Long, ActorRef<FleetManager.Message>> registry = new HashMap<Long, ActorRef<FleetManager.Message>>();
 
-  // Not sure if I require a reference to the context - but will keep one as it's in the example
+  // Not sure if I require a reference to the context - but will keep one as it's
+  // in the example
   private final ActorContext<Message> context;
-  // We need an 'adaptor' - to convert the Receptionist Listing to one we understand!!
+  // We need an 'adaptor' - to convert the Receptionist Listing to one we
+  // understand!!
   private final ActorRef<Receptionist.Listing> listingResponseAdapter;
 
   // CREATE THIS ACTOR
@@ -135,8 +138,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
               .tell(Receptionist.register(registryServiceKey, context.getSelf()));
 
           return Behaviors.setup(Registry::new);
-        }
-      );
+        });
   }
 
   // ADD TO CONTEXT
@@ -144,16 +146,15 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     super(context);
 
     this.context = context;
-    this.listingResponseAdapter =
-        context.messageAdapter(Receptionist.Listing.class, ListingResponse::new);
+    this.listingResponseAdapter = context.messageAdapter(Receptionist.Listing.class, ListingResponse::new);
 
     // Subscribe for FleetManager list updates!
     context
-      .getSystem()
-      .receptionist()
-      .tell(
-          Receptionist.subscribe(
-              FleetManager.fleetManagerServiceKey, listingResponseAdapter));
+        .getSystem()
+        .receptionist()
+        .tell(
+            Receptionist.subscribe(
+                FleetManager.fleetManagerServiceKey, listingResponseAdapter));
   }
 
   // =========================================================================
@@ -209,13 +210,12 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     registry = new HashMap<Long, ActorRef<FleetManager.Message>>();
     msg.listing.getServiceInstances(FleetManager.fleetManagerServiceKey)
         .forEach(
-          fleetManagerRef -> {
-            // Refresh entire registry every time?
-            getContext().getLog().info("IN REGISTRY GOT A MESSAGE FROM THE RECEPTIONISTT !!!");
-            registry.put(SEED_ID++, fleetManagerRef);
-            getContext().getLog().info("\tFLEET MANAGER REF SUCCESSFULLY ADDED TO REGISTRY !!!");
-          }
-        );
+            fleetManagerRef -> {
+              // Refresh entire registry every time?
+              getContext().getLog().info("IN REGISTRY GOT A MESSAGE FROM THE RECEPTIONISTT !!!");
+              registry.put(SEED_ID++, fleetManagerRef);
+              getContext().getLog().info("\tFLEET MANAGER REF SUCCESSFULLY ADDED TO REGISTRY !!!");
+            });
     return Behaviors.same();
   }
 

@@ -6,6 +6,8 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import lf.actor.Registry.ListFleetManagers;
+import lf.actor.Registry.QueryFleetManager;
 import lf.message.FleetManager;
 import lf.model.Vehicle;
 
@@ -54,15 +56,18 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
   // }
   // }
 
-  public final static class FirstMessageFromWebPortal implements Message {
+  public final static class MessageFromWebPortal implements Message {
     public final Vehicle vehicle;
-    public final ActorRef<WebPortalMessages.FirstMessageToWebPortal> portalRef;
+    public final ActorRef<WebPortalMessages.MessageToWebPortal> replyTo;
+    public final ActorRef<Registry.Message> registryRef;
 
-    public FirstMessageFromWebPortal(
-        Vehicle vehicle, ActorRef<WebPortalMessages.FirstMessageToWebPortal> portalRef) {
+    public MessageFromWebPortal(
+        Vehicle vehicle, ActorRef<WebPortalMessages.MessageToWebPortal> portalRef,
+        ActorRef<Registry.Message> registryRef) {
       this.vehicle = vehicle;
-      this.vehicle.setFleetId("success lads");
-      this.portalRef = portalRef;
+      // this.vehicle.setFleetId("success lads");
+      this.replyTo = portalRef;
+      this.registryRef = registryRef;
     }
   }
 
@@ -101,7 +106,7 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
         // .onMessage(FirstMessageFromWebPortal.class,
         // this::onFirstMessageFromWebPortal)
         .onMessage(
-            FirstMessageFromWebPortal.class, this::onInitialVehicleMessage)
+            MessageFromWebPortal.class, this::onVehicleMessage)
 
         .build();
   }
@@ -144,27 +149,35 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
   // return this;
   // }
 
-  private Behavior<Message> onInitialVehicleMessage(FirstMessageFromWebPortal message) {
+  private Behavior<Message> onVehicleMessage(MessageFromWebPortal message) {
     // this thing gets in a message which contains a vehicle
-    message.portalRef.tell(new WebPortalMessages.FirstMessageToWebPortal(message.vehicle));
 
     // STORE VEHCILE ATTRIBUTES IN THIS ACTOR
 
     // NEXt : IS THERE A FLEET ID!???
-    //   IF yes - send a message to the registr to get the actore ref for that fleet manager
-    //   If no - send a message to to the registry for all fleet managers
+    if (message.vehicle.getFleetId() == "") {
+      // If no - send a message to to the registry for all fleet managers
+      message.registryRef.tell(new ListFleetManagers(this.getContext().getSelf()));
+      message.vehicle.setFleetId("yololololo");
+    } else {
+      // IF yes - send a message to the registr to get the actore ref for that fleet
+      // manager
+      message.registryRef.tell(new QueryFleetManager(message.vehicle.getFleetId(), this.getContext().getSelf()));
+      System.out.print("Fleet id exists");
+    }
 
-    // This actor should be able to recieve a message from the registry with a list of fleet manager refs
-
-
+    // This actor should be able to recieve a message from the registry with a list
+    // of fleet manager refs
+    message.replyTo.tell(new WebPortalMessages.MessageToWebPortal(message.vehicle));
     return this;
   }
 
+  // new private Behavior<Message>
+  // onInitialVehicleMessage(FirstMessageFromWebPortal message) {
+  // message from registry with list of fleet handler refs
+  // forward vehicl (?object) to fleet handler
 
-  // new private Behavior<Message> onInitialVehicleMessage(FirstMessageFromWebPortal message) {
-    // message from registry with list of fleet handler refs
-    // forward vehicl (?object)  to fleet handler
-
-    // new private Behavior<Message> onInitialVehicleMessage(FirstMessageFromWebPortal message) {
-    // gets a response from fleet handler to say model updated.
+  // new private Behavior<Message>
+  // onInitialVehicleMessage(FirstMessageFromWebPortal message) {
+  // gets a response from fleet handler to say model updated.
 }

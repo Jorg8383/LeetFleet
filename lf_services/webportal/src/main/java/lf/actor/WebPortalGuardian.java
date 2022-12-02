@@ -63,10 +63,10 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     // Definitely better ways to do this.
     public final static class ForwardToHandler implements Message {
         public final Vehicle message;
-        public final ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo;
+        public final ActorRef<WebPortalMessages.MessageToWebPortal> replyTo;
 
         public ForwardToHandler(
-                Vehicle message, ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo) {
+                Vehicle message, ActorRef<WebPortalMessages.MessageToWebPortal> replyTo) {
             this.message = message;
             this.replyTo = replyTo;
         }
@@ -76,10 +76,11 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
      * Message to handle Listing Response from Receptionist.
      *
      * NOTE: We need to emply a 'messageAdaptor' to convert the message we recieve
-     *       from the Receptioninst to the one define here that we can understand.
+     * from the Receptioninst to the one define here that we can understand.
      */
     private static class ListingResponse implements Message {
         final Receptionist.Listing listing;
+
         private ListingResponse(Receptionist.Listing listing) {
             this.listing = listing;
         }
@@ -88,7 +89,8 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     // ENCAPSULATION:
     @IgnoreError // Ignore unused error for registry - spawned but not used.
     public ActorRef<Registry.Message> REGISTRY_REF = null;
-    // We need an 'adaptor' - to convert the Receptionist Listing to one we understand!!
+    // We need an 'adaptor' - to convert the Receptionist Listing to one we
+    // understand!!
     private final ActorRef<Receptionist.Listing> listingResponseAdapter;
 
     // =========================================================================
@@ -108,25 +110,23 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     private WebPortalGuardian(ActorContext<WebPortalGuardian.Message> context) {
         super(context);
 
-        this.listingResponseAdapter =
-            context.messageAdapter(Receptionist.Listing.class, ListingResponse::new);
+        this.listingResponseAdapter = context.messageAdapter(Receptionist.Listing.class, ListingResponse::new);
 
         // Ask about current state of Registry!
         context
-            .getSystem()
-            .receptionist()
-            .tell(
-            Receptionist.find(
-                Registry.registryServiceKey, listingResponseAdapter));
+                .getSystem()
+                .receptionist()
+                .tell(
+                        Receptionist.find(
+                                Registry.registryServiceKey, listingResponseAdapter));
 
         // Subscribe for Registry list updates!
         context
-            .getSystem()
-            .receptionist()
-            .tell(
-            Receptionist.subscribe(
-                Registry.registryServiceKey, listingResponseAdapter));
-
+                .getSystem()
+                .receptionist()
+                .tell(
+                        Receptionist.subscribe(
+                                Registry.registryServiceKey, listingResponseAdapter));
 
     }
 
@@ -180,7 +180,8 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
     private Behavior<WebPortalGuardian.Message> onForwardToHandler(ForwardToHandler message) {
         // Create a VehicleEvent actor to handle this request.
-        // Investigate use of context.spawnAnonymous(VehicleEvent.create()); - can we drop unique names for throw-away actors???
+        // Investigate use of context.spawnAnonymous(VehicleEvent.create()); - can we
+        // drop unique names for throw-away actors???
         ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred"); // <- TEMP
                                                                                                             // TEMP TEMP
                                                                                                             // TEMP TEMP
@@ -192,7 +193,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
         // We inform the FleetManager that registration was successful
         getContext().getLog().info("in onForwardToHandlerVehicle, the message type is!{}!", message.getClass());
-        vehicleEventRef.tell(new VehicleEvent.FirstMessageFromWebPortal(message.message, message.replyTo));
+        vehicleEventRef.tell(new VehicleEvent.MessageFromWebPortal(message.message, message.replyTo, REGISTRY_REF));
         return this;
     }
 
@@ -201,13 +202,12 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     private Behavior<Message> onListing(ListingResponse msg) {
         // There will only every be one registry in the list in our toy akka system.
         msg.listing.getServiceInstances(Registry.registryServiceKey)
-            .forEach(
-            registryRef -> {
-                // Refresh entire registry every time?
-                getContext().getLog().info("IN WEB_PORTAL GOT A MESSAGE FROM THE RECEPTIONISTT !!!");
-                REGISTRY_REF = registryRef;
-            }
-            );
+                .forEach(
+                        registryRef -> {
+                            // Refresh entire registry every time?
+                            getContext().getLog().info("IN WEB_PORTAL GOT A MESSAGE FROM THE RECEPTIONISTT !!!");
+                            REGISTRY_REF = registryRef;
+                        });
         return Behaviors.same();
     }
 

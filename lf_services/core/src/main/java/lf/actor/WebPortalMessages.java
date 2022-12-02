@@ -19,10 +19,10 @@ public class WebPortalMessages {
   // }
   // }
 
-  public final static class FirstMessageToWebPortal implements Message {
+  public final static class MessageToWebPortal implements Message {
     public Vehicle vehicle;
 
-    public FirstMessageToWebPortal(Vehicle vehicle) {
+    public MessageToWebPortal(Vehicle vehicle) {
       this.vehicle = vehicle;
     }
   }

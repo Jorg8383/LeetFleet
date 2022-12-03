@@ -7,7 +7,7 @@ public class Vehicle {
         UNLOCKED
     }
 
-    private long vehicleId;
+    private String vehicleId;
     private String fleetId;
 
     private Float tyrePressure;
@@ -16,15 +16,17 @@ public class Vehicle {
     private Long nextServiceMileage;
     private String doorStatus;
     private String maintenanceNeeded;
+    private Long vehicleIdLong;
 
-    public static Vehicle createForMileage(long vehicleId, String fleetId, Float totalMileage) {
+    public static Vehicle createForMileage(String vehicleId, String fleetId, Float totalMileage) {
         return new Vehicle(
-                vehicleId, fleetId, new Float(0), totalMileage,
+                vehicleId,
+                fleetId, new Float(0), totalMileage,
                 new Float(0), new Long(0), "", "");
     }
 
     public Vehicle(
-            long vehicleId, String fleetId, Float tyrePressure, Float totalMileage, Float oilLevel,
+            String vehicleId, String fleetId, Float tyrePressure, Float totalMileage, Float oilLevel,
             Long nextServiceMileage, String doorStatus, String maintenanceNeeded) {
         this.vehicleId = vehicleId;
         this.fleetId = fleetId;
@@ -34,9 +36,11 @@ public class Vehicle {
         this.nextServiceMileage = nextServiceMileage;
         this.doorStatus = doorStatus;
         this.maintenanceNeeded = maintenanceNeeded;
+
+        this.vehicleIdLong = Long.parseLong(vehicleId); // to change to extract long from string
     }
 
-    public static Vehicle createTemplate(long vehicleId) {
+    public static Vehicle createTemplate(String vehicleId) {
         return new Vehicle(
                 vehicleId, "", new Float(0), new Float(0),
                 new Float(0), new Long(0), "", "");
@@ -48,18 +52,23 @@ public class Vehicle {
 
     // private boolean isOn;
 
-    public Vehicle(long vehicleId, String fleetId) {
+    public Vehicle(String vehicleId, String fleetId) {
         this.vehicleId = vehicleId;
         this.fleetId = fleetId;
         // this.isOn = isOn;
     }
 
-    public long getVehicleId() {
+    public long getVehicleIdLong() {
+        return this.vehicleIdLong;
+    }
+
+    public String getVehicleId() {
         return this.vehicleId;
     }
 
-    public void setVehicleId(long vehicleId) {
+    public void setVehicleId(String vehicleId) {
         this.vehicleId = vehicleId;
+        this.vehicleIdLong = Long.parseLong(vehicleId); // to change to extract long from string
     }
 
     public String getFleetId() {

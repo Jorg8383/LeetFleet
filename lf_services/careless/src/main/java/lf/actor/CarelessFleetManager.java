@@ -92,6 +92,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
             // vehicleId =
             // Long.parseLong(vehicle.getVehicleId().substring(message.vehicle.getVehicleId()));
             // // <= HARD CODED ID EXTRACTION
+            vehicleId = vehicle.getVehicleIdLong();
 
             validVehicleId = true;
         } catch (Exception e) {

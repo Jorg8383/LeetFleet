@@ -68,12 +68,11 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         String key = "vehicle:" + vehicleId;
 
         if (client.exists(key)) {
-            Vehicle vehicle = (Vehicle) client.jsonGet(key);
+            vehicle = (Vehicle) client.jsonGet(key);
         } else {
-            Vehicle vehicle = Vehicle.createTemplate(vehicleId);
+            vehicle = Vehicle.createTemplate(vehicle.getVehicleId());
             client.jsonSetLegacy(key, vehicle);
         }
-        this.vehicle = vehicle;
 
         // jedis..jsonSet("vehicle:111", truck);
         // log.info("client ->", client);

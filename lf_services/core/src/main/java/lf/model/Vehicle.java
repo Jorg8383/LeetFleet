@@ -7,7 +7,7 @@ public class Vehicle {
         UNLOCKED
     }
 
-    private String vehicleId;
+    private long vehicleId;
     private String fleetId;
 
     private Float tyrePressure;
@@ -17,14 +17,14 @@ public class Vehicle {
     private String doorStatus;
     private String maintenanceNeeded;
 
-    public static Vehicle createForMileage(String vehicleId, String fleetId, Float totalMileage)
-    {
+    public static Vehicle createForMileage(long vehicleId, String fleetId, Float totalMileage) {
         return new Vehicle(
-            vehicleId, fleetId, new Float(0), totalMileage,
-            new Float(0),  new Long(0), "", "");
+                vehicleId, fleetId, new Float(0), totalMileage,
+                new Float(0), new Long(0), "", "");
     }
 
-    public Vehicle(String vehicleId, String fleetId, Float tyrePressure, Float totalMileage, Float oilLevel,
+    public Vehicle(
+            long vehicleId, String fleetId, Float tyrePressure, Float totalMileage, Float oilLevel,
             Long nextServiceMileage, String doorStatus, String maintenanceNeeded) {
         this.vehicleId = vehicleId;
         this.fleetId = fleetId;
@@ -36,22 +36,29 @@ public class Vehicle {
         this.maintenanceNeeded = maintenanceNeeded;
     }
 
+    public static Vehicle createTemplate(long vehicleId) {
+        return new Vehicle(
+                vehicleId, "", new Float(0), new Float(0),
+                new Float(0), new Long(0), "", "");
+
+    }
+
     public Vehicle() {
     }
 
     // private boolean isOn;
 
-    public Vehicle(String vehicleId, String fleetId) {
+    public Vehicle(long vehicleId, String fleetId) {
         this.vehicleId = vehicleId;
         this.fleetId = fleetId;
         // this.isOn = isOn;
     }
 
-    public String getVehicleId() {
+    public long getVehicleId() {
         return this.vehicleId;
     }
 
-    public void setVehicleId(String vehicleId) {
+    public void setVehicleId(long vehicleId) {
         this.vehicleId = vehicleId;
     }
 

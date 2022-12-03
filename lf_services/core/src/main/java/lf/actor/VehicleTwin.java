@@ -15,7 +15,8 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
 
     // MESSAGES:
     //
-    public interface Message {}
+    public interface Message {
+    }
 
     // public final static class FleetManagerList implements Message {
     // public final Collection<ActorRef<FleetManager.Message>> fleetManagerRefs;
@@ -37,8 +38,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     // CREATE THIS ACTOR
     public static Behavior<Message> create(long vehicleId) {
         return Behaviors.setup(
-            context -> new VehicleTwin(vehicleId, context)
-            );
+                context -> new VehicleTwin(vehicleId, context));
     }
 
     // ADD TO CONTEXT
@@ -47,10 +47,9 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         // Interesting question... where will VehicleTwins get this information?
         // Perhaps passed down from the WebPortal?
         String redisHostname = "localhost";
-        int    redisPort = 6379;
+        int redisPort = 6379;
 
         // Testing jedis connection - to be moved to vehicle actor
-        vehicle = new Vehicle("v1", "f1");
 
         // JedisPooled jedis = new JedisPooled("host.docker.internal", 6379);
         // Protocol.DEFAULT_HOST redisHostname
@@ -59,7 +58,15 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         UnifiedJedis client = new UnifiedJedis(provider);
         // JedisPool pool = new JedisPool("localhost", 6379);
         // jedis.set("clientName", "Jedis");
-        client.jsonSetLegacy("vehicle:111", vehicle);
+        String key = "vehicle:" + vehicleId;
+
+        if (client.exists(key)) {
+            Vehicle vehicle = (Vehicle) client.jsonGet(key);
+        } else {
+            Vehicle vehicle = Vehicle.createTemplate(vehicleId);
+            client.jsonSetLegacy(key, vehicle);
+        }
+        this.vehicle = vehicle;
         // jedis..jsonSet("vehicle:111", truck);
         // log.info("client ->", client);
         // Object fred = jedis.jsonGet("111");

@@ -31,15 +31,21 @@ const testingURL = "http://localhost:8080/smart-vehicle";
 //     wotDevice.startDevice();
 // });
 
+const dirUri = "http://localhost:9000/api/events?diff=false"; 
 var EventSource = require("eventsource");
-const sseDirectory = new EventSource("http://localhost:9000/api/events/create?diff=true");
+const sseDirectory = new EventSource(dirUri);
 
-var printWaitMessage = true;
+var doInitialise = true;
+
+if (doInitialise) {
+    console.log("Adding event listener...");
+    sseDirectory.addEventListener('create', function(e) {
+        console.log("Event: 'create', data: " + e.data);
+      });
+    doInitialise = false;
+}
+
 while (true) {
-    if (printWaitMessage) {
-        console.log("Waiting for an event 'thing_created'...");
-        printWaitMessage = false;
-    }
 
     sseDirectory.onopen = function(e) {
         console.log("Event open");
@@ -54,13 +60,13 @@ while (true) {
         }
     }
 
-    sseDirectory.onmessage = function(e) {
-        console.log("Event onMessage received");
-        const { t } = JSON.parse(e.data);
-        console.log(t);
-        printWaitMessage = true;
+    // sseDirectory.onmessage = function(e) {
+    //     console.log("Event onMessage received");
+    //     const { t } = JSON.parse(e.data);
+    //     console.log(t);
+    //     doInitialise = true;
 
-    }
+    // }
 
     // sseSource.addEventListener('create', function (e) {
     //     console.log("OnMessage...")

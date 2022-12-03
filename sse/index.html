@@ -1,46 +1,46 @@
 <!DOCTYPE html>
 <script>
-let eventSource;
+    let eventSource;
 
-function start() { // when "Start" button pressed
-  if (!window.EventSource) {
-    // IE or an old browser
-    alert("The browser doesn't support EventSource.");
-    return;
-  }
+    function start() { // when "Start" button pressed
+        if (!window.EventSource) {
+            // IE or an old browser
+            alert("The browser doesn't support EventSource.");
+            return;
+        }
 
-//   eventSource = new EventSource("http://localhost:9000/api/events/create?diff=true");
-    eventSource = new EventSource("http://localhost:9000/api/events?diff=false");
+        // eventSource = new EventSource("http://localhost:9000/api/events/create?diff=true");
+        eventSource = new EventSource("http://localhost:9000/api/events?diff=false");
 
-  eventSource.onopen = function(e) {
-    log("Event: open");
-  };
+        eventSource.onopen = function (e) {
+            log("Event: open");
+        };
 
-  eventSource.onerror = function(e) {
-    log("EventSource failed", e);
-    if (this.readyState == EventSource.CONNECTING) {
-      log(`Reconnecting (readyState=${this.readyState})...`);
-    } 
-  };
+        eventSource.onerror = function (e) {
+            log("EventSource failed", e);
+            if (this.readyState == EventSource.CONNECTING) {
+                log(`Reconnecting (readyState=${this.readyState})...`);
+            }
+        };
 
-  eventSource.addEventListener('create', function(e) {
-    log("Event: bye, data: " + e.data);
-  });
+          eventSource.addEventListener('create', function(e) {
+            log("Event: create, data: " + e.data);
+          });
 
-  eventSource.onmessage = function(e) {
-    log("Event: message, data: " + e.data);
-  };
-}
+        eventSource.onmessage = function (e) {
+            log("Event: create, data: " + e.data);
+        };
+    }
 
-function stop() { // when "Stop" button pressed
-  eventSource.close();
-  log("eventSource.close()");
-}
+    function stop() { // when "Stop" button pressed
+        eventSource.close();
+        log("eventSource.close()");
+    }
 
-function log(msg) {
-  logElem.innerHTML += msg + "<br>";
-  document.documentElement.scrollTop = 99999999;
-}
+    function log(msg) {
+        logElem.innerHTML += msg + "<br>";
+        document.documentElement.scrollTop = 99999999;
+    }
 </script>
 
 <button onclick="start()">Start</button> Press the "Start" to begin.

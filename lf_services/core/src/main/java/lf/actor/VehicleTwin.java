@@ -1,6 +1,9 @@
 package lf.actor;
 
+import com.typesafe.config.Config;
+
 import akka.actor.typed.ActorRef;
+import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
@@ -44,17 +47,21 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     // ADD TO CONTEXT
     private VehicleTwin(long vehicleId, ActorContext<Message> context) {
         super(context);
+
         // Interesting question... where will VehicleTwins get this information?
         // Perhaps passed down from the WebPortal?
-        String redisHostname = "localhost";
-        int redisPort = 6379;
+
+        // Read the Redis setting from the System Config.
+        Config config = context.getSystem().settings().config().getConfig("akka.redis");
+        String redisHostname = config.getString("hostname");
+        int redisPort = config.getInt("port"); // Probably... 6379
 
         // Testing jedis connection - to be moved to vehicle actor
 
         // JedisPooled jedis = new JedisPooled("host.docker.internal", 6379);
         // Protocol.DEFAULT_HOST redisHostname
-        HostAndPort config = new HostAndPort(redisHostname, redisPort);
-        PooledConnectionProvider provider = new PooledConnectionProvider(config);
+        HostAndPort hostAndPort = new HostAndPort(redisHostname, redisPort);
+        PooledConnectionProvider provider = new PooledConnectionProvider(hostAndPort);
         UnifiedJedis client = new UnifiedJedis(provider);
         // JedisPool pool = new JedisPool("localhost", 6379);
         // jedis.set("clientName", "Jedis");
@@ -67,6 +74,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
             client.jsonSetLegacy(key, vehicle);
         }
         this.vehicle = vehicle;
+
         // jedis..jsonSet("vehicle:111", truck);
         // log.info("client ->", client);
         // Object fred = jedis.jsonGet("111");

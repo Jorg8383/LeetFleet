@@ -31,9 +31,8 @@ const testingURL = "http://localhost:8080/smart-vehicle";
 //     wotDevice.startDevice();
 // });
 
-// const sseSource = new EventSource("http://localhost:9000/api/events/create?diff=false");
 var EventSource = require("eventsource");
-const sseSource = new EventSource("http://localhost:9000/api/events/create?diff=true");
+const sseDirectory = new EventSource("http://localhost:9000/api/events/create?diff=true");
 
 var printWaitMessage = true;
 while (true) {
@@ -41,12 +40,27 @@ while (true) {
         console.log("Waiting for an event 'thing_created'...");
         printWaitMessage = false;
     }
-    sseSource.onmessage = function (event) {
-        console.log("OnMessage...")
-        const { t } = JSON.parse(event.data);
+
+    sseDirectory.onopen = function(e) {
+        console.log("Event open");
+    }
+
+    sseDirectory.onerror = function(e) {
+        console.log("Event error");
+        if (this.readyState == sseDirectory.CONNECTING) {
+            console.log(`Reconnecting (readyState=${this.readyState})...`);
+        } else {
+            console.log("An error has occured!");
+        }
+    }
+
+    sseDirectory.onmessage = function(e) {
+        console.log("Event onMessage received");
+        const { t } = JSON.parse(e.data);
         console.log(t);
         printWaitMessage = true;
-    }    
+
+    }
 
     // sseSource.addEventListener('create', function (e) {
     //     console.log("OnMessage...")

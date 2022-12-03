@@ -107,6 +107,10 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
                         = getContext().spawnAnonymous(VehicleTwin.create(vehicleId));  // 'anonymous' actor
                     // store
                 }
+
+                // MORE STUFF
+                // PERFORM THE UDATE ON THE VEHCILE ACTOR
+                // MESSAGE THE VehicleEvent to say we're done.  message.vehicleEventRef
             }
             else {
                 getContext().getLog().info("Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleId) + "). Ignoring.");

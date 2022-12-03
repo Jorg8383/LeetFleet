@@ -8,7 +8,7 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import akka.actor.typed.receptionist.Receptionist;
 import akka.actor.typed.receptionist.ServiceKey;
-import lf.message.FleetManager;
+import lf.message.FleetManagerMsg;
 
 import java.util.*;
 
@@ -29,8 +29,9 @@ import java.util.*;
 public class Registry extends AbstractBehavior<Registry.Message> {
 
   // Create a ServiceKey so we can find the Registry using the Receptioninst
-  public static final ServiceKey<Registry.Message> registryServiceKey = ServiceKey.create(Registry.Message.class,
-      "registryService");
+  // The API of the receptionist is based on actor messages.
+  public static final ServiceKey<Registry.Message> registrySK
+      = ServiceKey.create(Registry.Message.class, "registrySK");
 
   // MESSAGES:
   //
@@ -52,9 +53,9 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   // This will make it easier to use, understand and debug actor-based system
 
   public final static class RegisterFleetManager implements Message {
-    public final ActorRef<FleetManager.Message> fleetManRef;
+    public final ActorRef<FleetManagerMsg.Message> fleetManRef;
 
-    public RegisterFleetManager(ActorRef<FleetManager.Message> fleetManRef) {
+    public RegisterFleetManager(ActorRef<FleetManagerMsg.Message> fleetManRef) {
       this.fleetManRef = fleetManRef;
     }
   }
@@ -68,33 +69,14 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     }
   }
 
-  // I HAVE NO IDEA if a FleetManager will ever need the WebPortal reference
-  // I just left this in as an example of how to get the WebPortal ActorRef.
-  public final static class QueryWebPortal implements Message {
-    public final ActorRef<FleetManager.Message> fleetManRef;
-
-    public QueryWebPortal(ActorRef<FleetManager.Message> fleetManRef) {
-      this.fleetManRef = fleetManRef;
-    }
-  }
-
-  // DO WE REQUIRE SEPERATE DISCOVER AND LOOKUP METHODS? IF WE LOOKUP AND FIND
-  // NOTHING WE COULD JUST....
+  // COMMENT COMMENT COMMENT
   public final static class ListFleetManagers implements Message {
-    public final ActorRef<VehicleEvent.Message> vehicleRef;
-
-    public ListFleetManagers(ActorRef<VehicleEvent.Message> vehicleRef) {
-      this.vehicleRef = vehicleRef;
-    }
-  }
-
-  public final static class QueryFleetManager implements Message {
     public final String fleetId;
-    public final ActorRef<VehicleEvent.Message> vehicleRef;
+    public final ActorRef<VehicleEvent.Message> vehicleEventHandlerRef;
 
-    public QueryFleetManager(String fleetId, ActorRef<VehicleEvent.Message> vehicleRef) {
+    public ListFleetManagers(String fleetId, ActorRef<VehicleEvent.Message> vehicleEventHandlerRef) {
       this.fleetId = fleetId;
-      this.vehicleRef = vehicleRef;
+      this.vehicleEventHandlerRef = vehicleEventHandlerRef;
     }
   }
 
@@ -118,7 +100,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
 
   // Track which id's map to which 'ClientInfos' (as the responses
   // can arrive in any order).
-  private static HashMap<Long, ActorRef<FleetManager.Message>> registry = new HashMap<Long, ActorRef<FleetManager.Message>>();
+  private static HashMap<Long, ActorRef<FleetManagerMsg.Message>> registry = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
 
   // Not sure if I require a reference to the context - but will keep one as it's
   // in the example
@@ -135,8 +117,10 @@ public class Registry extends AbstractBehavior<Registry.Message> {
           context
               .getSystem()
               .receptionist()
-              .tell(Receptionist.register(registryServiceKey, context.getSelf()));
+              .tell(Receptionist.register(registrySK, context.getSelf()));
 
+          //TODO FIX FIX FIX - THINK FOLLOWING IS CORRECT - TEST IT TEST IT TEST IT
+          //return new Registry(context);
           return Behaviors.setup(Registry::new);
         });
   }
@@ -154,7 +138,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
         .receptionist()
         .tell(
             Receptionist.subscribe(
-                FleetManager.fleetManagerServiceKey, listingResponseAdapter));
+                FleetManagerMsg.fleetManagerServiceKey, listingResponseAdapter));
   }
 
   // =========================================================================
@@ -166,7 +150,6 @@ public class Registry extends AbstractBehavior<Registry.Message> {
         .onMessage(RegisterFleetManager.class, this::onRegFleetManager)
         .onMessage(DeRegisterManager.class, this::onDeRegFleetManager)
         .onMessage(ListFleetManagers.class, this::onListFleetManagers)
-        .onMessage(QueryFleetManager.class, this::onQueryFleetManager)
         .onMessage(ListingResponse.class, this::onListing)
         .build();
   }
@@ -181,7 +164,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     registry.put(new_fleet_id, message.fleetManRef);
 
     // We inform the FleetManager that registration was successful
-    message.fleetManRef.tell(new FleetManager.RegistrationSuccess(new_fleet_id, getContext().getSelf()));
+    message.fleetManRef.tell(new FleetManagerMsg.RegistrationSuccess(new_fleet_id, getContext().getSelf()));
     return this;
   }
 
@@ -194,13 +177,23 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   // From VehicleEvent
 
   private Behavior<Message> onListFleetManagers(ListFleetManagers message) {
-    // Return the current state of the registry (all top tier fleet manager refs)
-    message.vehicleRef.tell(new VehicleEvent.FleetManagerList(registry.values(), getContext().getSelf()));
-    return this;
-  }
+    // If valid fleetId
+    boolean validFleetId = false;
+    long fleetId         = 0;
+    try {
+        fleetId = Long.parseLong(message.fleetId);
+        validFleetId = true;
+    } catch (NumberFormatException nfe) {
+    }
 
-  private Behavior<Message> onQueryFleetManager(QueryFleetManager message) {
-    message.vehicleRef.tell(new VehicleEvent.FleetManagerRef(registry.get(message.fleetId), getContext().getSelf()));
+    if (validFleetId) {
+      // We have to return a Collection - use the singletonList convenience...
+      message.vehicleEventHandlerRef.tell(new VehicleEvent.FleetManagerList(Collections.singletonList(registry.get(fleetId)), getContext().getSelf()));
+    }
+    else {
+      message.vehicleEventHandlerRef.tell(new VehicleEvent.FleetManagerList(registry.values(), getContext().getSelf()));
+    }
+
     return this;
   }
 
@@ -208,8 +201,8 @@ public class Registry extends AbstractBehavior<Registry.Message> {
 
   private Behavior<Message> onListing(ListingResponse msg) {
     getContext().getLog().info("Receptionist Notification - Fleet Manager Created:");
-    registry = new HashMap<Long, ActorRef<FleetManager.Message>>();
-    msg.listing.getServiceInstances(FleetManager.fleetManagerServiceKey)
+    registry = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
+    msg.listing.getServiceInstances(FleetManagerMsg.fleetManagerServiceKey)
         .forEach(
             fleetManagerRef -> {
               // Refresh entire registry every time?

@@ -18,7 +18,7 @@ import akka.http.javadsl.server.PathMatchers;
 import static akka.http.javadsl.server.PathMatchers.segment;
 import akka.http.javadsl.server.Route;
 import lf.actor.WebPortalGuardian;
-import lf.message.WebPortal;
+import lf.message.WebPortalMsg;
 import lf.model.Vehicle;
 
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * Routes can be defined in separated classes like shown in here
  */
 // #user-routes-class
-public class WebPortalRoutes extends WebPortal {
+public class WebPortalRoutes extends WebPortalMsg {
     // #user-routes-class
     private final static Logger log = LoggerFactory.getLogger(WebPortalRoutes.class);
 
@@ -74,7 +74,7 @@ public class WebPortalRoutes extends WebPortal {
     // man...", ref), askTimeout, scheduler);
     // }
 
-    private CompletionStage<WebPortal.ResponseVehicleToWebPortal> vehicleToHandlerViaGuardian(Vehicle vehicle) {
+    private CompletionStage<WebPortalMsg.VehicleToWebP> vehicleToHandlerViaGuardian(Vehicle vehicle) {
         return AskPattern.ask(webPortalGuardianRef,
                 ref -> new WebPortalGuardian.ForwardToHandler(vehicle, ref), askTimeout, scheduler);
     }

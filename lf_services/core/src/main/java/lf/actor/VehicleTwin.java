@@ -11,11 +11,6 @@ import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.UnifiedJedis;
 import redis.clients.jedis.providers.PooledConnectionProvider;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.*;
-
 public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
 
     // MESSAGES:
@@ -33,28 +28,29 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     // }
 
     // ENCAPSULATION:
+    // This is a compromise (storing a vehicle, inside the VehicleTwin). But for
+    // this toy system it will suffice. The initial ideology (of a WoT consumed
+    // thing, that was also an AKKA actor, living in the akka cluster would have
+    // been fun to explore).
+    private Vehicle vehicle;
 
     // CREATE THIS ACTOR
-    public static Behavior<Message> create() {
-        return Behaviors.setup(VehicleTwin::new);
+    public static Behavior<Message> create(long vehicleId) {
+        return Behaviors.setup(
+            context -> new VehicleTwin(vehicleId, context)
+            );
     }
 
     // ADD TO CONTEXT
-    private VehicleTwin(ActorContext<Message> context) {
+    private VehicleTwin(long vehicleId, ActorContext<Message> context) {
         super(context);
-        // constructor stuff here
-
         // Interesting question... where will VehicleTwins get this information?
         // Perhaps passed down from the WebPortal?
         String redisHostname = "localhost";
         int    redisPort = 6379;
 
-        // ==========================================================================
-        // REDIS TESTING
-        // ==========================================================================
-
         // Testing jedis connection - to be moved to vehicle actor
-        Vehicle truck = new Vehicle("v1", "f1");
+        vehicle = new Vehicle("v1", "f1");
 
         // JedisPooled jedis = new JedisPooled("host.docker.internal", 6379);
         // Protocol.DEFAULT_HOST redisHostname
@@ -63,7 +59,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         UnifiedJedis client = new UnifiedJedis(provider);
         // JedisPool pool = new JedisPool("localhost", 6379);
         // jedis.set("clientName", "Jedis");
-        client.jsonSetLegacy("vehicle:111", truck);
+        client.jsonSetLegacy("vehicle:111", vehicle);
         // jedis..jsonSet("vehicle:111", truck);
         // log.info("client ->", client);
         // Object fred = jedis.jsonGet("111");

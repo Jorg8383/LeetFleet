@@ -4,7 +4,7 @@ import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
 import jnr.ffi.annotations.IgnoreError;
-import lf.message.LeetFServiceGuardian.BootStrap;
+import lf.message.LeetFServiceGuardianMsg.BootStrap;
 
 /**
  * The guardian is the top level actor that bootstraps the Registry application

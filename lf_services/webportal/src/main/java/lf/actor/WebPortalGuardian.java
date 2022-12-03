@@ -5,7 +5,7 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
 import akka.actor.typed.receptionist.Receptionist;
 import jnr.ffi.annotations.IgnoreError;
-import lf.message.WebPortal;
+import lf.message.WebPortalMsg;
 import lf.model.Vehicle;
 
 /**
@@ -50,24 +50,13 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         }
     }
 
-    // public final static class ForwardToHandler implements Message {
-    // public final String message;
-    // public final ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo;
-
-    // public ForwardToHandler(String message,
-    // ActorRef<WebPortalMessages.FirstMessageToWebPortal> replyTo) {
-    // this.message = message;
-    // this.replyTo = replyTo;
-    // }
-    // }
-
     // Definitely better ways to do this.
     public final static class ForwardToHandler implements Message {
         public final Vehicle vehicle;
-        public final ActorRef<WebPortal.ResponseVehicleToWebPortal> replyTo;
+        public final ActorRef<WebPortalMsg.VehicleToWebP> replyTo;
 
         public ForwardToHandler(
-                Vehicle vehicle, ActorRef<WebPortal.ResponseVehicleToWebPortal> replyTo) {
+                Vehicle vehicle, ActorRef<WebPortalMsg.VehicleToWebP> replyTo) {
             this.vehicle = vehicle;
             this.replyTo = replyTo;
         }
@@ -97,7 +86,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     // =========================================================================
 
     // CREATE THIS ACTOR
-    public static Behavior<WebPortalGuardian.Message> create() {
+    public static Behavior<Message> create() {
         return Behaviors.setup(WebPortalGuardian::new);
     }
 
@@ -108,7 +97,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     // does not return an actor instance, but a reference
     // (akka.actor.typed.ActorRef)
     // that points to the actor instance
-    private WebPortalGuardian(ActorContext<WebPortalGuardian.Message> context) {
+    private WebPortalGuardian(ActorContext<Message> context) {
         super(context);
 
         this.listingResponseAdapter = context.messageAdapter(Receptionist.Listing.class, ListingResponse::new);
@@ -119,7 +108,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
             .receptionist()
             .tell(
                 Receptionist.find(
-                    Registry.registryServiceKey, listingResponseAdapter));
+                    Registry.registrySK, listingResponseAdapter));
 
         // Subscribe for Registry list updates!
         context
@@ -127,7 +116,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
             .receptionist()
             .tell(
                 Receptionist.subscribe(
-                    Registry.registryServiceKey, listingResponseAdapter));
+                    Registry.registrySK, listingResponseAdapter));
 
     }
 
@@ -135,7 +124,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
     // MESSAGE HANDLING:
     @Override
-    public Receive<WebPortalGuardian.Message> createReceive() {
+    public Receive<Message> createReceive() {
         return newReceiveBuilder()
                 .onMessage(WebPortalGuardian.BootStrap.class, this::onBootStrap)
                 // .onMessage(WebPortalGuardian.ForwardToHandler.class,
@@ -147,7 +136,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
     // From AKKA HTTP
 
-    private Behavior<WebPortalGuardian.Message> onBootStrap(WebPortalGuardian.BootStrap message) {
+    private Behavior<Message> onBootStrap(WebPortalGuardian.BootStrap message) {
         getContext().getLog().info("Starting WebPortalGuardian for {}!", message.note);
         // CODE DEMONSTRATING AN ACTOR SPAWNING ANOTHER ACTOR BASED ON RECEIPT OF A
         // MESSAGE
@@ -160,19 +149,16 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
     // From AKKA HTTP (via Guardian)
 
-    private Behavior<WebPortalGuardian.Message> onForwardToHandler(ForwardToHandler message) {
-
-        // ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleEvent.create());  // 'anonymous' actor
-        // ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred");  // 'Normal' named actor
-
+    private Behavior<Message> onForwardToHandler(ForwardToHandler message) {
         // Create an (anonymous, disposable) VehicleEvent actor to handle this request.
-        ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleEvent.create());
+        ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleEvent.create());  // 'anonymous' actor
+        // ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred");  // 'normal' named actor
 
         // Pass the message details (from the HttpServer, via the WebGuardian) to the VehicleEvent actor
         // NOTE: We're forwarding the 'replyTo' reference of AKKA HTTP. The response to this message
         //       will be handled there (and not locally in this Guardian).
         //getContext().getLog().info("The message type is!{}!", message.getClass());
-        vehicleEventRef.tell(new VehicleEvent.MessageFromWebPortal(message.vehicle, message.replyTo, REGISTRY_REF));
+        vehicleEventRef.tell(new VehicleEvent.EventFromWebP(message.vehicle, message.replyTo, REGISTRY_REF));
         return this;
     }
 
@@ -180,7 +166,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
     private Behavior<Message> onListing(ListingResponse msg) {
         // There will only every be one registry in the list in our toy akka system.
-        msg.listing.getServiceInstances(Registry.registryServiceKey)
+        msg.listing.getServiceInstances(Registry.registrySK)
                 .forEach(
                         registryRef -> {
                             // Refresh entire registry every time?

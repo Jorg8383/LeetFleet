@@ -3,7 +3,7 @@ package lf.fleetman;
 import akka.actor.typed.ActorSystem;
 import lf.actor.FleetlessGuardian;
 import lf.core.LeetFServiceStart;
-import lf.message.LeetFServiceGuardian;
+import lf.message.LeetFServiceGuardianMsg;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,12 +27,12 @@ public class FleetlessStart extends LeetFServiceStart {
     // The bootstrap of your application is typically done within the guardian actor.
 
     //#actor-system
-    final ActorSystem<LeetFServiceGuardian.BootStrap> fleetlessGuardian
+    final ActorSystem<LeetFServiceGuardianMsg.BootStrap> fleetlessGuardian
                   = ActorSystem.create(FleetlessGuardian.create(), "leet-fleet", config);
     //#actor-system
 
     //#main-send-messages
-    fleetlessGuardian.tell(new LeetFServiceGuardian.BootStrap("Leet-Fleet"));
+    fleetlessGuardian.tell(new LeetFServiceGuardianMsg.BootStrap("Leet-Fleet"));
     //#main-send-messages
 
     gracefulInteractiveTermination(fleetlessGuardian);

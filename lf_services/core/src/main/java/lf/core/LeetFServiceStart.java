@@ -1,7 +1,7 @@
 package lf.core;
 
 import akka.actor.typed.ActorSystem;
-import lf.message.LeetFServiceGuardian;
+import lf.message.LeetFServiceGuardianMsg;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -71,7 +71,7 @@ public abstract class LeetFServiceStart
   /**
    *  If in 'localhost' mode, on-terminal prompt and shutdown
    **/
-  protected static void gracefulInteractiveTermination(ActorSystem<LeetFServiceGuardian.BootStrap> serviceActor) {
+  protected static void gracefulInteractiveTermination(ActorSystem<LeetFServiceGuardianMsg.BootStrap> serviceActor) {
     // Cater for interactive shutdown when running locally:
     if (akkaHostname.equals("localhost")) {
       try {

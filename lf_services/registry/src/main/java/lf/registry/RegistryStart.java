@@ -3,7 +3,7 @@ package lf.registry;
 import akka.actor.typed.ActorSystem;
 import lf.actor.RegistryGuardian;
 import lf.core.LeetFServiceStart;
-import lf.message.LeetFServiceGuardian.BootStrap;
+import lf.message.LeetFServiceGuardianMsg.BootStrap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

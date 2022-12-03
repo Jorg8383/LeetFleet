@@ -7,9 +7,10 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import akka.actor.typed.receptionist.Receptionist;
-import lf.message.FleetManager;
-import lf.message.FleetManager.Message;
-import lf.message.FleetManager.RegistrationSuccess;
+import lf.core.VehicleIdRange;
+import lf.message.FleetManagerMsg;
+import lf.message.FleetManagerMsg.Message;
+import lf.message.FleetManagerMsg.RegistrationSuccess;
 
 /**
  * A Fleet Manager. This time for the Notional Fleetless Fleet. Could suit any abstraction.
@@ -17,7 +18,9 @@ import lf.message.FleetManager.RegistrationSuccess;
 public class FleetlessFleetManager extends AbstractBehavior<Message> {
 
     // ENCAPSULATION:
-    public long MANAGER_ID = 0;
+    public long MANAGER_ID = 3;
+    private VehicleIdRange fleetlessFleetIdRange = new VehicleIdRange(5000, 7499);
+
     public ActorRef<Registry.Message> REGISTRY_REF = null;
 
     // CREATE THIS ACTOR
@@ -28,7 +31,7 @@ public class FleetlessFleetManager extends AbstractBehavior<Message> {
                 context
                     .getSystem()
                     .receptionist()
-                    .tell(Receptionist.register(FleetManager.fleetManagerServiceKey, context.getSelf()));
+                    .tell(Receptionist.register(FleetManagerMsg.fleetManagerServiceKey, context.getSelf()));
 
                 return Behaviors.setup(FleetlessFleetManager::new);
             }
@@ -59,7 +62,7 @@ public class FleetlessFleetManager extends AbstractBehavior<Message> {
         // we want to 'DeRegister' on shutdown...
         MANAGER_ID   = message.mgrId;
         REGISTRY_REF = message.registryRef;
-        getContext().getLog().info("REGISTRY HAS CONFIRMED REGISTRATION !!!");
+        getContext().getLog().info("FleetManager Registration Confirmed.");
         return this;
     }
 

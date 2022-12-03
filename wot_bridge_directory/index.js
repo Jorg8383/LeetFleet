@@ -26,15 +26,34 @@ servient.addServer(httpServer);
 // const deviceId = "urn:uuid:13b5122b-ac41-452f-a72b-58b969e6a8cc";
 const testingURL = "http://localhost:8080/smart-vehicle";
 
-servient.start().then((WoT) => {
-    wotDevice = new WotDevice(WoT, testingURL); // TODO change the wotDevice to something that makes more sense
-    wotDevice.startDevice();
-});
+// servient.start().then((WoT) => {
+//     wotDevice = new WotDevice(WoT, testingURL); // TODO change the wotDevice to something that makes more sense
+//     wotDevice.startDevice();
+// });
 
-// const sseSource = new EventSource("http://localhost:9000/api/events/create?diff=true");
+// const sseSource = new EventSource("http://localhost:9000/api/events/create?diff=false");
+var EventSource = require("eventsource");
+const sseSource = new EventSource("http://localhost:9000/api/events/create?diff=true");
 
-// sseSource.onmessage = function (event) {
-//     const { t } = JSON.parse(event.data);
-//     console.log(t);
-// }
+var printWaitMessage = true;
+while (true) {
+    if (printWaitMessage) {
+        console.log("Waiting for an event 'thing_created'...");
+        printWaitMessage = false;
+    }
+    sseSource.onmessage = function (event) {
+        console.log("OnMessage...")
+        const { t } = JSON.parse(event.data);
+        console.log(t);
+        printWaitMessage = true;
+    }    
+
+    // sseSource.addEventListener('create', function (e) {
+    //     console.log("OnMessage...")
+    //     const { t } = JSON.parse(e.data);
+    //     console.log(t);
+    //     printWaitMessage = true;
+       
+    // });
+}
 

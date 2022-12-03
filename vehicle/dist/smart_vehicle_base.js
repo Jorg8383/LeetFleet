@@ -192,7 +192,7 @@ class WotDevice {
         // request.post(directory, { json: this.thing.getThingDescription() }, (error: any, response: { statusCode: number; }, body: any) => {
         request.put(directory + this.td.id, { json: this.thing.getThingDescription() }, (error, response, body) => {
             if (!error && response.statusCode < 300) {
-                console.log("TD registered!");
+                console.log("TD has been registered with the ID: " + this.td.id);
             }
             else {
                 console.debug(error);

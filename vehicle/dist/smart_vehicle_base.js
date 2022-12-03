@@ -382,6 +382,9 @@ class WotDevice {
     // ------------------------------------------------------------------------
     emulateDevice() {
         return __awaiter(this, void 0, void 0, function* () {
+            // Delay the emulation for one second to allow to registering the TD with
+            // the WoTHive directory before starting to emulate the device.
+            yield new Promise(resolve => setTimeout(resolve, 1000));
             // Emulation: decrease oil level every five seconds
             setInterval(() => {
                 this.propOilLevel = this.emulateAndReadSensor("oilLevel");
@@ -444,7 +447,6 @@ class WotDevice {
                     }
                 }
             }, 1000);
-            ;
         });
     }
 }

@@ -23,11 +23,11 @@ servient.addClientFactory(new HttpClientFactory(null));
 //Adding different bindings to the server
 servient.addServer(httpServer);
 
-// const deviceId = "urn:uuid:13b5122b-ac41-452f-a72b-58b969e6a8cc";
-const testingURL = "http://localhost:8080/smart-vehicle";
+const deviceId = "urn:uuid:13b5122b-ac41-452f-a72b-58b969e6a8cc";
+// const testingURL = "http://localhost:8080/smart-vehicle";
 
 servient.start().then((WoT) => {
-    wotDevice = new WotDevice(WoT, testingURL); // TODO change the wotDevice to something that makes more sense
+    wotDevice = new WotDevice(WoT, deviceId); // TODO change the wotDevice to something that makes more sense
     wotDevice.startDevice();
 });
 

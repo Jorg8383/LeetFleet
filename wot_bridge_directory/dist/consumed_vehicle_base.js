@@ -16,13 +16,13 @@ exports.WotConsumedDevice = void 0;
 // const { Servient, Helpers } = require("@node-wot/core");
 // const { HttpClientFactory } = require('@node-wot/binding-http');
 class WotConsumedDevice {
-    // private wotHiveUri = "http://localhost:9000/api/things/";
     constructor(deviceWoT, tdId) {
+        this.wotHiveUri = "http://localhost:9000/api/things/";
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         if (tdId) {
-            // this.tdUri = this.wotHiveUri + tdId;
-            this.tdUri = tdId;
+            this.tdUri = this.wotHiveUri + tdId;
+            // this.tdUri = tdId;
         }
     }
     startDevice() {

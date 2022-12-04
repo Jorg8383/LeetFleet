@@ -9,6 +9,17 @@ If you leave it empty, registration thread will never execute, otherwise it will
 */
 const TD_DIRECTORY = "http://localhost:9000/api/events/create?diff=true"
 
+// Default vehicle values
+const vehicleJSON = {"vehicleID" : "WoT-ID-Mfr-VIN-1234",
+                        "fleetManager" : "N/A",
+                        "tdURL":"http://localhost:8080/smart-vehicle",
+                        "oilLevel":50,
+                        "tyrePressure" : 30,
+                        "mileage" : 10000,
+                        "nextServiceDistance" : 10000,
+                        "doorStatus" : "LOCKED",
+                        "maintenanceNeeded" : false
+}
 
 Servient = require("@node-wot/core").Servient
 //Importing the required bindings
@@ -26,39 +37,39 @@ servient.addServer(httpServer);
 // const deviceId = "urn:uuid:13b5122b-ac41-452f-a72b-58b969e6a8cc";
 const testingURL = "http://localhost:8080/smart-vehicle";
 
-// servient.start().then((WoT) => {
-//     wotDevice = new WotDevice(WoT, testingURL); // TODO change the wotDevice to something that makes more sense
-//     wotDevice.startDevice();
-// });
+servient.start().then((WoT) => {
+    wotDevice = new WotDevice(WoT, testingURL); // TODO change the wotDevice to something that makes more sense
+    wotDevice.startDevice();
+});
 
-const dirUri = "http://localhost:9000/api/events?diff=false"; 
-var EventSource = require("eventsource");
-const sseDirectory = new EventSource(dirUri);
+// const dirUri = "http://localhost:9000/api/events?diff=false";
+// var EventSource = require("eventsource");
+// const sseDirectory = new EventSource(dirUri);
 
-var doInitialise = true;
+// var doInitialise = true;
 
-if (doInitialise) {
-    console.log("Adding event listener...");
-    sseDirectory.addEventListener('create', function(e) {
-        console.log("Event: 'create', data: " + e.data);
-      });
-    doInitialise = false;
-}
-
-while (true) {
-
-    sseDirectory.onopen = function(e) {
-        console.log("Event open");
-    }
-
-    sseDirectory.onerror = function(e) {
-        console.log("Event error");
-        if (this.readyState == sseDirectory.CONNECTING) {
-            console.log(`Reconnecting (readyState=${this.readyState})...`);
-        } else {
-            console.log("An error has occured!");
-        }
-    }
+// if (doInitialise) {
+//     console.log("Adding event listener...");
+//     sseDirectory.addEventListener('create', function(e) {
+//         console.log("Event: 'create', data: " + e.data);
+//       });
+//     doInitialise = false;
+// }
+//
+// while (true) {
+//
+//     sseDirectory.onopen = function(e) {
+//         console.log("Event open");
+//     }
+//
+//     sseDirectory.onerror = function(e) {
+//         console.log("Event error");
+//         if (this.readyState == sseDirectory.CONNECTING) {
+//             console.log(`Reconnecting (readyState=${this.readyState})...`);
+//         } else {
+//             console.log("An error has occured!");
+//         }
+//     }
 
     // sseDirectory.onmessage = function(e) {
     //     console.log("Event onMessage received");
@@ -75,5 +86,5 @@ while (true) {
     //     printWaitMessage = true;
        
     // });
-}
+// }
 

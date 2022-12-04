@@ -20,7 +20,7 @@ public class FleetManagerMsg {
     public interface Message {
     }
 
-    public final static class RegistrationSuccess implements Message {
+    public final static class RegistrationSuccess implements Message, LFSerialisable {
         public final long mgrId;
         public final ActorRef<Registry.Message> registryRef;
 
@@ -36,7 +36,7 @@ public class FleetManagerMsg {
      * (a broadcast message). If it is, update it and reply. If it isn't, just
      * ignore it.
      */
-    public final static class ProcessVehicleUpdate implements Message {
+    public final static class ProcessVehicleUpdate implements Message, LFSerialisable {
         public final Vehicle vehicle;
         public final ActorRef<VehicleEvent.Message> vehicleEventRef;
 

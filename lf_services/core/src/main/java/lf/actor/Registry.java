@@ -9,6 +9,7 @@ import akka.actor.typed.javadsl.Receive;
 import akka.actor.typed.receptionist.Receptionist;
 import akka.actor.typed.receptionist.ServiceKey;
 import lf.message.FleetManagerMsg;
+import lf.message.LFSerialisable;
 
 import java.util.*;
 
@@ -52,7 +53,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   // your data type.
   // This will make it easier to use, understand and debug actor-based system
 
-  public final static class RegisterFleetManager implements Message {
+  public final static class RegisterFleetManager implements Message, LFSerialisable {
     public final ActorRef<FleetManagerMsg.Message> fleetManRef;
 
     public RegisterFleetManager(ActorRef<FleetManagerMsg.Message> fleetManRef) {
@@ -61,7 +62,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   }
 
   /* This message does not warrant a response - so no ActorRef stored */
-  public final static class DeRegisterManager implements Message {
+  public final static class DeRegisterManager implements Message, LFSerialisable {
     public final long idToBeDeRegistered;
 
     public DeRegisterManager(long idToBeDeRegistered) {
@@ -70,7 +71,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   }
 
   // COMMENT COMMENT COMMENT
-  public final static class ListFleetManagers implements Message {
+  public final static class ListFleetManagers implements Message, LFSerialisable {
     public final String fleetId;
     public final ActorRef<VehicleEvent.Message> vehicleEventHandlerRef;
 
@@ -86,7 +87,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
    * NOTE: We need to emply a 'messageAdaptor' to convert the message we recieve
    * from the Receptioninst to the one define here that we can understand.
    */
-  private static class ListingResponse implements Message {
+  private static class ListingResponse implements Message, LFSerialisable {
     final Receptionist.Listing listing;
 
     private ListingResponse(Receptionist.Listing listing) {

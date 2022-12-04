@@ -192,7 +192,7 @@ class WotDevice {
         // request.post(directory, { json: this.thing.getThingDescription() }, (error: any, response: { statusCode: number; }, body: any) => {
         request.put(directory + this.td.id, { json: this.thing.getThingDescription() }, (error, response, body) => {
             if (!error && response.statusCode < 300) {
-                console.log("TD registered!");
+                console.log("TD has been registered with the ID: " + this.td.id);
             }
             else {
                 console.debug(error);
@@ -382,6 +382,9 @@ class WotDevice {
     // ------------------------------------------------------------------------
     emulateDevice() {
         return __awaiter(this, void 0, void 0, function* () {
+            // Delay the emulation for one second to allow to registering the TD with
+            // the WoTHive directory before starting to emulate the device.
+            yield new Promise(resolve => setTimeout(resolve, 1000));
             // Emulation: decrease oil level every five seconds
             setInterval(() => {
                 this.propOilLevel = this.emulateAndReadSensor("oilLevel");
@@ -444,7 +447,6 @@ class WotDevice {
                     }
                 }
             }, 1000);
-            ;
         });
     }
 }

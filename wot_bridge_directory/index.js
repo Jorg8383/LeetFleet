@@ -23,18 +23,57 @@ servient.addClientFactory(new HttpClientFactory(null));
 //Adding different bindings to the server
 servient.addServer(httpServer);
 
-const deviceId = "urn:uuid:13b5122b-ac41-452f-a72b-58b969e6a8cc";
-// const testingURL = "http://localhost:8080/smart-vehicle";
+// const deviceId = "urn:uuid:13b5122b-ac41-452f-a72b-58b969e6a8cc";
+const testingURL = "http://localhost:8080/smart-vehicle";
 
-servient.start().then((WoT) => {
-    wotDevice = new WotDevice(WoT, deviceId); // TODO change the wotDevice to something that makes more sense
-    wotDevice.startDevice();
-});
+// servient.start().then((WoT) => {
+//     wotDevice = new WotDevice(WoT, testingURL); // TODO change the wotDevice to something that makes more sense
+//     wotDevice.startDevice();
+// });
 
-// const sseSource = new EventSource("http://localhost:9000/api/events/create?diff=true");
+const dirUri = "http://localhost:9000/api/events?diff=false"; 
+var EventSource = require("eventsource");
+const sseDirectory = new EventSource(dirUri);
 
-// sseSource.onmessage = function (event) {
-//     const { t } = JSON.parse(event.data);
-//     console.log(t);
-// }
+var doInitialise = true;
+
+if (doInitialise) {
+    console.log("Adding event listener...");
+    sseDirectory.addEventListener('create', function(e) {
+        console.log("Event: 'create', data: " + e.data);
+      });
+    doInitialise = false;
+}
+
+while (true) {
+
+    sseDirectory.onopen = function(e) {
+        console.log("Event open");
+    }
+
+    sseDirectory.onerror = function(e) {
+        console.log("Event error");
+        if (this.readyState == sseDirectory.CONNECTING) {
+            console.log(`Reconnecting (readyState=${this.readyState})...`);
+        } else {
+            console.log("An error has occured!");
+        }
+    }
+
+    // sseDirectory.onmessage = function(e) {
+    //     console.log("Event onMessage received");
+    //     const { t } = JSON.parse(e.data);
+    //     console.log(t);
+    //     doInitialise = true;
+
+    // }
+
+    // sseSource.addEventListener('create', function (e) {
+    //     console.log("OnMessage...")
+    //     const { t } = JSON.parse(e.data);
+    //     console.log(t);
+    //     printWaitMessage = true;
+       
+    // });
+}
 

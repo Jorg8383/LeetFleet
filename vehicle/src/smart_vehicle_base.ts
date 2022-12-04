@@ -209,7 +209,7 @@ export class WotDevice {
         // request.post(directory, { json: this.thing.getThingDescription() }, (error: any, response: { statusCode: number; }, body: any) => {
         request.put(directory + this.td.id, { json: this.thing.getThingDescription() }, (error: any, response: { statusCode: number; }, body: any) => {
                 if (!error && response.statusCode < 300) {
-                console.log("TD registered!");
+                console.log("TD has been registered with the ID: " + this.td.id);
             } else {
                 console.debug(error);
                 console.debug(response);
@@ -409,79 +409,82 @@ export class WotDevice {
     // ------------------------------------------------------------------------
     public async emulateDevice() {
 
-            // Emulation: decrease oil level every five seconds
-            setInterval(() => {
-                this.propOilLevel = this.emulateAndReadSensor("oilLevel");
-                // If oil level drops below 70%, then maintenance is needed
-                if (this.propOilLevel < 70) {
-                    if (!this.varOilLevelIsLow) {
-                        this.varOilLevelIsLow = true
-                        this.propMaintenanceNeeded = true;
-                        // Write log message to console only once
-                        // Notify a "maintainer" when the value has changed
-                        // (the notify function here simply logs a message to the console)
-                        this.notify(
-                                "admin@leetfleet.com",
-                                `propMaintenanceNeeded property has changed, new value is: ${this.propMaintenanceNeeded}`
-                            );    
-                            if (this.varMaintenanceNeddedHistory != this.propMaintenanceNeeded) {
-                                this.varMaintenanceNeddedHistory  = this.propMaintenanceNeeded;
-                                this.thing.emitPropertyChange("propMaintenanceNeeded");
-                            }
-                            this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - oil level is low.`);        
-                    }
-                }
-            }, 5000);  
+        // Delay the emulation for one second to allow completing the registration
+        // proccess (TD) with the WoTHive directory before starting to emulate the device.
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // Emulation: decrease tyre pressure every ten seconds
-            setInterval(() => {
-                this.propTyrePressure = this.emulateAndReadSensor("tyrePressure");
-                // If oil level drops below 20 PSI, then maintenance is needed
-                if (this.propTyrePressure < 20) {
-                    if (!this.varTyrePressureIsLow) {
-                        this.varTyrePressureIsLow = true;
-                        this.propMaintenanceNeeded = true;
-                        // Write log message to console only once
-                        // Notify a "maintainer" when the value has changed
-                        // (the notify function here simply logs a message to the console)
-                        this.notify(
-                                "admin@leetfleet.com",
-                                `propMaintenanceNeeded property has changed, new value is: ${this.propMaintenanceNeeded}`
-                            );    
-                            if (this.varMaintenanceNeddedHistory != this.propMaintenanceNeeded) {
-                                this.varMaintenanceNeddedHistory  = this.propMaintenanceNeeded;
-                                this.thing.emitPropertyChange("propMaintenanceNeeded");
-                            }
-                            this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - tyre pressure is low.`);        
-                    }
+        // Emulation: decrease oil level every five seconds
+        setInterval(() => {
+            this.propOilLevel = this.emulateAndReadSensor("oilLevel");
+            // If oil level drops below 70%, then maintenance is needed
+            if (this.propOilLevel < 70) {
+                if (!this.varOilLevelIsLow) {
+                    this.varOilLevelIsLow = true
+                    this.propMaintenanceNeeded = true;
+                    // Write log message to console only once
+                    // Notify a "maintainer" when the value has changed
+                    // (the notify function here simply logs a message to the console)
+                    this.notify(
+                            "admin@leetfleet.com",
+                            `propMaintenanceNeeded property has changed, new value is: ${this.propMaintenanceNeeded}`
+                        );    
+                        if (this.varMaintenanceNeddedHistory != this.propMaintenanceNeeded) {
+                            this.varMaintenanceNeddedHistory  = this.propMaintenanceNeeded;
+                            this.thing.emitPropertyChange("propMaintenanceNeeded");
+                        }
+                        this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - oil level is low.`);        
                 }
-            }, 10000); 
+            }
+        }, 5000);  
 
-            // Emulation: increase milometer every second
-            setInterval(() => {
-                this.emulateOdometer();
-                this.thing.emitPropertyChange("propTotalMileage");
-                this.thing.emitPropertyChange("propServiceDistance");        
-                // If counter for next service mileage is less than 500, set maintenance needed
-                if (this.varServiceDistance < 500) {
-                    if (!this.varServiceIsDue) {
-                        this.varServiceIsDue = true;
-                        this.propMaintenanceNeeded = true;
-                        // Write log message to console only once
-                        // Notify a "maintainer" when the value has changed
-                        // (the notify function here simply logs a message to the console)
-                        this.notify(
-                                "admin@leetfleet.com",
-                                `propMaintenanceNeeded property has changed, new value is: ${this.propMaintenanceNeeded}`
-                            );    
-                            if (this.varMaintenanceNeddedHistory != this.propMaintenanceNeeded) {
-                                this.varMaintenanceNeddedHistory  = this.propMaintenanceNeeded;
-                                this.thing.emitPropertyChange("propMaintenanceNeeded");
-                            }
-                        this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);        
-                    }
+        // Emulation: decrease tyre pressure every ten seconds
+        setInterval(() => {
+            this.propTyrePressure = this.emulateAndReadSensor("tyrePressure");
+            // If oil level drops below 20 PSI, then maintenance is needed
+            if (this.propTyrePressure < 20) {
+                if (!this.varTyrePressureIsLow) {
+                    this.varTyrePressureIsLow = true;
+                    this.propMaintenanceNeeded = true;
+                    // Write log message to console only once
+                    // Notify a "maintainer" when the value has changed
+                    // (the notify function here simply logs a message to the console)
+                    this.notify(
+                            "admin@leetfleet.com",
+                            `propMaintenanceNeeded property has changed, new value is: ${this.propMaintenanceNeeded}`
+                        );    
+                        if (this.varMaintenanceNeddedHistory != this.propMaintenanceNeeded) {
+                            this.varMaintenanceNeddedHistory  = this.propMaintenanceNeeded;
+                            this.thing.emitPropertyChange("propMaintenanceNeeded");
+                        }
+                        this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - tyre pressure is low.`);        
                 }
-            }, 1000);  
-        ;
+            }
+        }, 10000); 
+
+        // Emulation: increase milometer every second
+        setInterval(() => {
+            this.emulateOdometer();
+            this.thing.emitPropertyChange("propTotalMileage");
+            this.thing.emitPropertyChange("propServiceDistance");        
+            // If counter for next service mileage is less than 500, set maintenance needed
+            if (this.varServiceDistance < 500) {
+                if (!this.varServiceIsDue) {
+                    this.varServiceIsDue = true;
+                    this.propMaintenanceNeeded = true;
+                    // Write log message to console only once
+                    // Notify a "maintainer" when the value has changed
+                    // (the notify function here simply logs a message to the console)
+                    this.notify(
+                            "admin@leetfleet.com",
+                            `propMaintenanceNeeded property has changed, new value is: ${this.propMaintenanceNeeded}`
+                        );    
+                        if (this.varMaintenanceNeddedHistory != this.propMaintenanceNeeded) {
+                            this.varMaintenanceNeddedHistory  = this.propMaintenanceNeeded;
+                            this.thing.emitPropertyChange("propMaintenanceNeeded");
+                        }
+                    this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);        
+                }
+            }
+        }, 1000);  
     }
 }

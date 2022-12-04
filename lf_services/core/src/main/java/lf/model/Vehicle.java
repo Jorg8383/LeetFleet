@@ -8,7 +8,7 @@ public class Vehicle {
     }
 
     private String vehicleId;  // WoT VehicleId (String, e.g. "WoT-ID-Mfr-VIN-nnnn")
-    private Long vehicleIdLong;  // LeetFleet VehicleId (long, e.g. nnnn)
+    private long vehicleIdLong;  // LeetFleet VehicleId (long i.e. just an 'id number', e.g. nnnn)
 
     private String fleetManager;
 
@@ -29,6 +29,8 @@ public class Vehicle {
             Long nextServiceDistance, String doorStatus, String maintenanceNeeded)
     {
         this.vehicleId = vehicleId;
+        this.vehicleIdLong = wotIdToLongId(vehicleId);  // Convert formatted WoT Id to Long
+        //
         this.fleetManager = fleetManager;
         //
         this.tdURL = tdURL;
@@ -39,8 +41,6 @@ public class Vehicle {
         this.nextServiceDistance = nextServiceDistance;
         this.doorStatus = doorStatus;
         this.maintenanceNeeded = maintenanceNeeded;
-
-        this.vehicleIdLong = Long.parseLong(vehicleId); // to change to extract long from string
     }
 
     public Vehicle() {
@@ -60,21 +60,38 @@ public class Vehicle {
                 new Long(0), "", "");
     }
 
-    // private boolean isOn;
-
     public Vehicle(String vehicleId, String fleetId) {
         this.vehicleId = vehicleId;
         this.fleetManager = fleetId;
         // this.isOn = isOn;
     }
+    //------------------------------------------------------------
+
+    /**
+     *
+     * @param wotVehicleId
+     * @return
+     */
+    public static long wotIdToLongId(String wotVehicleId) {
+        long vehicleIdLong = 0;
+        try {
+            vehicleIdLong =
+                Long.parseLong(wotVehicleId.substring(15));  // LeetFleet VehicleId (long, e.g. nnnn)
+        } catch (Exception e) {
+            // Not concerned with the nature of the exception - just that one occurred
+            // Toy system: not valid => ignore.
+        }
+        return vehicleIdLong;
+    }
+
+    //------------------------------------------------------------
 
     public String getVehicleId() {
         return this.vehicleId;
     }
     public void setVehicleId(String vehicleId) {
         this.vehicleId = vehicleId;    // WoT VehicleId (String, e.g. "WoT-ID-Mfr-VIN-nnnn")
-        this.vehicleIdLong =
-            Long.parseLong(vehicleId.substring(15));  // LeetFleet VehicleId (long, e.g. nnnn)
+        this.vehicleIdLong = wotIdToLongId(vehicleId);
     }
 
     public long getVehicleIdLong() {

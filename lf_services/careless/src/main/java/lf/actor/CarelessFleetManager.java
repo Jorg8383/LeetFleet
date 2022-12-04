@@ -85,33 +85,19 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
         // We extract the 'nnnn' (id) part to see if this vehicle belongs to this
         // fleet manager:
         Vehicle vehicle = message.vehicle;
+        long vehicleIdLong = vehicle.getVehicleIdLong();
 
-        boolean validVehicleId = false;
-        long vehicleId = 0;
-        try {
-            // vehicleId =
-            // Long.parseLong(vehicle.getVehicleId().substring(message.vehicle.getVehicleId()));
-            // // <= HARD CODED ID EXTRACTION
-            vehicleId = vehicle.getVehicleIdLong();
-
-            validVehicleId = true;
-        } catch (Exception e) {
-            // Not concerned with the nature of the exception
-            // Toy system: not valid => ignore.
-        }
-
-        if (validVehicleId) {
-            if (carelessFleetIdRange.contains(vehicleId)) {
+        if (vehicleIdLong != 0) {
+            if (carelessFleetIdRange.contains(vehicleIdLong)) {
                 getContext().getLog().info("Vehicle Event for CareleesFleet received.");
 
-                // First if the VehicleTwin for this vehicle doesn't exist, we
-                // must create it.
-                if (!vehicles.keySet().contains(vehicleId)) {
+                // First - if the VehicleTwin for this vehicle doesn't exist, we
+                // must create an actor for it:
+                if (!vehicles.keySet().contains(vehicleIdLong)) {
                     // Create an (anonymous) VehicleTwin actor to represent this vehicle on the
                     // actor system
                     ActorRef<VehicleTwin.Message> vehicleTwinRef = getContext()
-                            .spawnAnonymous(VehicleTwin.create(vehicleId)); // 'anonymous' actor
-                    // store
+                            .spawnAnonymous(VehicleTwin.create(vehicle.getVehicleId()));  // 'anonymous' actor
                 }
 
                 // MORE STUFF
@@ -119,7 +105,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
                 // MESSAGE THE VehicleEvent to say we're done. message.vehicleEventRef
             } else {
                 getContext().getLog().info(
-                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleId) + "). Ignoring.");
+                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong) + "). Ignoring.");
             }
         }
 

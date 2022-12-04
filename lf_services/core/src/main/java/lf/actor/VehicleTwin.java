@@ -39,13 +39,14 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     private Vehicle vehicle;
 
     // CREATE THIS ACTOR
-    public static Behavior<Message> create(long vehicleId) {
+    public static Behavior<Message> create(String vehicleId) {
         return Behaviors.setup(
                 context -> new VehicleTwin(vehicleId, context));
     }
 
     // ADD TO CONTEXT
-    private VehicleTwin(long vehicleId, ActorContext<Message> context) {
+    // NOTE: This constructor expects the 'WoT' String VehicleId.
+    private VehicleTwin(String vehicleId, ActorContext<Message> context) {
         super(context);
 
         // Interesting question... where will VehicleTwins get this information?
@@ -62,16 +63,21 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         // Protocol.DEFAULT_HOST redisHostname
         HostAndPort hostAndPort = new HostAndPort(redisHostname, redisPort);
         PooledConnectionProvider provider = new PooledConnectionProvider(hostAndPort);
-        UnifiedJedis client = new UnifiedJedis(provider);
+        UnifiedJedis jedis = new UnifiedJedis(provider);
         // JedisPool pool = new JedisPool("localhost", 6379);
         // jedis.set("clientName", "Jedis");
-        String key = "vehicle:" + vehicleId;
 
-        if (client.exists(key)) {
-            vehicle = (Vehicle) client.jsonGet(key);
+        long vehicleIdLong = Vehicle.wotIdToLongId(vehicleId);
+        String key = "vehicle:" + vehicleIdLong;
+        getContext().getLog().info("########## CHECKING JEDIS FOR KEY: " + key);
+        if (jedis.exists(key)) {
+            getContext().getLog().info("########## KEY FOUND - LOADING VEHICLE FROM JEDIS");
+            vehicle = (Vehicle) jedis.jsonGet(key);
+            getContext().getLog().info("\t Test Attribute -> " + vehicle.getVehicleId());
         } else {
-            vehicle = Vehicle.createTemplate(vehicle.getVehicleId());
-            client.jsonSetLegacy(key, vehicle);
+            getContext().getLog().info("########## KEY NOT FOUND - CREATING TEMPLATE");
+            vehicle = Vehicle.createTemplate(vehicleId);
+            jedis.jsonSetLegacy(key, vehicle);
         }
 
         // jedis..jsonSet("vehicle:111", truck);
@@ -83,7 +89,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         // client.set("planets", "Venus");
         // System.out.println(client.get("planets"));
 
-        client.close();
+        jedis.close();
         // pool.close();
     }
 

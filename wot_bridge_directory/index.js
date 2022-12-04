@@ -10,6 +10,15 @@ const vehicleJSON = {"vehicleID" : "WoT-ID-Mfr-VIN-1234",
     "maintenanceNeeded" : false
 }
 
+function updateVehicleObjectProps(thingData, vehicleKey) {
+    vehicleKey["oilLevel"] = thingData["propOilLevel"];
+    vehicleKey["tyrePressure"] = thingData["propTyrePressure"];
+    vehicleKey["mileage"] = thingData["propTotalMileage"];
+    vehicleKey["nextServiceDistance"] = thingData["propServiceDistance"]
+    vehicleKey["doorStatus"] = thingData["propDoorStatus"];
+    vehicleKey["maintenanceNeeded"] = thingData["propMaintenanceNeeded"];
+}
+
 function getRandomInt() {
     return Math.floor(Math.random() * 10000);
 }
@@ -43,7 +52,6 @@ setTimeout(async function () {
         vehicleJSONCopy["vehicleID"] = vehicleJSONCopy["vehicleID"] + "-" + getRandomInt();
         // TODO: Programmatically determine the url from the title and port
         vehicleJSONCopy["tdURL"] = "http://localhost:8080/smart-vehicle";
-
         activeVehicleObjects[activeVehicles[0][i]["id"]] = vehicleJSONCopy;
     }
 
@@ -75,7 +83,14 @@ setTimeout(async function () {
         }
     }
 
-    // Update the copies to make them the real thing
+    // Update vehicle objects with real values
+    const thingIDs = Object.keys(activeVehicleObjects);
+
+    for (const thing of thingIDs) {
+        await fetch(thing["tdURL"] + "/properties")
+            .then((response) => response.json())
+            .then((data) => updateVehicleObjectProps(data, activeVehicleObjects[thing]));
+    }
 })
 
 Servient = require("@node-wot/core").Servient

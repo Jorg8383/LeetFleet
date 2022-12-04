@@ -409,9 +409,9 @@ export class WotDevice {
     // ------------------------------------------------------------------------
     public async emulateDevice() {
 
-        // Delay the emulation for one second to allow completing the registration
+        // Delay the emulation for two second to allow completing the registration
         // proccess (TD) with the WoTHive directory before starting to emulate the device.
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         // Emulation: decrease oil level every five seconds
         setInterval(() => {

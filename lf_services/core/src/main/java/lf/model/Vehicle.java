@@ -16,15 +16,17 @@ public class Vehicle {
     private Long nextServiceMileage;
     private String doorStatus;
     private String maintenanceNeeded;
+    private Long vehicleIdLong;
 
-    public static Vehicle createForMileage(String vehicleId, String fleetId, Float totalMileage)
-    {
+    public static Vehicle createForMileage(String vehicleId, String fleetId, Float totalMileage) {
         return new Vehicle(
-            vehicleId, fleetId, new Float(0), totalMileage,
-            new Float(0),  new Long(0), "", "");
+                vehicleId,
+                fleetId, new Float(0), totalMileage,
+                new Float(0), new Long(0), "", "");
     }
 
-    public Vehicle(String vehicleId, String fleetId, Float tyrePressure, Float totalMileage, Float oilLevel,
+    public Vehicle(
+            String vehicleId, String fleetId, Float tyrePressure, Float totalMileage, Float oilLevel,
             Long nextServiceMileage, String doorStatus, String maintenanceNeeded) {
         this.vehicleId = vehicleId;
         this.fleetId = fleetId;
@@ -34,6 +36,15 @@ public class Vehicle {
         this.nextServiceMileage = nextServiceMileage;
         this.doorStatus = doorStatus;
         this.maintenanceNeeded = maintenanceNeeded;
+
+        this.vehicleIdLong = Long.parseLong(vehicleId); // to change to extract long from string
+    }
+
+    public static Vehicle createTemplate(String vehicleId) {
+        return new Vehicle(
+                vehicleId, "", new Float(0), new Float(0),
+                new Float(0), new Long(0), "", "");
+
     }
 
     public Vehicle() {
@@ -47,12 +58,17 @@ public class Vehicle {
         // this.isOn = isOn;
     }
 
+    public long getVehicleIdLong() {
+        return this.vehicleIdLong;
+    }
+
     public String getVehicleId() {
         return this.vehicleId;
     }
 
     public void setVehicleId(String vehicleId) {
         this.vehicleId = vehicleId;
+        this.vehicleIdLong = Long.parseLong(vehicleId); // to change to extract long from string
     }
 
     public String getFleetId() {

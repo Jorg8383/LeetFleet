@@ -1,6 +1,9 @@
 package lf.actor;
 
+import com.typesafe.config.Config;
+
 import akka.actor.typed.ActorRef;
+import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
@@ -15,7 +18,8 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
 
     // MESSAGES:
     //
-    public interface Message {}
+    public interface Message {
+    }
 
     // public final static class FleetManagerList implements Message {
     // public final Collection<ActorRef<FleetManager.Message>> fleetManagerRefs;
@@ -37,29 +41,39 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     // CREATE THIS ACTOR
     public static Behavior<Message> create(long vehicleId) {
         return Behaviors.setup(
-            context -> new VehicleTwin(vehicleId, context)
-            );
+                context -> new VehicleTwin(vehicleId, context));
     }
 
     // ADD TO CONTEXT
     private VehicleTwin(long vehicleId, ActorContext<Message> context) {
         super(context);
+
         // Interesting question... where will VehicleTwins get this information?
         // Perhaps passed down from the WebPortal?
-        String redisHostname = "localhost";
-        int    redisPort = 6379;
+
+        // Read the Redis setting from the System Config.
+        Config config = context.getSystem().settings().config().getConfig("akka.redis");
+        String redisHostname = config.getString("hostname");
+        int redisPort = config.getInt("port"); // Probably... 6379
 
         // Testing jedis connection - to be moved to vehicle actor
-        vehicle = new Vehicle("v1", "f1");
 
         // JedisPooled jedis = new JedisPooled("host.docker.internal", 6379);
         // Protocol.DEFAULT_HOST redisHostname
-        HostAndPort config = new HostAndPort(redisHostname, redisPort);
-        PooledConnectionProvider provider = new PooledConnectionProvider(config);
+        HostAndPort hostAndPort = new HostAndPort(redisHostname, redisPort);
+        PooledConnectionProvider provider = new PooledConnectionProvider(hostAndPort);
         UnifiedJedis client = new UnifiedJedis(provider);
         // JedisPool pool = new JedisPool("localhost", 6379);
         // jedis.set("clientName", "Jedis");
-        client.jsonSetLegacy("vehicle:111", vehicle);
+        String key = "vehicle:" + vehicleId;
+
+        if (client.exists(key)) {
+            vehicle = (Vehicle) client.jsonGet(key);
+        } else {
+            vehicle = Vehicle.createTemplate(vehicle.getVehicleId());
+            client.jsonSetLegacy(key, vehicle);
+        }
+
         // jedis..jsonSet("vehicle:111", truck);
         // log.info("client ->", client);
         // Object fred = jedis.jsonGet("111");

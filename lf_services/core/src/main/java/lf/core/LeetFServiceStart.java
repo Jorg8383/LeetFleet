@@ -21,6 +21,8 @@ public abstract class LeetFServiceStart
 
   protected static String akkaHostname = "localhost"; // Sensible defaults
   protected static int akkaPort = 0;  // Typically defaulted in the Implementing Class
+  private static String redisHostname = "redis";
+  private static int redisPort = 6379;
 
   // ------------------------------------------------------------
 
@@ -37,17 +39,22 @@ public abstract class LeetFServiceStart
         case "-p":
           akkaPort = Integer.parseInt(args[++i]);
           break;
+        case "-r":
+          redisHostname = args[++i];
+          break;
         default:
           System.out.println("Unknown flag: " + args[i] + "\n");
           System.out.println("Valid flags are:");
           System.out.println("\t-a <akkaHostname>\tSpecify the hostname of the where the akka service will run");
           System.out.println("\t-p <akkaPort>\tSpecify the port of the where the akka service will run");
+          System.out.println("\t-r <redis-hostname>\tSpecify the hostname where the redis server will be found");
           System.exit(0);
       }
       // WE SHOULD THROW AN ERROR IF THE HOSTNAME IS NOT IN ["core", "localhost"]
     }
     log.info("akkaHostname:" + akkaHostname);
     log.info("akkaPort:" + akkaPort);
+    log.info("redisHostname:" + redisHostname);
 
     return;
   }
@@ -62,6 +69,7 @@ public abstract class LeetFServiceStart
     Properties overrideProps = new Properties();
     overrideProps.setProperty("akka.remote.artery.canonical.hostname", akkaHostname);
     overrideProps.setProperty("akka.remote.artery.canonical.port", Integer.toString(akkaPort));
+    overrideProps.setProperty("akka.redis.hostname", redisHostname);
     Config overrideCfg = ConfigFactory.parseProperties(overrideProps);
     Config fullConfig = overrideCfg.withFallback(ConfigFactory.load());
 

@@ -1,5 +1,7 @@
 package lf.actor;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.typesafe.config.Config;
 
 import akka.actor.typed.ActorRef;
@@ -9,9 +11,12 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import akka.http.javadsl.marshallers.jackson.Jackson;
 import lf.model.Vehicle;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.UnifiedJedis;
+import redis.clients.jedis.json.Path;
+import redis.clients.jedis.json.Path2;
 import redis.clients.jedis.providers.PooledConnectionProvider;
 
 public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
@@ -57,7 +62,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         String redisHostname = config.getString("hostname");
         int redisPort = config.getInt("port"); // Probably... 6379
 
-        // Testing jedis connection - to be moved to vehicle actor
+        // We are doing one connection per request - this is extremely bad practice - address?
 
         // JedisPooled jedis = new JedisPooled("host.docker.internal", 6379);
         // Protocol.DEFAULT_HOST redisHostname
@@ -69,15 +74,32 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
 
         long vehicleIdLong = Vehicle.wotIdToLongId(vehicleId);
         String key = "vehicle:" + vehicleIdLong;
-        getContext().getLog().info("########## CHECKING JEDIS FOR KEY: " + key);
+        // Check if the key exists in jedis...
         if (jedis.exists(key)) {
-            getContext().getLog().info("########## KEY FOUND - LOADING VEHICLE FROM JEDIS");
-            vehicle = (Vehicle) jedis.jsonGet(key);
-            getContext().getLog().info("\t Test Attribute -> " + vehicle.getVehicleId());
-        } else {
-            getContext().getLog().info("########## KEY NOT FOUND - CREATING TEMPLATE");
-            vehicle = Vehicle.createTemplate(vehicleId);
-            jedis.jsonSetLegacy(key, vehicle);
+            // key exists, retrieve the object
+            //
+            getContext().getLog().info("JEDIS KJEY EXISTS BLOCK ################################################");
+            try {
+                String vehicleAsJSON = jedis.get(key);
+                getContext().getLog().info("\t value returned from redis -> " + vehicleAsJSON);
+                // Unmarshall the JSON into a Vehicle object using the Jackson object mapper
+                vehicle = new ObjectMapper().readValue(vehicleAsJSON, Vehicle.class);
+                getContext().getLog().info("\t Test Attribute -> " + vehicle.getVehicleId());
+            }
+            catch (Exception e) {
+                getContext().getLog().error("Vehicle returned from Store could not be unmarshalled");
+            }
+        }
+        else {
+            try {
+                vehicle = Vehicle.createTemplate(vehicleId);
+                // Marshall the object using a Jackons object mapper
+                String vehicleAsJSON = new ObjectMapper().writeValueAsString(vehicle);
+                jedis.set(key, vehicleAsJSON);
+            }
+            catch (Exception e) {
+                getContext().getLog().error("Vehicle for Storage could not be marshalled");
+            }
         }
 
         // jedis..jsonSet("vehicle:111", truck);

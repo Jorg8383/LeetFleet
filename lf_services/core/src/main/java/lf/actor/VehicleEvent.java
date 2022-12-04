@@ -14,22 +14,13 @@ import lf.model.Vehicle;
 
 import java.util.*;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
 
   // MESSAGES:
   //
   public interface Message {
-  }
-
-  public final static class FleetManagerList implements Message, LFSerialisable {
-    public final Collection<ActorRef<FleetManagerMsg.Message>> fleetManagerRefs;
-    public final ActorRef<Registry.Message> registryRef;
-
-    public FleetManagerList(Collection<ActorRef<FleetManagerMsg.Message>> fleetManagerRefs,
-        ActorRef<Registry.Message> registryRef) {
-      this.fleetManagerRefs = fleetManagerRefs;
-      this.registryRef = registryRef;
-    }
   }
 
   public final static class EventFromWebP implements Message, LFSerialisable {
@@ -44,6 +35,28 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
       // this.vehicle.setFleetId("success lads");
       this.replyTo = portalRef;
       this.registryRef = registryRef;
+    }
+  }
+
+  public final static class FleetManagerList implements Message, LFSerialisable {
+    public final Collection<ActorRef<FleetManagerMsg.Message>> fleetManagerRefs;
+    public final ActorRef<Registry.Message> registryRef;
+
+    public FleetManagerList(Collection<ActorRef<FleetManagerMsg.Message>> fleetManagerRefs,
+        ActorRef<Registry.Message> registryRef) {
+      this.fleetManagerRefs = fleetManagerRefs;
+      this.registryRef = registryRef;
+    }
+  }
+
+  public final static class EventComplete implements Message, LFSerialisable {
+    public final Vehicle vehicle;
+
+    // All constructors (technically) should be annotated - but we appear to get
+    // deserialisation errors for constructors with a single parameter:
+    // (@see: https://doc.akka.io/docs/akka/current/serialization-jackson.html)
+    public EventComplete(@JsonProperty("vehicle") Vehicle vehicle) {
+      this.vehicle = vehicle;
     }
   }
 
@@ -72,8 +85,9 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
   @Override
   public Receive<Message> createReceive() {
     return newReceiveBuilder()
-        .onMessage(FleetManagerList.class, this::onFleetManagerList)
         .onMessage(EventFromWebP.class, this::onEventFromWebP)
+        .onMessage(FleetManagerList.class, this::onFleetManagerList)
+        .onMessage(EventComplete.class, this::onEventComplete)
         .build();
   }
 
@@ -137,5 +151,14 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
     return this;
   }
 
+  private Behavior<Message> onEventComplete(EventComplete message) {
+    // Everything is done!
+
+    // Time to complete the promise this actor was created for...
+    portalRef.tell(new WebPortalMsg.VehicleToWebP(vehicle));
+
+    // ...  and then shutdown.
+    return Behaviors.stopped();
+  }
 
 }

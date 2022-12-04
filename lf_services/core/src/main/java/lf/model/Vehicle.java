@@ -1,5 +1,7 @@
 package lf.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class Vehicle {
 
     enum LockStatuses {
@@ -8,6 +10,7 @@ public class Vehicle {
     }
 
     private String vehicleId;  // WoT VehicleId (String, e.g. "WoT-ID-Mfr-VIN-nnnn")
+    @JsonIgnore
     private long vehicleIdLong;  // LeetFleet VehicleId (long i.e. just an 'id number', e.g. nnnn)
 
     private String fleetManager;

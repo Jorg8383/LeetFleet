@@ -1,22 +1,17 @@
 package lf.actor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import com.typesafe.config.Config;
 
-import akka.actor.typed.ActorRef;
-import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import akka.http.javadsl.marshallers.jackson.Jackson;
+import lf.message.LFSerialisable;
 import lf.model.Vehicle;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.UnifiedJedis;
-import redis.clients.jedis.json.Path;
-import redis.clients.jedis.json.Path2;
 import redis.clients.jedis.providers.PooledConnectionProvider;
 
 public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
@@ -26,15 +21,19 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     public interface Message {
     }
 
-    // public final static class FleetManagerList implements Message {
-    // public final Collection<ActorRef<FleetManager.Message>> fleetManagerRefs;
-    // public final ActorRef<Registry.Message> registryRef;
-    // public FleetManagerList(Collection<ActorRef<FleetManager.Message>>
-    // fleetManagerRefs, ActorRef<Registry.Message> registryRef) {
-    // this.fleetManagerRefs = fleetManagerRefs;
-    // this.registryRef = registryRef;
-    // }
-    // }
+    public final static class Update implements Message, LFSerialisable {
+        public final Vehicle vehicle;
+        public Update(Vehicle vehicle) {
+          this.vehicle = vehicle;
+        }
+    }
+
+    public final static class GracefulShutdown implements Message, LFSerialisable {
+        public final String note;
+        public GracefulShutdown(String note) {
+          this.note = note;
+        }
+    }
 
     // ENCAPSULATION:
     // This is a compromise (storing a vehicle, inside the VehicleTwin). But for
@@ -42,6 +41,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     // thing, that was also an AKKA actor, living in the akka cluster would have
     // been fun to explore).
     private Vehicle vehicle;
+    private UnifiedJedis jedis;
 
     // CREATE THIS ACTOR
     public static Behavior<Message> create(String vehicleId) {
@@ -62,13 +62,13 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         String redisHostname = config.getString("hostname");
         int redisPort = config.getInt("port"); // Probably... 6379
 
-        // We are doing one connection per request - this is extremely bad practice - address?
+        // We are doing one connection per VehicleTwin actor lifecycle - this is poor practice - address?
 
         // JedisPooled jedis = new JedisPooled("host.docker.internal", 6379);
         // Protocol.DEFAULT_HOST redisHostname
         HostAndPort hostAndPort = new HostAndPort(redisHostname, redisPort);
         PooledConnectionProvider provider = new PooledConnectionProvider(hostAndPort);
-        UnifiedJedis jedis = new UnifiedJedis(provider);
+        this.jedis = new UnifiedJedis(provider);
         // JedisPool pool = new JedisPool("localhost", 6379);
         // jedis.set("clientName", "Jedis");
 
@@ -93,7 +93,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         else {
             try {
                 vehicle = Vehicle.createTemplate(vehicleId);
-                // Marshall the object using a Jackons object mapper
+                // Marshall the object using a Jackson object mapper
                 String vehicleAsJSON = new ObjectMapper().writeValueAsString(vehicle);
                 jedis.set(key, vehicleAsJSON);
             }
@@ -102,17 +102,6 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
             }
         }
 
-        // jedis..jsonSet("vehicle:111", truck);
-        // log.info("client ->", client);
-        // Object fred = jedis.jsonGet("111");
-        // log.info("fred ->", fred);
-
-        // System.out.println(client.jsonGet("vehicle:111"));
-        // client.set("planets", "Venus");
-        // System.out.println(client.get("planets"));
-
-        jedis.close();
-        // pool.close();
     }
 
     // =========================================================================
@@ -122,16 +111,45 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     @Override
     public Receive<Message> createReceive() {
         return newReceiveBuilder()
-                // .onMessage(FleetManagerList.class, this::onFleetManagerList)
+                .onMessage(Update.class, this::onUpdate)
+                .onMessage(GracefulShutdown.class, this::onGracefulShutdown)
                 .build();
     }
 
-    // private Behavior<Message>
-    // onFirstMessageFromWebPortal(FirstMessageFromWebPortal message) {
-    // message.portalRef.tell(new
-    // WebPortal.FirstMessageToWebPortal(message.theProof, getContext().getSelf()));
+    private Behavior<Message> onUpdate(Update message) {
+        // We just completely overwrite state.  Cause... why not... toy system.
+        this.vehicle = message.vehicle;
 
-    // return this;
-    // }
+        // Update the redis store...
+        String key = "vehicle:" + message.vehicle.getVehicleIdLong();
+        // Check if the key exists in jedis...
+        if (jedis.exists(key)) {
+            getContext().getLog().info("UPDATE METHOD ENTRY  #################");
+            try {
+                // Marshall the object using a Jackson object mapper
+                String vehicleAsJSON = new ObjectMapper().writeValueAsString(vehicle);
+                jedis.set(key, vehicleAsJSON);
+            }
+            catch (Exception e) {
+                getContext().getLog().error("Vehicle returned from Store could not be unmarshalled");
+            }
+        }
+        // Toy system - no action take if key does not exist.
+
+        return this;
+    }
+
+    // Graceful shutdown:
+    // ??? SCHEDULE THIS?? DRIVEN BY SOMETHING ELSE????
+    private Behavior<Message> onGracefulShutdown(GracefulShutdown message) {
+        getContext().getSystem().log().info("Initiating graceful shutdown...");
+
+        // Shut down our redis connection...
+        jedis.close();
+
+        // Here it can perform graceful stop (possibly asynchronous) and when completed
+        // return `Behaviors.stopped()` here or after receiving another message.
+        return Behaviors.stopped();
+      }
 
 }

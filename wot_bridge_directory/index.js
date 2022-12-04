@@ -9,27 +9,45 @@ If you leave it empty, registration thread will never execute, otherwise it will
 */
 const TD_DIRECTORY = "http://localhost:9000/api/events/create?diff=true"
 
-const activeVehicles = []
+let activeVehicleObjects = {}
 
 setTimeout(async function () {
-    for (var i = activeVehicles.length - 1; i >= 0; i--) {
-        var dayOfCreation = activeVehicles[i]["registration"]["created"].slice(0, 10);
+
+    let activeVehicles = []
+
+    await fetch("http://localhost:9000/things")
+        .then((response) => response.json())
+        .then((data) => activeVehicles.push(data));
+
+    for (var i = 0; i < activeVehicles[0].length; i++) {
+        activeVehicles.push(activeVehicles[0][i]);
+    }
+
+    if (activeVehicles.length > 0) {
+        activeVehicles.splice(0, 1);
+    }
+
+    // Loop to delete vehicles passed the expiry time
+    for (var j = activeVehicles.length - 1; j >= 0; j--) {
+        var dayOfCreation = activeVehicles[j]["registration"]["created"].slice(0, 10);
         var dayOfCreationMod = dayOfCreation.replace(/-/g, "/");
-        var hourOfCreation = activeVehicles[i]["registration"]["created"].slice(11, 19);
+        var hourOfCreation = activeVehicles[j]["registration"]["created"].slice(11, 19);
         var timestampCreation = (Date.parse(dayOfCreationMod, hourOfCreation)) / 1000;
 
         var currentTime = new Date().getTime();
 
         if ((currentTime - timestampCreation) > 3600000) {
             let response = await fetch("http://localhost:9000/api/things/" +
-                activeVehicles[i]["id"], {
+                activeVehicles[j]["id"], {
                 method: "DELETE",
                 headers: {
                     "Content-type": "ld+json"
                 }
             });
 
-            activeVehicles.splice(i, 1);
+            delete activeVehicleObjects[activeVehicles[i]["id"]];
+            activeVehicles.splice(j, 1);
+
         }
     }
 

@@ -10,6 +10,8 @@ const vehicleJSON = {"vehicleID" : "WoT-ID-Mfr-VIN-1234",
     "maintenanceNeeded" : false
 }
 
+// Function to transfer the properties from read from the exposed thing to the
+// JSON emulation
 function updateVehicleObjectProps(thingData, vehicleKey) {
     vehicleKey["oilLevel"] = thingData["propOilLevel"];
     vehicleKey["tyrePressure"] = thingData["propTyrePressure"];
@@ -19,6 +21,8 @@ function updateVehicleObjectProps(thingData, vehicleKey) {
     vehicleKey["maintenanceNeeded"] = thingData["propMaintenanceNeeded"];
 }
 
+// Function that creates random int to help create vehicle ID value that
+// is used to establish the correct fleet manager in Akka
 function getRandomInt() {
     return Math.floor(Math.random() * 10000);
 }
@@ -31,7 +35,7 @@ This project supports the registration of the generated TD to a TD directory
 Fill in the directory URI where the HTTP POST request to send the TD will be made
 If you leave it empty, registration thread will never execute, otherwise it will try to register every 10 seconds 
 */
-const TD_DIRECTORY = "http://localhost:9000/api/events/create?diff=true"
+// const TD_DIRECTORY = "http://localhost:9000/api/events/create?diff=true"
 
 let activeVehicleObjects = {}
 
@@ -106,11 +110,11 @@ servient.addClientFactory(new HttpClientFactory(null));
 //Adding different bindings to the server
 servient.addServer(httpServer);
 
-// const deviceId = "urn:uuid:13b5122b-ac41-452f-a72b-58b969e6a8cc";
-const testingURL = "http://localhost:8080/smart-vehicle";
+const deviceId = "urn:uuid:13b5122b-ac41-452f-a72b-58b969e6a8cc";
+// const testingURL = "http://localhost:8080/smart-vehicle";
 
 servient.start().then((WoT) => {
-    wotDevice = new WotDevice(WoT, testingURL); // TODO change the wotDevice to something that makes more sense
+    wotDevice = new WotDevice(WoT, deviceId); // TODO change the wotDevice to something that makes more sense
     wotDevice.startDevice();
 });
 

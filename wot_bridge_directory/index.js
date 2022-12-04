@@ -1,3 +1,18 @@
+// Default vehicle values
+const vehicleJSON = {"vehicleID" : "WoT-ID-Mfr-VIN-1234",
+    "fleetManager" : "N/A",
+    "tdURL":"http://localhost:8080/smart-vehicle",
+    "oilLevel":50,
+    "tyrePressure" : 30,
+    "mileage" : 10000,
+    "nextServiceDistance" : 10000,
+    "doorStatus" : "LOCKED",
+    "maintenanceNeeded" : false
+}
+
+function getRandomInt() {
+    return Math.floor(Math.random() * 10000);
+}
 //Where your concrete implementation is included
 // WotDevice = require("./dist/base.js").WotDevice
 WotDevice = require("./dist/consumed_vehicle_base.js").WotConsumedDevice
@@ -15,12 +30,21 @@ setTimeout(async function () {
 
     let activeVehicles = []
 
+    // Get all of the things in the directory
     await fetch("http://localhost:9000/things")
         .then((response) => response.json())
         .then((data) => activeVehicles.push(data));
 
+    // Make first draft copies of these things
     for (var i = 0; i < activeVehicles[0].length; i++) {
         activeVehicles.push(activeVehicles[0][i]);
+        let vehicleJSONCopy = vehicleJSON
+
+        vehicleJSONCopy["vehicleID"] = vehicleJSONCopy["vehicleID"] + "-" + getRandomInt();
+        // TODO: Programmatically determine the url from the title and port
+        vehicleJSONCopy["tdURL"] = "http://localhost:8080/smart-vehicle";
+
+        activeVehicleObjects[activeVehicles[0][i]["id"]] = vehicleJSONCopy;
     }
 
     if (activeVehicles.length > 0) {
@@ -51,19 +75,8 @@ setTimeout(async function () {
         }
     }
 
+    // Update the copies to make them the real thing
 })
-
-// Default vehicle values
-const vehicleJSON = {"vehicleID" : "WoT-ID-Mfr-VIN-1234",
-                        "fleetManager" : "N/A",
-                        "tdURL":"http://localhost:8080/smart-vehicle",
-                        "oilLevel":50,
-                        "tyrePressure" : 30,
-                        "mileage" : 10000,
-                        "nextServiceDistance" : 10000,
-                        "doorStatus" : "LOCKED",
-                        "maintenanceNeeded" : false
-}
 
 Servient = require("@node-wot/core").Servient
 //Importing the required bindings

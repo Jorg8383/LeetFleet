@@ -10,7 +10,7 @@ public class WebPortalMsg {
   public interface Message {
   };
 
-  public final static class VehicleToWebP implements Message {
+  public final static class VehicleToWebP implements Message, LFSerialisable {
     public Vehicle vehicle;
 
     public VehicleToWebP(Vehicle vehicle) {

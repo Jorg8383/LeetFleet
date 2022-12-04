@@ -8,6 +8,7 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import lf.actor.Registry.ListFleetManagers;
 import lf.message.FleetManagerMsg;
+import lf.message.LFSerialisable;
 import lf.message.WebPortalMsg;
 import lf.model.Vehicle;
 
@@ -20,7 +21,7 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
   public interface Message {
   }
 
-  public final static class FleetManagerList implements Message {
+  public final static class FleetManagerList implements Message, LFSerialisable {
     public final Collection<ActorRef<FleetManagerMsg.Message>> fleetManagerRefs;
     public final ActorRef<Registry.Message> registryRef;
 
@@ -31,7 +32,7 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
     }
   }
 
-  public final static class EventFromWebP implements Message {
+  public final static class EventFromWebP implements Message, LFSerialisable {
     public final Vehicle vehicle;
     public final ActorRef<WebPortalMsg.VehicleToWebP> replyTo;
     public final ActorRef<Registry.Message> registryRef;
@@ -107,7 +108,7 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
     // We don't care! We send off the fleetId 'as is' to the registry. If the
     // fleetId is valid we get back a list of 'one fleet manager'. If it's invalid
     // we should get back a list of all of them.
-    message.registryRef.tell(new ListFleetManagers(vehicle.getFleetId(), this.getContext().getSelf()));
+    message.registryRef.tell(new ListFleetManagers(vehicle.getFleetManager(), this.getContext().getSelf()));
 
     return this;
   }

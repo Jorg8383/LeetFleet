@@ -5,6 +5,7 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
 import akka.actor.typed.receptionist.Receptionist;
 import jnr.ffi.annotations.IgnoreError;
+import lf.message.LFSerialisable;
 import lf.message.WebPortalMsg;
 import lf.model.Vehicle;
 
@@ -42,7 +43,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     // names and rich semantic and domain specific meaning, even if they just wrap
     // your data type.
     // This will make it easier to use, understand and debug actor-based system
-    public static class BootStrap implements Message {
+    public static class BootStrap implements Message, LFSerialisable {
         public final String note;
 
         public BootStrap(String note) {
@@ -51,7 +52,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     }
 
     // Definitely better ways to do this.
-    public final static class ForwardToHandler implements Message {
+    public final static class ForwardToHandler implements Message, LFSerialisable {
         public final Vehicle vehicle;
         public final ActorRef<WebPortalMsg.VehicleToWebP> replyTo;
 
@@ -68,7 +69,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
      * NOTE: We need to emply a 'messageAdaptor' to convert the message we recieve
      * from the Receptioninst to the one define here that we can understand.
      */
-    private static class ListingResponse implements Message {
+    private static class ListingResponse implements Message, LFSerialisable {
         final Receptionist.Listing listing;
 
         private ListingResponse(Receptionist.Listing listing) {

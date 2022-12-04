@@ -33,7 +33,7 @@ public class WebPortalRoutes extends WebPortalMsg {
         private final static Logger log = LoggerFactory.getLogger(WebPortalRoutes.class);
 
         private final ActorRef<WebPortalGuardian.Message> webPortalGuardianRef; // We can use this actor to spawn more
-                                                                                // actors...
+        // actors...
         private final Duration askTimeout;
         private final Scheduler scheduler;
 
@@ -75,8 +75,8 @@ public class WebPortalRoutes extends WebPortalMsg {
         // }
 
         private CompletionStage<WebPortalMsg.VehicleToWebP> vehicleToHandlerViaGuardian(Vehicle vehicle) {
-                return AskPattern.ask(webPortalGuardianRef,
-                                ref -> new WebPortalGuardian.ForwardToHandler(vehicle, ref), askTimeout, scheduler);
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.ForwardToHandler(vehicle, ref),
+                                askTimeout, scheduler);
         }
 
         // private CompletionStage<UserRegistry.GetUserResponse> getUser(String name) {
@@ -143,8 +143,7 @@ public class WebPortalRoutes extends WebPortalMsg {
          */
         // #all-routes
 
-        PathMatcher1<String> milagePath = PathMatchers
-                        .segment("wot").slash(segment("total_mileage").concat(segment()));
+        PathMatcher1<String> milagePath = PathMatchers.segment("wot").slash(segment("total_mileage").concat(segment()));
 
         // PathMatcher1<String> milagePath = PathMatchers
         // .segment("wot").slash(parameter("total_mileage", milage ->));
@@ -156,8 +155,7 @@ public class WebPortalRoutes extends WebPortalMsg {
                 // asynchronously.
                 // - We *EXPECT* a response from it (we block here until we get a response)
                 // - Then when it responds we send that back to the user as the HTTP response
-                return concat(
-                                path("hello", () -> get(() -> complete("<h1>Say hello to akka-http</h1>"))),
+                return concat(path("hello", () -> get(() -> complete("<h1>Say hello to akka-http</h1>"))),
                                 // Akka HTTP routes can interact with actors.
                                 // This route contains a request-response interaction with an actor.
                                 // (The resulting response is rendered as JSON and returned when the response
@@ -173,13 +171,11 @@ public class WebPortalRoutes extends WebPortalMsg {
                                 // rejection.
                                 // path("firstTest", () -> get(() -> onSuccess(firstTest(),
                                 // theMessage -> complete(StatusCodes.OK, theMessage.theProof)))),
-                                path("wot",
-                                                () -> post(() -> entity(Jackson.unmarshaller(Vehicle.class),
-                                                                vehicle -> onSuccess(
-                                                                                vehicleToHandlerViaGuardian(vehicle),
-                                                                                theMessage -> complete(StatusCodes.OK,
-                                                                                                theMessage.vehicle,
-                                                                                                Jackson.marshaller()))))),
+                                path("wot", () -> post(() -> entity(Jackson.unmarshaller(Vehicle.class),
+                                                vehicle -> onSuccess(vehicleToHandlerViaGuardian(vehicle),
+                                                                theMessage -> complete(StatusCodes.OK,
+                                                                                theMessage.vehicle,
+                                                                                Jackson.marshaller()))))),
 
                                 // get(() -> path(milagePath, id -> complete("id is: " + id))));
 
@@ -188,103 +184,66 @@ public class WebPortalRoutes extends WebPortalMsg {
                                 // vehicleId)))));
 
                                 // MAKE FLEET ID OPTIONAL??
-                                concat(pathPrefix("wot",
-                                                () -> concat(
-                                                                pathPrefix("total_mileage",
-                                                                                () -> parameter("vehicle_id",
-                                                                                                vehicleId -> parameter(
-                                                                                                                "fleet_id",
-                                                                                                                fleet_id -> parameter(
-                                                                                                                                "total_mileage",
-                                                                                                                                total_mileage -> onSuccess(
-                                                                                                                                                vehicleToHandlerViaGuardian(
-                                                                                                                                                                Vehicle.createForMileage(
-                                                                                                                                                                                vehicleId,
-                                                                                                                                                                                fleet_id,
-                                                                                                                                                                                Float.valueOf(total_mileage))),
-                                                                                                                                                theMessage -> complete(
-                                                                                                                                                                StatusCodes.OK,
-                                                                                                                                                                theMessage.vehicle,
-                                                                                                                                                                Jackson.marshaller()))))))))),
-                                concat(pathPrefix("wot",
-                                                () -> concat(pathPrefix("next_service_distance",
-                                                                () -> parameter("vehicle_id", vehicleId -> parameter(
-                                                                                "fleet_id",
-                                                                                fleetId -> complete(
-                                                                                                "next_service_distance - Fleetid is "
-                                                                                                                + fleetId
-                                                                                                                + " vehicleid is "
-                                                                                                                + vehicleId))))))),
+                                concat(pathPrefix("wot", () -> concat(pathPrefix("total_mileage", () -> parameter(
+                                                "vehicle_id",
+                                                vehicleId -> parameter("fleet_id", fleet_id -> parameter(
+                                                                "total_mileage",
+                                                                total_mileage -> onSuccess(vehicleToHandlerViaGuardian(
+                                                                                Vehicle.createForMileage(vehicleId,
+                                                                                                fleet_id,
+                                                                                                Float.valueOf(total_mileage))),
+                                                                                theMessage -> complete(StatusCodes.OK,
+                                                                                                theMessage.vehicle,
+                                                                                                Jackson.marshaller()))))))))),
+                                concat(pathPrefix("wot", () -> concat(pathPrefix("next_service_distance",
+                                                () -> parameter("vehicle_id",
+                                                                vehicleId -> parameter("fleet_id", fleetId -> complete(
+                                                                                "next_service_distance - Fleetid is "
+                                                                                                + fleetId
+                                                                                                + " vehicleid is "
+                                                                                                + vehicleId))))))),
 
-                                concat(pathPrefix("wot",
-                                                () -> concat(pathPrefix("door_status",
-                                                                () -> parameter("vehicle_id", vehicleId -> parameter(
-                                                                                "fleet_id",
-                                                                                fleetId -> complete(
-                                                                                                "door_status request - Fleetid is "
-                                                                                                                + fleetId
-                                                                                                                + " vehicleid is "
-                                                                                                                + vehicleId))))))),
+                                concat(pathPrefix("wot", () -> concat(pathPrefix("door_status",
+                                                () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                                                                fleetId -> complete("door_status request - Fleetid is "
+                                                                                + fleetId + " vehicleid is "
+                                                                                + vehicleId))))))),
 
-                                concat(pathPrefix("wot",
-                                                () -> concat(pathPrefix("maintenance_needed",
-                                                                () -> parameter("vehicle_id", vehicleId -> parameter(
-                                                                                "fleet_id",
-                                                                                fleetId -> complete(
-                                                                                                "maintenance_needed request - Fleetid is "
-                                                                                                                + fleetId
-                                                                                                                + " vehicleid is "
-                                                                                                                + vehicleId))))))),
+                                concat(pathPrefix("wot", () -> concat(pathPrefix("maintenance_needed", () -> parameter(
+                                                "vehicle_id",
+                                                vehicleId -> parameter("fleet_id", fleetId -> complete(
+                                                                "maintenance_needed request - Fleetid is " + fleetId
+                                                                                + " vehicleid is " + vehicleId))))))),
 
-                                concat(pathPrefix("wot",
-                                                () -> concat(pathPrefix("lock_door",
-                                                                () -> parameter("vehicle_id", vehicleId -> parameter(
-                                                                                "fleet_id",
-                                                                                fleetId -> complete(
-                                                                                                "lock_door request - Fleetid is "
-                                                                                                                + fleetId
-                                                                                                                + " vehicleid is "
-                                                                                                                + vehicleId))))))),
+                                concat(pathPrefix("wot", () -> concat(pathPrefix("lock_door",
+                                                () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                                                                fleetId -> complete("lock_door request - Fleetid is "
+                                                                                + fleetId + " vehicleid is "
+                                                                                + vehicleId))))))),
 
-                                concat(pathPrefix("wot",
-                                                () -> concat(pathPrefix("unlock_door",
-                                                                () -> parameter("vehicle_id", vehicleId -> parameter(
-                                                                                "fleet_id",
-                                                                                fleetId -> complete(
-                                                                                                "unlock_door request - Fleetid is "
-                                                                                                                + fleetId
-                                                                                                                + " vehicleid is "
-                                                                                                                + vehicleId))))))),
+                                concat(pathPrefix("wot", () -> concat(pathPrefix("unlock_door",
+                                                () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                                                                fleetId -> complete("unlock_door request - Fleetid is "
+                                                                                + fleetId + " vehicleid is "
+                                                                                + vehicleId))))))),
 
-                                concat(pathPrefix("wot",
-                                                () -> concat(pathPrefix("low_on_oil",
-                                                                () -> parameter("vehicle_id", vehicleId -> parameter(
-                                                                                "fleet_id",
-                                                                                fleetId -> complete(
-                                                                                                "low_on_oil request - Fleetid is "
-                                                                                                                + fleetId
-                                                                                                                + " vehicleid is "
-                                                                                                                + vehicleId))))))),
+                                concat(pathPrefix("wot", () -> concat(pathPrefix("low_on_oil",
+                                                () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                                                                fleetId -> complete("low_on_oil request - Fleetid is "
+                                                                                + fleetId + " vehicleid is "
+                                                                                + vehicleId))))))),
 
-                                concat(pathPrefix("wot",
-                                                () -> concat(pathPrefix("low_tire_pressure",
-                                                                () -> parameter("vehicle_id", vehicleId -> parameter(
-                                                                                "fleet_id",
-                                                                                fleetId -> complete(
-                                                                                                "low_tire_pressure - Fleetid is "
-                                                                                                                + fleetId
-                                                                                                                + " vehicleid is "
-                                                                                                                + vehicleId))))))),
+                                concat(pathPrefix("wot", () -> concat(pathPrefix("low_tire_pressure",
+                                                () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
+                                                                fleetId -> complete("low_tire_pressure - Fleetid is "
+                                                                                + fleetId + " vehicleid is "
+                                                                                + vehicleId))))))),
 
-                                concat(pathPrefix("wot",
-                                                () -> concat(pathPrefix("maintenance_need",
-                                                                () -> parameter("vehicle_id", vehicleId -> parameter(
-                                                                                "fleet_id",
-                                                                                fleetId -> complete(
-                                                                                                "maintenance_need request - Fleetid is "
-                                                                                                                + fleetId
-                                                                                                                + " vehicleid is "
-                                                                                                                + vehicleId)))))))
+                                concat(pathPrefix("wot", () -> concat(pathPrefix("maintenance_need", () -> parameter(
+                                                "vehicle_id",
+                                                vehicleId -> parameter("fleet_id", fleetId -> complete(
+                                                                "maintenance_need request - Fleetid is " + fleetId
+                                                                                + " vehicleid is " + vehicleId)))))))
 
                 );
                 // parameter("vehicle_id", vehicleId -> parameter("fleet_id",

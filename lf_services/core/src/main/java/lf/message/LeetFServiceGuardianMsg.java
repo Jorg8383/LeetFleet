@@ -3,7 +3,7 @@ package lf.message;
 /**
  * Messages understood by the LeetFleet Service Guardians
  */
-public class LeetFServiceGuardianMsg {
+public class LeetFServiceGuardianMsg implements LFSerialisable {
 
     // MESSAGES:
     //

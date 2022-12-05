@@ -153,6 +153,7 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
 
   private Behavior<Message> onEventComplete(EventComplete message) {
     // Everything is done!
+    vehicle = message.vehicle;  // pedantry. keep state updated so future mods don't break.
 
     // Time to complete the promise this actor was created for...
     portalRef.tell(new WebPortalMsg.VehicleToWebP(vehicle));

@@ -94,6 +94,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
                 // This might be the first communication for this vehicle. It
                 // might not. Just stamp it with this fleetId every time.
                 vehicle.setFleetManager(Long.toString(MANAGER_ID));
+                getContext().getLog().info("\tVehicle Manager ('ID') set to -> " + vehicle.getFleetManager());
 
                 ActorRef<VehicleTwin.Message> vehicleTwinRef;
 

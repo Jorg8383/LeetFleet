@@ -43,6 +43,8 @@ let dummy_json = [
 ]
 
 
+//curreent vehicle
+var activeJson = {};
 
 function showVehicle(vehicleJson){
         var newInnerHtml = ""
@@ -83,7 +85,7 @@ function showFleetVehicles(fleet){
         InnerHtml += showVehicle(vehicleJson)
     })
 
-    vehicleDiv.style.display = "inline";
+    vehicleDiv.style.display = "inline-block";
     home.style.display = "none";
     vehicleDiv.innerHTML = InnerHtml;
     addEventListenertoButtons();
@@ -96,7 +98,7 @@ function showFleetVehicles(fleet){
 document.querySelector(".back").addEventListener("click", () => {
     let vehicleDiv = document.getElementById("vehicles")
     vehicleDiv.style.display = "none";
-    home.style.display = "inline";
+    home.style.display = "inline-block";
     
     document.querySelector(".back").classList.add("back-hidden")
     document.querySelector(".back").classList.remove("back-shown")
@@ -122,12 +124,19 @@ function addEventListenertoButtons(){
             individualDiv.style.display = "inline";
             let vehicleDiv = document.getElementById("vehicles")
             
+            dummy_json.forEach(json => {
+                if (json.vehicleId === button.innerHTML){
+                    activeJson = json;
+                }
+            })
+            console.log("Current json = " + activeJson);
+            
             let allVDivs = document.querySelectorAll(".vehicle-div")
 
             allVDivs.forEach(div => {
                 div.style.display = "none";
             })
-            individualDiv.style.display = "inline";
+            individualDiv.style.display = "inline-block";
 
             let doorStatusCompliment = "";
 

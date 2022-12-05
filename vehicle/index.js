@@ -1,7 +1,7 @@
 //Where your concrete implementation is included
 // WotDevice = require("./dist/base.js").WotDevice
-SmartVehicle1 = require("./dist/smart_vehicle_base.js").WotDevice
-SmartVehicle2 = require("./dist/smart_vehicle_base2.js").WotDevice
+SmartVehicle = require("./dist/smart_vehicle_base.js").WotDevice
+// SmartVehicle2 = require("./dist/smart_vehicle_base2.js").WotDevice
 
 /*
 This project supports the registration of the generated TD to a TD directory
@@ -26,15 +26,19 @@ servient1.addServer(httpServer1);
 servient2.addServer(httpServer2);
 
 servient1.start().then((WoT) => {
-    SmartVehicle1 = new SmartVehicle1(WoT, TD_DIRECTORY);
-    // SmartVehicle1 = new SmartVehicle1(WoT); 
+    let vehicleNumber = "1";
+    SmartVehicle1 = new SmartVehicle(WoT, TD_DIRECTORY, vehicleNumber);
+    // SmartVehicle1 = new SmartVehicle1(WoT);
+    SmartVehicle1.vehicleNumber = 1; 
     SmartVehicle1.startDevice();
     SmartVehicle1.emulateDevice();
 });
 
 servient2.start().then((WoT) => {
-    SmartVehicle2 = new SmartVehicle2(WoT, TD_DIRECTORY);
+    let vehicleNumber = "2";
+    SmartVehicle2 = new SmartVehicle(WoT, TD_DIRECTORY, vehicleNumber);
     // SmartVehicle1 = new SmartVehicle1(WoT); 
+    SmartVehicle2.vehicleNumber = 2; 
     SmartVehicle2.startDevice();
     SmartVehicle2.emulateDevice();
 });

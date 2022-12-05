@@ -11,11 +11,13 @@ export class WotConsumedDevice {
     public deviceWoT: typeof WoT;
     public td: WoT.ThingDescription;
     private tdUri: string;
+    private JSON: JSON;
     private wotHiveUri = "http://localhost:9000/api/things/";
 
-    constructor(deviceWoT: typeof WoT, tdId?: string) {
+    constructor(deviceWoT: typeof WoT, json: JSON, tdId?: string) {
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
+        this.JSON = json;
         if (tdId) {
             this.tdUri = this.wotHiveUri + tdId;
             // this.tdUri = tdId;

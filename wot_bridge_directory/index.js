@@ -10,16 +10,18 @@ const vehicleJSON = {"vehicleID" : "WoT-ID-Mfr-VIN-1234",
     "maintenanceNeeded" : false
 }
 
+const vehiclesInUse = []
+
 // Function to transfer the properties from read from the exposed thing to the
 // JSON emulation
-function updateVehicleObjectProps(thingData, vehicleKey) {
-    vehicleKey["oilLevel"] = thingData["propOilLevel"];
-    vehicleKey["tyrePressure"] = thingData["propTyrePressure"];
-    vehicleKey["mileage"] = thingData["propTotalMileage"];
-    vehicleKey["nextServiceDistance"] = thingData["propServiceDistance"]
-    vehicleKey["doorStatus"] = thingData["propDoorStatus"];
-    vehicleKey["maintenanceNeeded"] = thingData["propMaintenanceNeeded"];
-}
+// function updateVehicleObjectProps(thingData, vehicleKey) {
+//     vehicleKey["oilLevel"] = thingData["propOilLevel"];
+//     vehicleKey["tyrePressure"] = thingData["propTyrePressure"];
+//     vehicleKey["mileage"] = thingData["propTotalMileage"];
+//     vehicleKey["nextServiceDistance"] = thingData["propServiceDistance"]
+//     vehicleKey["doorStatus"] = thingData["propDoorStatus"];
+//     vehicleKey["maintenanceNeeded"] = thingData["propMaintenanceNeeded"];
+// }
 
 // Function that creates random int to help create vehicle ID value that
 // is used to establish the correct fleet manager in Akka
@@ -37,7 +39,7 @@ If you leave it empty, registration thread will never execute, otherwise it will
 */
 // const TD_DIRECTORY = "http://localhost:9000/api/events/create?diff=true"
 
-let activeVehicleObjects = {}
+// let activeVehicleObjects = {}
 
 setTimeout(async function () {
 
@@ -51,12 +53,12 @@ setTimeout(async function () {
     // Make first draft copies of these things
     for (var i = 0; i < activeVehicles[0].length; i++) {
         activeVehicles.push(activeVehicles[0][i]);
-        let vehicleJSONCopy = vehicleJSON
-
-        vehicleJSONCopy["vehicleID"] = vehicleJSONCopy["vehicleID"] + "-" + getRandomInt();
-        // TODO: Programmatically determine the url from the title and port
-        vehicleJSONCopy["tdURL"] = "http://localhost:8080/smart-vehicle";
-        activeVehicleObjects[activeVehicles[0][i]["id"]] = vehicleJSONCopy;
+        // let vehicleJSONCopy = vehicleJSON
+        //
+        // vehicleJSONCopy["vehicleID"] = vehicleJSONCopy["vehicleID"] + "-" + getRandomInt();
+        // // TODO: Programmatically determine the url from the title and port
+        // vehicleJSONCopy["tdURL"] = "http://localhost:8080/smart-vehicle";
+        // activeVehicleObjects[activeVehicles[0][i]["id"]] = vehicleJSONCopy;
     }
 
     if (activeVehicles.length > 0) {
@@ -81,21 +83,35 @@ setTimeout(async function () {
                 }
             });
 
-            delete activeVehicleObjects[activeVehicles[i]["id"]];
+            // delete activeVehicleObjects[activeVehicles[i]["id"]];
+            var index = 0;
+            
             activeVehicles.splice(j, 1);
 
         }
     }
 
-    // Update vehicle objects with real values
-    const thingIDs = Object.keys(activeVehicleObjects);
+    // // Update vehicle objects with real values
+    // const thingIDs = Object.keys(activeVehicleObjects);
+    //
+    // for (const thing of thingIDs) {
+    //     await fetch(thing["tdURL"] + "/properties")
+    //         .then((response) => response.json())
+    //         .then((data) => updateVehicleObjectProps(data, activeVehicleObjects[thing]));
+    // }
 
-    for (const thing of thingIDs) {
-        await fetch(thing["tdURL"] + "/properties")
-            .then((response) => response.json())
-            .then((data) => updateVehicleObjectProps(data, activeVehicleObjects[thing]));
+    for (const vehicle of activeVehicles) {
+        var inList = false;
+        for (var a = 0; a < vehiclesInUse.length; a++) {
+            if (vehicle["id"] == vehiclesInUse["id"]) {
+                inList = true;
+            }
+        }
+        if (!inList) {
+            vehiclesInUse.push(vehicle);
+        }
     }
-})
+}, 300000);
 
 Servient = require("@node-wot/core").Servient
 //Importing the required bindings
@@ -114,8 +130,12 @@ const deviceId = "urn:uuid:13b5122b-ac41-452f-a72b-58b969e6a8cc";
 // const testingURL = "http://localhost:8080/smart-vehicle";
 
 servient.start().then((WoT) => {
-    wotDevice = new WotDevice(WoT, deviceId); // TODO change the wotDevice to something that makes more sense
-    wotDevice.startDevice();
+    for (var k = 0; k < vehiclesInUse.length; k++){
+        wotDevice = new WotDevice(WoT, vehicleJSON, deviceId); // TODO change the wotDevice to something that makes more sense
+        wotDevice.startDevice();
+    }
+    // wotDevice = new WotDevice(WoT, deviceId); // TODO change the wotDevice to something that makes more sense
+    // wotDevice.startDevice();
 });
 
 // const dirUri = "http://localhost:9000/api/events?diff=false";

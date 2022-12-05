@@ -35,7 +35,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
     // cluster).
     // ?!IF!? we had gotten the java WoT working - this may well have been WoT
     // "consumed thing" that was ALSO an akka actor. That... would have been sweet.
-    private static HashMap<Long, ActorRef<FleetManagerMsg.Message>> vehicles = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
+    private static HashMap<Long, ActorRef<VehicleTwin.Message>> vehicles = new HashMap<Long, ActorRef<VehicleTwin.Message>>();
 
     // CREATE THIS ACTOR
     public static Behavior<Message> create() {
@@ -85,41 +85,46 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
         // We extract the 'nnnn' (id) part to see if this vehicle belongs to this
         // fleet manager:
         Vehicle vehicle = message.vehicle;
+        long vehicleIdLong = vehicle.getVehicleIdLong();
 
-        boolean validVehicleId = false;
-        long vehicleId = 0;
-        try {
-            // vehicleId =
-            // Long.parseLong(vehicle.getVehicleId().substring(message.vehicle.getVehicleId()));
-            // // <= HARD CODED ID EXTRACTION
-            vehicleId = vehicle.getVehicleIdLong();
-
-            validVehicleId = true;
-        } catch (Exception e) {
-            // Not concerned with the nature of the exception
-            // Toy system: not valid => ignore.
-        }
-
-        if (validVehicleId) {
-            if (carelessFleetIdRange.contains(vehicleId)) {
+        if (vehicleIdLong != 0) {
+            if (carelessFleetIdRange.contains(vehicleIdLong)) {
                 getContext().getLog().info("Vehicle Event for CareleesFleet received.");
 
-                // First if the VehicleTwin for this vehicle doesn't exist, we
-                // must create it.
-                if (!vehicles.keySet().contains(vehicleId)) {
+                // This might be the first communication for this vehicle. It
+                // might not. Just stamp it with this fleetId every time.
+                vehicle.setFleetManager(Long.toString(MANAGER_ID));
+                getContext().getLog().info("\tVehicle Manager ('ID') set to -> " + vehicle.getFleetManager());
+
+                ActorRef<VehicleTwin.Message> vehicleTwinRef;
+
+                // First - if the VehicleTwin for this vehicle doesn't exist, we
+                // must create an actor for it:
+                if (!vehicles.keySet().contains(vehicleIdLong)) {
                     // Create an (anonymous) VehicleTwin actor to represent this vehicle on the
                     // actor system
-                    ActorRef<VehicleTwin.Message> vehicleTwinRef = getContext()
-                            .spawnAnonymous(VehicleTwin.create(vehicleId)); // 'anonymous' actor
-                    // store
+                    vehicleTwinRef = getContext()
+                            .spawnAnonymous(VehicleTwin.create(vehicle.getVehicleId()));  // 'anonymous' actor
+                    vehicles.put(vehicleIdLong, vehicleTwinRef);
+                }
+                else {
+                    vehicleTwinRef = vehicles.get(vehicleIdLong);
                 }
 
-                // MORE STUFF
-                // PERFORM THE UDATE ON THE VEHCILE ACTOR
-                // MESSAGE THE VehicleEvent to say we're done. message.vehicleEventRef
+                // Update the VehicleTwin with the 'vehicle' pojo we have been
+                // sent
+                vehicleTwinRef.tell(new VehicleTwin.Update(vehicle));
+
+                // We message the VehicleEvent handler immediately to say we're
+                // done. There's no confirmation etc.. Worst case - we lose one
+                // message and the client reporting is one transaction out of date.
+                // A real system might take a different approach here, depending
+                // on the designers goals.
+                message.vehicleEventRef.tell(new VehicleEvent.EventComplete(vehicle));
+
             } else {
                 getContext().getLog().info(
-                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleId) + "). Ignoring.");
+                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong) + "). Ignoring.");
             }
         }
 

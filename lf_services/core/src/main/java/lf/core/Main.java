@@ -1,51 +1,74 @@
-// package lf.core;
+package lf.core;
 
-// import akka.actor.ActorRef;
-// import akka.actor.ActorSystem;
-// import akka.http.javadsl.Http;
-// import akka.http.javadsl.ServerBinding;
-// import akka.http.javadsl.server.AllDirectives;
-// import akka.http.javadsl.server.Route;
-// import akka.actor.Props;
-// import org.apache.logging.log4j.LogManager;
-// import org.apache.logging.log4j.Logger;
-// import lf.actor.HttpToAkka;
-// import java.util.concurrent.CompletionStage;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 
-// public class Main {
-//     private static final Logger log = LogManager.getLogger(Main.class);
+import lf.model.Vehicle;
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.UnifiedJedis;
+import redis.clients.jedis.json.Path;
 
-//     // Default delay to allow quotation services to respond.
-//     public static int appReqDeadlineSecs = 2;
+import redis.clients.jedis.providers.PooledConnectionProvider;
 
-//     public static void main(String[] args) throws Exception {
-//         ActorSystem system = ActorSystem.create("HttpToAkka");
-//         ActorRef carActor = system.actorOf(CarActor.props(), "carActor");
-//         CarServer server = new CarServer(carActor);
-//         server.startServer("localhost", 8080, system);
-//     }
+public class Main  {
 
-    // Not sure what below does, So I'll leave in for now
-//    private static void configFromArgs(String[] args) {
-//        // Check the command line args for manual host/port configuration
-//        for (int i = 0; i < args.length; i++) {
-//            switch (args[i]) {
-//                case "-t":
-//                    appReqDeadlineSecs = Integer.parseInt(args[++i]);
-//                    break;
-//                default:
-//                    System.out.println("Unknown flag: " + args[i] + "\n");
-//                    System.out.println("Valid flags are:");
-//                    System.out.println("\t-t <timeout>\tSpecify the time (in ms) the broker will wait for quotations");
-//                    System.exit(0);
-//            }
-//        }
-//        if (appReqDeadlineSecs == 0) {
-//            log.warn("Broker 'Quotation Wait Timeout' Set to 0!!");
-//            log.warn("Quotations WILL NOT arrive in time!");
-//        }
-//        log.info("BrokerConfig:: appReqDeadlineSecs:" + appReqDeadlineSecs);
-//
-//        return;
-//    }
-//}
+ public static void main(String[] args) {
+        // Interesting question... where will VehicleTwins get this information?
+        // Perhaps passed down from the WebPortal?
+
+        // We are doing one connection per request - this is extremely bad practice - address?
+
+        // JedisPooled jedis = new JedisPooled("host.docker.internal", 6379);
+        // Protocol.DEFAULT_HOST redisHostname
+        HostAndPort hostAndPort = new HostAndPort("localhost", 6379);
+        PooledConnectionProvider provider = new PooledConnectionProvider(hostAndPort);
+        UnifiedJedis jedis = new UnifiedJedis(provider);
+
+        String vehicleId = "WoT-ID-Mfr-VIN-1234";
+
+        Vehicle vehicle;
+
+        long vehicleIdLong = Vehicle.wotIdToLongId(vehicleId);
+        String key = "vehicle:" + vehicleIdLong;
+        // Check if the key exists in jedis...
+        if (jedis.exists(key)) {
+            // key exists, retrieve the object
+            //
+            //vehicle = (Vehicle) jedis.jsonGet(key);
+            System.out.println("JEDIS KJEY EXISTS BLOCK ################################################");
+            String vehicleAsJSON = jedis.get(key);
+            System.out.println("\t value returned from redis -> " + vehicleAsJSON);
+            try {
+                vehicle = new ObjectMapper().readValue(vehicleAsJSON, Vehicle.class);
+                //vehicle = new Gson().fromJson(vehicleAsJSON, Vehicle.class);
+                System.out.println("\t Test Attribute -> " + vehicle.getVehicleId());
+            }
+            catch (Exception e) {
+                //
+            }
+        } else {
+            vehicle = Vehicle.createTemplate(vehicleId);
+            try {
+                String vehicleAsJSON = new ObjectMapper().writeValueAsString(vehicle);
+                //jedis.jsonSetLegacy(key, vehicle);  // This appears to marshall the vehicle, for storage
+                jedis.set(key, vehicleAsJSON);  // This appears to marshall the vehicle, for storage
+            }
+            catch (Exception e) {
+                //
+            }
+        }
+
+        // jedis..jsonSet("vehicle:111", truck);
+        // log.info("client ->", client);
+        // Object fred = jedis.jsonGet("111");
+        // log.info("fred ->", fred);
+
+        // System.out.println(client.jsonGet("vehicle:111"));
+        // client.set("planets", "Venus");
+        // System.out.println(client.get("planets"));
+
+        jedis.close();
+        // pool.close();
+    }
+
+}

@@ -1,5 +1,7 @@
 package lf.actor;
 
+import java.util.HashMap;
+
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
@@ -10,7 +12,9 @@ import akka.actor.typed.receptionist.Receptionist;
 import lf.core.VehicleIdRange;
 import lf.message.FleetManagerMsg;
 import lf.message.FleetManagerMsg.Message;
+import lf.message.FleetManagerMsg.ProcessVehicleUpdate;
 import lf.message.FleetManagerMsg.RegistrationSuccess;
+import lf.model.Vehicle;
 
 /**
  * A Fleet Manager. This time for the Notional Fastidious Fleet. Could suit any abstraction.
@@ -22,6 +26,12 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
     private VehicleIdRange fastidiousFleetIdRange = new VehicleIdRange(2500, 4999);
 
     public ActorRef<Registry.Message> REGISTRY_REF = null;
+
+    // Track the VehicleTwin actors we have "live" (active actor refs in the
+    // cluster).
+    // ?!IF!? we had gotten the java WoT working - this may well have been WoT
+    // "consumed thing" that was ALSO an akka actor. That... would have been sweet.
+    private static HashMap<Long, ActorRef<VehicleTwin.Message>> vehicles = new HashMap<Long, ActorRef<VehicleTwin.Message>>();
 
     // CREATE THIS ACTOR
     public static Behavior<Message> create() {
@@ -54,6 +64,7 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
     public Receive<Message> createReceive() {
         return newReceiveBuilder()
                 .onMessage(RegistrationSuccess.class, this::onRegistrationSuccess)
+                .onMessage(ProcessVehicleUpdate.class, this::onProcessVehicleUpdate)
                 .build();
     }
 
@@ -63,6 +74,57 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
         MANAGER_ID   = message.mgrId;
         REGISTRY_REF = message.registryRef;
         getContext().getLog().info("FleetManager Registration Confirmed.");
+        return this;
+    }
+
+    private Behavior<Message> onProcessVehicleUpdate(ProcessVehicleUpdate message) {
+        // Each VehicleId is in the format 'WoT-ID-Mfr-VIN-nnnn' in our Toy system
+        // We extract the 'nnnn' (id) part to see if this vehicle belongs to this
+        // fleet manager:
+        Vehicle vehicle = message.vehicle;
+        long vehicleIdLong = vehicle.getVehicleIdLong();
+
+        if (vehicleIdLong != 0) {
+            if (fastidiousFleetIdRange.contains(vehicleIdLong)) {
+                getContext().getLog().info("Vehicle Event for CareleesFleet received.");
+
+                // This might be the first communication for this vehicle. It
+                // might not. Just stamp it with this fleetId every time.
+                vehicle.setFleetManager(Long.toString(MANAGER_ID));
+                getContext().getLog().info("\tVehicle Manager ('ID') set to -> " + vehicle.getFleetManager());
+
+                ActorRef<VehicleTwin.Message> vehicleTwinRef;
+
+                // First - if the VehicleTwin for this vehicle doesn't exist, we
+                // must create an actor for it:
+                if (!vehicles.keySet().contains(vehicleIdLong)) {
+                    // Create an (anonymous) VehicleTwin actor to represent this vehicle on the
+                    // actor system
+                    vehicleTwinRef = getContext()
+                            .spawnAnonymous(VehicleTwin.create(vehicle.getVehicleId()));  // 'anonymous' actor
+                    vehicles.put(vehicleIdLong, vehicleTwinRef);
+                }
+                else {
+                    vehicleTwinRef = vehicles.get(vehicleIdLong);
+                }
+
+                // Update the VehicleTwin with the 'vehicle' pojo we have been
+                // sent
+                vehicleTwinRef.tell(new VehicleTwin.Update(vehicle));
+
+                // We message the VehicleEvent handler immediately to say we're
+                // done. There's no confirmation etc.. Worst case - we lose one
+                // message and the client reporting is one transaction out of date.
+                // A real system might take a different approach here, depending
+                // on the designers goals.
+                message.vehicleEventRef.tell(new VehicleEvent.EventComplete(vehicle));
+
+            } else {
+                getContext().getLog().info(
+                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong) + "). Ignoring.");
+            }
+        }
+
         return this;
     }
 

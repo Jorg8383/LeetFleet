@@ -85,7 +85,7 @@ setTimeout(async function () {
 
             // delete activeVehicleObjects[activeVehicles[i]["id"]];
             var index = 0;
-            
+
             activeVehicles.splice(j, 1);
 
         }

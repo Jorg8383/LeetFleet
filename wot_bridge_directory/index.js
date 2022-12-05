@@ -1,11 +1,14 @@
 const URI_API_THINGS = "http://localhost:9000/api/things";
-
+const FIRST_HTTP_SERVER_PORT = 8090;
 const wotBridgeTimeStarted = Date.now();
+
 let wotHiveLocalTdCache = {};
-let wotIsConsumedThingDict = new Map();
-let wotToBeConsumedThingDict = new Map();
-let wotToBeDeletedThingDict = new Map();
-let consumedIdCount = 1;
+const wotIsConsumedThingDict = new Map();
+const wotToBeConsumedThingDict = new Map();
+const wotToBeDeletedThingDict = new Map();
+
+var httpServerPortCount = 0;
+
 
 // This function is to fetch all TDs listed in the WoT-Hive directory
 async function fetchWotHiveTdCache() {
@@ -25,11 +28,11 @@ async function fetchWotHiveTdCache() {
     }
 }
 
-// This function to find all relevant (newly created) and all outdated TD entries.
-// It stores the "id" of all relevant and outdated TDs from the WoT-Hive dictionary
+// This function is to find all current (newly created) and all outdated TD entries.
+// It stores the "id" of all current and outdated TDs from the WoT-Hive dictionary
 // in the dictionaries "wotToBeConsumedThingDict" and "wotToBeDeletedThingDict" respectively.
 function checkCacheForRelevantEntries(cache) {
-    console.log("WoT-Hive cache contains: " + cache.length + " TD entries.");
+    console.log("The WoT-Hive cache contains " + cache.length + " TD entries.");
     if (cache.length != 0) {
         let deleteIdKey = 0;
         for (let i=0; i < cache.length; i++) {
@@ -43,15 +46,17 @@ function checkCacheForRelevantEntries(cache) {
                 "id":tdEntry.id,
                 "timestamp":timestamp,
                 "created":tdEntry.registration.created
-            }
+            };
             // Check whether the listed TD should be deleted or consumed
-            // and keep track of them in seperate dictionaries
+            // and keep track of them in seperate dictionaries.
+            // Only listed TDs with a timestamp newer than the time when the WoT-Bridge was started
+            // will be considered as relevant. All others will be deleted.
             if (timestamp <= wotBridgeTimeStarted) {
                 if (!wotToBeDeletedThingDict.has(obj.id)) {
-                    wotToBeDeletedThingDict.set(deleteIdKey++, obj);
+                    wotToBeDeletedThingDict.set(obj.id, obj);
                 }
             } else if (timestamp > wotBridgeTimeStarted) {
-                if (!wotToBeConsumedThingDict.has(obj.id)) {
+                if (!wotToBeConsumedThingDict.has(obj.id) && !wotIsConsumedThingDict.has(obj.id)) {
                     wotToBeConsumedThingDict.set(obj.id, obj);
                 }
             }
@@ -60,18 +65,18 @@ function checkCacheForRelevantEntries(cache) {
         console.log("Number of TDs to be deleted: " + wotToBeDeletedThingDict.size);
         if (wotToBeDeletedThingDict.size != 0) {
             for (const [key, value] of wotToBeDeletedThingDict.entries()) {
-                console.log(JSON.stringify(key) + ": " + JSON.stringify(value));
+                console.log("TD to be deleted: " + JSON.stringify(key));
+                // console.log(JSON.stringify(key) + ": " + JSON.stringify(value));
             }    
         }
         // Print the results of TDs to be consumed
         console.log("Number of TDs to be consumed: " + wotToBeConsumedThingDict.size);
         if (wotToBeConsumedThingDict.size != 0) {
             for (const [key, value] of wotToBeConsumedThingDict.entries()) {
-                console.log(JSON.stringify(key) + ": " + JSON.stringify(value));
+                console.log("TD to be consumed: " + JSON.stringify(key));
+                // console.log(JSON.stringify(key) + ": " + JSON.stringify(value));
             }    
         }
-    } else {
-        console.error("WoT-Hive cache is empty!");
     }
 }
 
@@ -91,92 +96,77 @@ async function deleteTD(id) {
     }
 }
 
+// This function cleans up the WoT-Hive directory and deletets oudtated TDs
 async function cleanUpWotHive() {
     if (wotToBeDeletedThingDict.size != 0 && wotHiveLocalTdCache.length != 0) {
-        for (const [key, td] of wotToBeDeletedThingDict.entries()) {
-            let successful = await deleteTD(td.id);
+        for (const key of wotToBeDeletedThingDict.keys()) {
+            let successful = await deleteTD(key);
             if (successful) {
-                console.log("TD entry deleted: " + td.id);
+                console.log("TD entry has been deleted: " + key);
+                wotToBeDeletedThingDict.delete(key);
             }
         }    
     }
-    wotToBeDeletedThingDict = new Map();
 }
 
-async function consumeRelevantTDs() {
-    ;
+async function createConsumedThings() {
+    if (wotToBeConsumedThingDict.size != 0) {
+        for (const [key, td ] of wotToBeConsumedThingDict.entries()) {
+
+            let isRunning = false;
+            let wotDevice;
+            if (!wotIsConsumedThingDict.has(key)) {
+                //  console.log("Dict size of to be consumed: " + wotIsConsumedThingDict.size);
+                //Creating the instances of the binding servers
+                let httpServer = new HttpServer({port: FIRST_HTTP_SERVER_PORT + httpServerPortCount++});
+                // //Build the servient object
+                let servient = new Servient();
+                servient.addClientFactory(new HttpClientFactory(null));
+                //Add different bindings to the server
+                servient.addServer(httpServer);
+                servient.start().then((WoT) => {
+                    wotDevice = new WotDevice(WoT, key);
+                    wotDevice.startDevice();
+                });
+                console.log("New consumed thing with ID " + JSON.stringify(key) + " is now up and running.");
+                // Update dictionaries
+                wotIsConsumedThingDict.set(key, td);
+                wotToBeConsumedThingDict.delete(key);
+            }
+        }
+        // Print the results of is consumed TDs
+        console.log("Number of consumed TDs: " + wotIsConsumedThingDict.size);
+        if (wotIsConsumedThingDict.size != 0) {
+            for (const [key, value] of wotIsConsumedThingDict.entries()) {
+                console.log("TD is now listed as consumed: " + JSON.stringify(key));
+            }    
+        }
+    }
 }
 
+// Import the WoT consumed device, which in our case will be a smart-vehicle
+WotDevice = require("./dist/consumed_vehicle_base.js").WotConsumedDevice
+const { HttpClientFactory } = require('@node-wot/binding-http');
+// Import the WoT core servient
+Servient = require("@node-wot/core").Servient
+// Import the required bindings
+HttpServer = require("@node-wot/binding-http").HttpServer
 
 // Print out the time when the WoT-bridge was started
 console.log("Wot-bridge started: " + new Date(wotBridgeTimeStarted) + " ; UTC timestamp: " + wotBridgeTimeStarted);
-
 setInterval(() => {
     // Utilising a so-called IIFE (Immediately Invoked Function Express) for top-level aysnc/await
     ( async () => {
         wotHiveLocalTdCache = await fetchWotHiveTdCache();
         checkCacheForRelevantEntries(wotHiveLocalTdCache);
         cleanUpWotHive();
-        
+        createConsumedThings();
     })();
 }, 10000);
 
-
-// const fetchWotHiveTdCache = async () => {
-//     try {
-//         const URI_WOT_HIVE_TD_LIST = "http://localhost:9000/api/things";
-//         const response = await fetch(URI_WOT_HIVE_TD_LIST);
-//         if (!response.ok) {
-//             const message = `An error has occured: ${response.status}`;
-//             throw new Error(message); 
-//         }
-//         const tdCache = await response.json();
-//         return tdCache;
-//     } catch (error) {
-//         console.error(error);
-//     }
-// }
-
-// wotHiveLocalTdCache = await fetchWotHiveTdCache();
-// fetchWotHiveTdCache().then((data) => console.log(data));
-// fetchWotHiveTdCache().then((data) => wotHiveLocalTdCache = data);
-// console.log(wotHiveLocalTdCache);
-
-
-
-// async function updateLocalTdCache() {
-//     wotHiveLocalTdCache = await fetchTdList(URI_WOT_HIVE_TD_LIST);
-//     console.log(wotHiveLocalTdCache);
-    
-// }
-
-// async function fetchTdList(uri) {
-//     try {
-//         let response = await fetch(uri);
-//         let data = await response.json();
-//         return data;    
-//     } catch (error) {
-//             console.error(error);
-//         }
-// }
-
-// function checkCacheForNewEntries() {
-//     console.log("WoT-Hive cache size: " + wotHiveLocalTdCache.length);
-//     if (wotHiveLocalTdCache.length != 0) {
-//         for (let i=0; i < wotHiveLocalTdCache.length; i++) {
-//             let tdEntry = wotHiveLocalTdCache[i];
-//             console.log(tdEntry.id);
-//         }
-//     } else {
-//         console.log("WoT-Hive cache is empty!");
-//     }
-// }
-
-// updateLocalTdCache();
-// checkCacheForNewEntries();
 // -----------------------------------------------------------------------------
 
-// //Where your concrete implementation is included
+
 // // WotDevice = require("./dist/base.js").WotDevice
 // WotDevice = require("./dist/consumed_vehicle_base.js").WotConsumedDevice
 // const { HttpClientFactory } = require('@node-wot/binding-http');
@@ -204,54 +194,54 @@ setInterval(() => {
 // // const deviceId = "urn:uuid:13b5122b-ac41-452f-a72b-58b969e6a8cc";
 // const testingURL = "http://localhost:8080/smart-vehicle";
 
-// // servient.start().then((WoT) => {
-// //     wotDevice = new WotDevice(WoT, testingURL); // TODO change the wotDevice to something that makes more sense
-// //     wotDevice.startDevice();
-// // });
+// servient.start().then((WoT) => {
+//     wotDevice = new WotDevice(WoT, testingURL); // TODO change the wotDevice to something that makes more sense
+//     wotDevice.startDevice();
+// });
 
-// // const dirUri = "http://localhost:9000/api/events?diff=false"; 
-// // var EventSource = require("eventsource");
-// // const sseDirectory = new EventSource(dirUri);
+// const dirUri = "http://localhost:9000/api/events?diff=false"; 
+// var EventSource = require("eventsource");
+// const sseDirectory = new EventSource(dirUri);
 
-// // var doInitialise = true;
+// var doInitialise = true;
 
-// // if (doInitialise) {
-// //     console.log("Adding event listener...");
-// //     sseDirectory.addEventListener('create', function(e) {
-// //         console.log("Event: 'create', data: " + e.data);
-// //       });
-// //     doInitialise = false;
-// // }
+// if (doInitialise) {
+//     console.log("Adding event listener...");
+//     sseDirectory.addEventListener('create', function(e) {
+//         console.log("Event: 'create', data: " + e.data);
+//       });
+//     doInitialise = false;
+// }
 
-// // while (true) {
+// while (true) {
 
-// //     sseDirectory.onopen = function(e) {
-// //         console.log("Event open");
-// //     }
+//     sseDirectory.onopen = function(e) {
+//         console.log("Event open");
+//     }
 
-// //     sseDirectory.onerror = function(e) {
-// //         console.log("Event error");
-// //         if (this.readyState == sseDirectory.CONNECTING) {
-// //             console.log(`Reconnecting (readyState=${this.readyState})...`);
-// //         } else {
-// //             console.log("An error has occured!");
-// //         }
-// //     }
+//     sseDirectory.onerror = function(e) {
+//         console.log("Event error");
+//         if (this.readyState == sseDirectory.CONNECTING) {
+//             console.log(`Reconnecting (readyState=${this.readyState})...`);
+//         } else {
+//             console.log("An error has occured!");
+//         }
+//     }
 
-// //     sseDirectory.onmessage = function(e) {
-// //         console.log("Event onMessage received");
-// //         const { t } = JSON.parse(e.data);
-// //         console.log(t);
-// //         doInitialise = true;
+//     sseDirectory.onmessage = function(e) {
+//         console.log("Event onMessage received");
+//         const { t } = JSON.parse(e.data);
+//         console.log(t);
+//         doInitialise = true;
 
-// //     }
+//     }
 
-// //     sseSource.addEventListener('create', function (e) {
-// //         console.log("OnMessage...")
-// //         const { t } = JSON.parse(e.data);
-// //         console.log(t);
-// //         printWaitMessage = true;
+//     sseSource.addEventListener('create', function (e) {
+//         console.log("OnMessage...")
+//         const { t } = JSON.parse(e.data);
+//         console.log(t);
+//         printWaitMessage = true;
        
-// //     });
-// // }
+//     });
+// }
 

@@ -29,7 +29,7 @@ export class WotDevice {
     private thingModel: WoT.ExposedThingInit = {
         "@context": ["https://www.w3.org/2019/wot/td/v1", { "@language": "en" }],
         "@type": "",
-        title: "smart-vehicle-1",
+        title: "smart-vehicle-2",
         description: "Smart Vehicle",
         securityDefinitions: {
             "": {

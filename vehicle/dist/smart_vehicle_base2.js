@@ -32,7 +32,7 @@ class WotDevice {
         this.thingModel = {
             "@context": ["https://www.w3.org/2019/wot/td/v1", { "@language": "en" }],
             "@type": "",
-            title: "smart-vehicle-1",
+            title: "smart-vehicle-2",
             description: "Smart Vehicle",
             securityDefinitions: {
                 "": {
@@ -451,4 +451,4 @@ class WotDevice {
     }
 }
 exports.WotDevice = WotDevice;
-//# sourceMappingURL=smart_vehicle_base.js.map
+//# sourceMappingURL=smart_vehicle_base2.js.map

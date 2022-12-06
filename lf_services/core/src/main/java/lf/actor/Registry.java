@@ -10,6 +10,7 @@ import akka.actor.typed.receptionist.Receptionist;
 import akka.actor.typed.receptionist.ServiceKey;
 import lf.message.FleetManagerMsg;
 import lf.message.LFSerialisable;
+import lf.message.VehicleEventMsg;
 
 import java.util.*;
 
@@ -73,9 +74,9 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   // COMMENT COMMENT COMMENT
   public final static class ListFleetManagers implements Message, LFSerialisable {
     public final String fleetId;
-    public final ActorRef<VehicleEvent.Message> vehicleEventHandlerRef;
+    public final ActorRef<VehicleEventMsg.Message> vehicleEventHandlerRef;
 
-    public ListFleetManagers(String fleetId, ActorRef<VehicleEvent.Message> vehicleEventHandlerRef) {
+    public ListFleetManagers(String fleetId, ActorRef<VehicleEventMsg.Message> vehicleEventHandlerRef) {
       this.fleetId = fleetId;
       this.vehicleEventHandlerRef = vehicleEventHandlerRef;
     }
@@ -103,9 +104,6 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   // can arrive in any order).
   private static HashMap<Long, ActorRef<FleetManagerMsg.Message>> registry = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
 
-  // Not sure if I require a reference to the context - but will keep one as it's
-  // in the example
-  private final ActorContext<Message> context;
   // We need an 'adaptor' - to convert the Receptionist Listing to one we
   // understand!!
   private final ActorRef<Receptionist.Listing> listingResponseAdapter;
@@ -130,7 +128,6 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   private Registry(ActorContext<Message> context) {
     super(context);
 
-    this.context = context;
     this.listingResponseAdapter = context.messageAdapter(Receptionist.Listing.class, ListingResponse::new);
 
     // Subscribe for FleetManager list updates!
@@ -189,10 +186,10 @@ public class Registry extends AbstractBehavior<Registry.Message> {
 
     if (validFleetId) {
       // We have to return a Collection - use the singletonList convenience...
-      message.vehicleEventHandlerRef.tell(new VehicleEvent.FleetManagerList(Collections.singletonList(registry.get(fleetId)), getContext().getSelf()));
+      message.vehicleEventHandlerRef.tell(new VehicleEventMsg.FleetManagerList(Collections.singletonList(registry.get(fleetId)), getContext().getSelf()));
     }
     else {
-      message.vehicleEventHandlerRef.tell(new VehicleEvent.FleetManagerList(registry.values(), getContext().getSelf()));
+      message.vehicleEventHandlerRef.tell(new VehicleEventMsg.FleetManagerList(registry.values(), getContext().getSelf()));
     }
 
     return this;

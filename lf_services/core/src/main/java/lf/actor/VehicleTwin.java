@@ -1,5 +1,11 @@
 package lf.actor;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 
@@ -21,9 +27,16 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     public interface Message {
     }
 
-    public final static class Update implements Message, LFSerialisable {
+    public final static class WotUpdate implements Message, LFSerialisable {
         public final Vehicle vehicle;
-        public Update(Vehicle vehicle) {
+        public WotUpdate(Vehicle vehicle) {
+          this.vehicle = vehicle;
+        }
+    }
+
+    public final static class WebUpdate implements Message, LFSerialisable {
+        public final Vehicle vehicle;
+        public WebUpdate(Vehicle vehicle) {
           this.vehicle = vehicle;
         }
     }
@@ -111,29 +124,67 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     @Override
     public Receive<Message> createReceive() {
         return newReceiveBuilder()
-                .onMessage(Update.class, this::onUpdate)
+                .onMessage(WotUpdate.class, this::onWotUpdate)
+                .onMessage(WebUpdate.class, this::onWebUpdate)
                 .onMessage(GracefulShutdown.class, this::onGracefulShutdown)
                 .build();
     }
 
-    private Behavior<Message> onUpdate(Update message) {
+    private Behavior<Message> onWotUpdate(WotUpdate message) {
         // We just completely overwrite state.  Cause... why not... toy system.
         this.vehicle = message.vehicle;
 
-        // Update the redis store...
-        String key = "vehicle:" + message.vehicle.getVehicleIdLong();
-        // Check if the key exists in jedis...
-        if (jedis.exists(key)) {
-            getContext().getLog().info("UPDATE METHOD ENTRY  #################");
+        updateRedisModel(message.vehicle.getVehicleIdLong());
+        // Toy system - no action take if key does not exist.
+
+        return this;
+    }
+
+    /**
+     * The web client has requested a change in state.  Update the vehicle model
+     * in redis and request a change to WoT by calling the WoT URL directly.
+     */
+    private Behavior<Message> onWebUpdate(WebUpdate message) {
+        Vehicle requestedState = message.vehicle;
+
+        // Supported Actions:
+        // LOCK /UNLOCK DOORS:
+        if (!vehicle.getDoorStatus().equals(requestedState.getDoorStatus())) {
+            // Update the VehicleTwin:
+            vehicle.setDoorStatus(requestedState.getDoorStatus());
+
+            // Update the WoT Exposed Thing
+            // We are not proud. We planned to do this on a java WoT object.
+            // But this approach will suffice for the toy system:
+            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
             try {
-                // Marshall the object using a Jackson object mapper
-                String vehicleAsJSON = new ObjectMapper().writeValueAsString(vehicle);
-                jedis.set(key, vehicleAsJSON);
+                URL url = new URL(vehicle.getTdURL() + "/LOCK_THE_DOORS_BIT_WHAT_SHOULD_THIS_BE");
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("GET");
+                int responseCode = con.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    // success... can we just comment this out?  Do we care about the WoT response!?!?!?!?!?!?!?!?
+                    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                    String inputLine;
+                    StringBuffer response = new StringBuffer();
+
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    in.close();
+
+                    // print result
+                    System.out.println(response.toString());
+                } else {
+                    System.out.println("GET request did not work.");
+                }
             }
-            catch (Exception e) {
-                getContext().getLog().error("Vehicle returned from Store could not be unmarshalled");
+            catch (IOException ioe) {
+
             }
         }
+
+        updateRedisModel(message.vehicle.getVehicleIdLong());
         // Toy system - no action take if key does not exist.
 
         return this;
@@ -150,6 +201,26 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         // Here it can perform graceful stop (possibly asynchronous) and when completed
         // return `Behaviors.stopped()` here or after receiving another message.
         return Behaviors.stopped();
-      }
+    }
 
+    /**
+     * Update the redis store with the current values in the vehicle model
+     * @param vehicleIdLong
+     */
+    private void updateRedisModel(long vehicleIdLong) {
+        // Update the redis store...
+        String key = "vehicle:" + vehicleIdLong;
+        // Check if the key exists in jedis...
+        if (jedis.exists(key)) {
+            getContext().getLog().info("UPDATE METHOD ENTRY  #################");
+            try {
+                // Marshall the object using a Jackson object mapper
+                String vehicleAsJSON = new ObjectMapper().writeValueAsString(vehicle);
+                jedis.set(key, vehicleAsJSON);
+            }
+            catch (Exception e) {
+                getContext().getLog().error("Vehicle returned from Store could not be unmarshalled");
+            }
+        }
+    }
 }

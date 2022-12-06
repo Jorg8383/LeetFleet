@@ -3,7 +3,6 @@ package lf.message;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.receptionist.ServiceKey;
 import lf.actor.Registry;
-import lf.actor.VehicleEvent;
 import lf.model.Vehicle;
 
 /**
@@ -31,18 +30,35 @@ public class FleetManagerMsg {
     }
 
     /**
-     * A VehicleUpdate has been sent to this fleet manager. Deal with it, but
-     * remain conscious that there is a chance this vehicle is not in our fleet
-     * (a broadcast message). If it is, update it and reply. If it isn't, just
-     * ignore it.
+     * A VehicleUpdate has been sent to this fleet manager from a WoT 'Thing'.
+     * Deal with it, but remain conscious that there is a chance this vehicle is
+     * not in our fleet (a broadcast message). If it is, update it and reply. If
+     * it isn't, just ignore it.
      */
-    public final static class ProcessVehicleUpdate implements Message, LFSerialisable {
+    public final static class ProcessVehicleWotUpdate implements Message, LFSerialisable {
         public final Vehicle vehicle;
-        public final ActorRef<VehicleEvent.Message> vehicleEventRef;
+        public final ActorRef<VehicleEventMsg.Message> vehicleWotEventRef;
 
-        public ProcessVehicleUpdate(Vehicle vehicle, ActorRef<VehicleEvent.Message> vehicleEventRef) {
+        public ProcessVehicleWotUpdate(Vehicle vehicle, ActorRef<VehicleEventMsg.Message> vehicleWotEventRef) {
             this.vehicle = vehicle;
-            this.vehicleEventRef = vehicleEventRef;
+            this.vehicleWotEventRef = vehicleWotEventRef;
+        }
+    }
+
+    /**
+     * A VehicleUpdate has been sent to this fleet manager from a Web Client.
+     * This is (possible) a request to change state on a WoT 'Thing'. We deal
+     * with it, but remain conscious that there is a chance this vehicle is not
+     * in our fleet (a broadcast message). If it is, update it and reply. If it
+     * isn't, just ignore it.
+     */
+    public final static class ProcessVehicleWebUpdate implements Message, LFSerialisable {
+        public final Vehicle vehicle;
+        public final ActorRef<VehicleEventMsg.Message> vehicleWebEventRef;
+
+        public ProcessVehicleWebUpdate(Vehicle vehicle, ActorRef<VehicleEventMsg.Message> vehicleWebEventRef) {
+            this.vehicle = vehicle;
+            this.vehicleWebEventRef = vehicleWebEventRef;
         }
     }
 

@@ -6,6 +6,7 @@ import akka.actor.typed.javadsl.*;
 import akka.actor.typed.receptionist.Receptionist;
 import jnr.ffi.annotations.IgnoreError;
 import lf.message.LFSerialisable;
+import lf.message.VehicleEventMsg;
 import lf.message.WebPortalMsg;
 import lf.model.Vehicle;
 
@@ -52,11 +53,22 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     }
 
     // Definitely better ways to do this.
-    public final static class ForwardToHandler implements Message, LFSerialisable {
+    public final static class ForwardToWotHandler implements Message, LFSerialisable {
         public final Vehicle vehicle;
         public final ActorRef<WebPortalMsg.VehicleToWebP> replyTo;
 
-        public ForwardToHandler(
+        public ForwardToWotHandler(
+                Vehicle vehicle, ActorRef<WebPortalMsg.VehicleToWebP> replyTo) {
+            this.vehicle = vehicle;
+            this.replyTo = replyTo;
+        }
+    }
+
+    public final static class ForwardToWebHandler implements Message, LFSerialisable {
+        public final Vehicle vehicle;
+        public final ActorRef<WebPortalMsg.VehicleToWebP> replyTo;
+
+        public ForwardToWebHandler(
                 Vehicle vehicle, ActorRef<WebPortalMsg.VehicleToWebP> replyTo) {
             this.vehicle = vehicle;
             this.replyTo = replyTo;
@@ -130,7 +142,8 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
                 .onMessage(WebPortalGuardian.BootStrap.class, this::onBootStrap)
                 // .onMessage(WebPortalGuardian.ForwardToHandler.class,
                 // this::onForwardToHandler)
-                .onMessage(WebPortalGuardian.ForwardToHandler.class, this::onForwardToHandler)
+                .onMessage(WebPortalGuardian.ForwardToWotHandler.class, this::onForwardWotToHandler)
+                .onMessage(WebPortalGuardian.ForwardToWebHandler.class, this::onForwardToWebHandler)
                 .onMessage(ListingResponse.class, this::onListing)
                 .build();
     }
@@ -148,18 +161,33 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         return this;
     }
 
-    // From AKKA HTTP (via Guardian)
+    // From AKKA HTTP to WoT Handler (i.e. a vehicle update from WoT)
 
-    private Behavior<Message> onForwardToHandler(ForwardToHandler message) {
+    private Behavior<Message> onForwardWotToHandler(ForwardToWotHandler message) {
         // Create an (anonymous, disposable) VehicleEvent actor to handle this request.
-        ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleEvent.create());  // 'anonymous' actor
+        ActorRef<VehicleEventMsg.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleWotEvent.create());  // 'anonymous' actor
         // ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred");  // 'normal' named actor
 
         // Pass the message details (from the HttpServer, via the WebGuardian) to the VehicleEvent actor
         // NOTE: We're forwarding the 'replyTo' reference of AKKA HTTP. The response to this message
         //       will be handled there (and not locally in this Guardian).
         //getContext().getLog().info("The message type is!{}!", message.getClass());
-        vehicleEventRef.tell(new VehicleEvent.EventFromWebP(message.vehicle, message.replyTo, REGISTRY_REF));
+        vehicleEventRef.tell(new VehicleEventMsg.EventFromWebP(message.vehicle, message.replyTo, REGISTRY_REF));
+        return this;
+    }
+
+    // From AKKA HTTP to Web Handler (i.e. a vehicle update from Web Client)
+
+    private Behavior<Message> onForwardToWebHandler(ForwardToWebHandler message) {
+        // Create an (anonymous, disposable) VehicleEvent actor to handle this request.
+        ActorRef<VehicleEventMsg.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleWotEvent.create());  // 'anonymous' actor
+        // ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred");  // 'normal' named actor
+
+        // Pass the message details (from the HttpServer, via the WebGuardian) to the VehicleEvent actor
+        // NOTE: We're forwarding the 'replyTo' reference of AKKA HTTP. The response to this message
+        //       will be handled there (and not locally in this Guardian).
+        //getContext().getLog().info("The message type is!{}!", message.getClass());
+        vehicleEventRef.tell(new VehicleEventMsg.EventFromWebP(message.vehicle, message.replyTo, REGISTRY_REF));
         return this;
     }
 

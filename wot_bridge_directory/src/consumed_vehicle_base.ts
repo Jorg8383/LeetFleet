@@ -33,7 +33,11 @@ export class WotConsumedDevice {
         console.log("Thing is now consumed with ID: " + this.td.id);
 
         this.thing = consumedThing;
-        this.initialiseJSON(this.vehicleJSON);
+        console.log("JSON representation is currently:");
+        console.log(JSON.stringify(this.vehicleJSON));
+        this.vehicleJSON = await this.initialiseJSON(this.vehicleJSON);
+        console.log("JSON representation is now:");
+        console.log(JSON.stringify(this.vehicleJSON));
         this.observeProperties(this.thing);
         this.subscribe(this.thing);
 
@@ -51,15 +55,21 @@ export class WotConsumedDevice {
         }
     }
 
-    private initialiseJSON(json) {
+    private async initialiseJSON(json) {
         json.vehicleID = this.updateVehicleID(json.vehicleID);
         json.tdURL = json.tdURL + this.thing.getThingDescription().title;
-        json.oilLevel = this.thing.readProperty("propOilLevel");
-        json.tyrePressure = this.thing.readProperty("propTyrePressure");
-        json.mileage = this.thing.readProperty("propTotalMileage");
-        json.nextServiceDistance = this.thing.readProperty("propServiceDistance");
-        json.doorStatus = this.thing.readProperty("propDoorStatus");
-        json.maintenanceNeeded = this.thing.readProperty("propMaintenanceNeeded");
+        let oil: WoT.DataSchemaValue = 0;
+        await this.thing.readProperty("propOilLevel")
+            .then((data) => {
+            data.value().then(value => {
+                oil = value;
+                console.log(oil);
+                json.oilLevel = oil;
+            });
+        });
+        console.log(oil);
+        console.log("JSON oil level:", json.oilLevel);
+        return json;
     }
 
     private updateVehicleID(vehicleID:string):string {

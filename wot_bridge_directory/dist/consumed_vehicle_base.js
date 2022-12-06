@@ -13,6 +13,15 @@ exports.WotConsumedDevice = void 0;
 class WotConsumedDevice {
     constructor(deviceWoT, tdId) {
         this.wotHiveUri = "http://localhost:9000/api/things/";
+        this.vehicleJSON = { vehicleID: "WoT-ID-Mfr-VIN",
+            fleetManager: "N/A",
+            tdURL: "http://localhost:8080/",
+            oilLevel: 50,
+            tyrePressure: 30,
+            mileage: 10000,
+            nextServiceDistance: 10000,
+            doorStatus: "LOCKED",
+            maintenanceNeeded: false };
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         if (tdId) {
@@ -27,6 +36,11 @@ class WotConsumedDevice {
             const consumedThing = yield this.deviceWoT.consume(this.td);
             console.log("Thing is now consumed with ID: " + this.td.id);
             this.thing = consumedThing;
+            console.log("JSON representation is currently:");
+            console.log(JSON.stringify(this.vehicleJSON));
+            this.vehicleJSON = yield this.initialiseJSON(this.vehicleJSON);
+            console.log("JSON representation is now:");
+            console.log(JSON.stringify(this.vehicleJSON));
             this.observeProperties(this.thing);
             this.subscribe(this.thing);
             return true;
@@ -44,6 +58,46 @@ class WotConsumedDevice {
                 console.error(error);
             }
         });
+    }
+    initialiseJSON(json) {
+        return __awaiter(this, void 0, void 0, function* () {
+            json.vehicleID = this.updateVehicleID(json.vehicleID);
+            json.tdURL = json.tdURL + this.thing.getThingDescription().title;
+            let oil = 0;
+            yield this.thing.readProperty("propOilLevel")
+                .then((data) => {
+                data.value().then(value => {
+                    oil = value;
+                    console.log(oil);
+                    json.oilLevel = oil;
+                });
+            });
+            console.log(oil);
+            console.log("JSON oil level:", json.oilLevel);
+            return json;
+        });
+    }
+    updateVehicleID(vehicleID) {
+        let randomNum = this.randomInt(1, 9999);
+        let randomNumString = "";
+        if (randomNum / 10 < 1) {
+            randomNumString = "000" + randomNum;
+        }
+        else if (randomNum / 10 < 10) {
+            randomNumString = "00" + randomNum;
+        }
+        else if (randomNum / 10 < 100) {
+            randomNumString = "0" + randomNum;
+        }
+        else {
+            randomNumString = randomNum;
+        }
+        return vehicleID + "-" + randomNumString;
+    }
+    randomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
     observeProperties(thing) {
         thing.observeProperty("propTotalMileage", (data) => __awaiter(this, void 0, void 0, function* () {

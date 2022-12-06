@@ -202,7 +202,7 @@ class WotDevice {
                 console.warn("Failed to register TD. Will try again in 10 Seconds...");
                 setTimeout(() => {
                     this.register(directory);
-                }, 10000);
+                }, 15000);
                 return;
             }
         });
@@ -406,7 +406,7 @@ class WotDevice {
                         this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - oil level is low.`);
                     }
                 }
-            }, 5000);
+            }, 15000);
             // Emulation: decrease tyre pressure every ten seconds
             setInterval(() => {
                 this.propTyrePressure = this.emulateAndReadSensor("tyrePressure");
@@ -426,7 +426,7 @@ class WotDevice {
                         this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - tyre pressure is low.`);
                     }
                 }
-            }, 10000);
+            }, 15000);
             // Emulation: increase milometer every second
             setInterval(() => {
                 this.emulateOdometer();
@@ -448,7 +448,7 @@ class WotDevice {
                         this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);
                     }
                 }
-            }, 8000);
+            }, 10000);
         });
     }
 }

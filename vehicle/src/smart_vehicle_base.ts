@@ -12,6 +12,7 @@ export class WotDevice {
     public thing: WoT.ExposedThing;
     public deviceWoT: typeof WoT;
     public td: WoT.ExposedThingInit;
+    public vehicleNumber = "1";
 
     // Status variables which are needed for emulation purposes
     private varTyrePressure = 35; // PSI
@@ -29,7 +30,7 @@ export class WotDevice {
     private thingModel: WoT.ExposedThingInit = {
         "@context": ["https://www.w3.org/2019/wot/td/v1", { "@language": "en" }],
         "@type": "",
-        title: "smart-vehicle",
+        title: `smart-vehicle-${this.vehicleNumber}`,
         description: "Smart Vehicle",
         securityDefinitions: {
             "": {
@@ -171,9 +172,10 @@ export class WotDevice {
     // ------------------------------------------------------------------------
     // Constructor
     // ------------------------------------------------------------------------
-    constructor(deviceWoT: typeof WoT, tdDirectory?: string) {
+    constructor(deviceWoT: typeof WoT, tdDirectory?: string, vehicleNumber?: string) {
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
+        this.vehicleNumber = vehicleNumber;
         if (tdDirectory) this.tdDirectory = tdDirectory;
     }
 
@@ -384,9 +386,9 @@ export class WotDevice {
     }
 
     private emulateOdometer() {
-        // Emulate mileage by increasing it randomly between 0 and 500 km
+        // Emulate mileage by increasing it randomly between 100 and 999 km
         let mileageIncrease: number;
-        mileageIncrease = this.getRandomInt(0, 500);
+        mileageIncrease = this.getRandomInt(100, 999);
         this.varTotalMileage += mileageIncrease;
         this.varServiceDistance -= mileageIncrease;
         console.log("Reading milometer: " + this.varTotalMileage);
@@ -409,9 +411,9 @@ export class WotDevice {
     // ------------------------------------------------------------------------
     public async emulateDevice() {
 
-        // Delay the emulation for one second to allow completing the registration
+        // Delay the emulation for two second to allow completing the registration
         // proccess (TD) with the WoTHive directory before starting to emulate the device.
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         // Emulation: decrease oil level every five seconds
         setInterval(() => {
@@ -485,6 +487,6 @@ export class WotDevice {
                     this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);        
                 }
             }
-        }, 1000);  
+        }, 8000);  
     }
 }

@@ -59,18 +59,31 @@ export class WotConsumedDevice {
         json.vehicleID = this.updateVehicleID(json.vehicleID);
         json.tdURL = json.tdURL + this.thing.getThingDescription().title;
         let oil: WoT.DataSchemaValue = 0;
-        await this.thing.readProperty("propOilLevel")
-            .then((data) => {
-            data.value().then(value => {
-                oil = value;
-                console.log(oil);
-                json.oilLevel = oil;
-            });
-        });
-        console.log(oil);
-        console.log("JSON oil level:", json.oilLevel);
-        return json;
+        // await this.thing.readProperty("propOilLevel")
+        //     .then((data) => {
+        //     data.value().then(value => {
+        //         oil = value;
+        //         console.log(oil);
+        //         json.oilLevel = oil;
+        //     });
+        // });
+   
+        let data = await this.thing.readProperty("propOilLevel")
+        oil = data.value();
+        console.log("SUCCESS DAN: " + oil);
+
+        // ANOTHER OPTION
+
+        // return new Promise((resolve) => {
+        //     Do whatever you need to do in here and then 
+        //     put whatever you want to return into resolve(item to return)
+        // })
+
     }
+
+    
+
+
 
     private updateVehicleID(vehicleID:string):string {
         let randomNum = this.randomInt(1, 9999);

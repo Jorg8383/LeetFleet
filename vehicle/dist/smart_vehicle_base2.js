@@ -17,8 +17,7 @@ class WotDevice {
     // ------------------------------------------------------------------------
     // Constructor
     // ------------------------------------------------------------------------
-    constructor(deviceWoT, tdDirectory, vehicleNumber) {
-        this.vehicleNumber = "1";
+    constructor(deviceWoT, tdDirectory) {
         // Status variables which are needed for emulation purposes
         this.varTyrePressure = 35; // PSI
         this.varOilLevel = 100; // Percent
@@ -33,7 +32,7 @@ class WotDevice {
         this.thingModel = {
             "@context": ["https://www.w3.org/2019/wot/td/v1", { "@language": "en" }],
             "@type": "",
-            title: `smart-vehicle-${this.vehicleNumber}`,
+            title: "smart-vehicle-2",
             description: "Smart Vehicle",
             securityDefinitions: {
                 "": {
@@ -160,7 +159,6 @@ class WotDevice {
         };
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
-        this.vehicleNumber = vehicleNumber;
         if (tdDirectory)
             this.tdDirectory = tdDirectory;
     }
@@ -361,9 +359,9 @@ class WotDevice {
         console.log(msg);
     }
     emulateOdometer() {
-        // Emulate mileage by increasing it randomly between 100 and 999 km
+        // Emulate mileage by increasing it randomly between 0 and 500 km
         let mileageIncrease;
-        mileageIncrease = this.getRandomInt(100, 999);
+        mileageIncrease = this.getRandomInt(0, 500);
         this.varTotalMileage += mileageIncrease;
         this.varServiceDistance -= mileageIncrease;
         console.log("Reading milometer: " + this.varTotalMileage);
@@ -448,9 +446,9 @@ class WotDevice {
                         this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);
                     }
                 }
-            }, 8000);
+            }, 1000);
         });
     }
 }
 exports.WotDevice = WotDevice;
-//# sourceMappingURL=smart_vehicle_base.js.map
+//# sourceMappingURL=smart_vehicle_base2.js.map

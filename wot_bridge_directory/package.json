@@ -19,6 +19,7 @@
     "@node-wot/binding-http": "0.8.x",
     "@node-wot/core": "0.8.x",
     "ajv": "^6.12.6",
+    "eventsource": "^2.0.2",
     "request": "2.88.0"
   },
   "scripts": {

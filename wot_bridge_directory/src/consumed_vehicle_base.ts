@@ -35,7 +35,7 @@ export class WotConsumedDevice {
         this.thing = consumedThing;
         console.log("JSON representation is currently:");
         console.log(JSON.stringify(this.vehicleJSON));
-        this.vehicleJSON = await this.initialiseJSON(this.vehicleJSON);
+        await this.initialiseJSON(this.vehicleJSON);
         console.log("JSON representation is now:");
         console.log(JSON.stringify(this.vehicleJSON));
         this.observeProperties(this.thing);
@@ -56,34 +56,16 @@ export class WotConsumedDevice {
     }
 
     private async initialiseJSON(json) {
+        const allData = await this.thing.readAllProperties();
         json.vehicleID = this.updateVehicleID(json.vehicleID);
         json.tdURL = json.tdURL + this.thing.getThingDescription().title;
-        let oil: WoT.DataSchemaValue = 0;
-        // await this.thing.readProperty("propOilLevel")
-        //     .then((data) => {
-        //     data.value().then(value => {
-        //         oil = value;
-        //         console.log(oil);
-        //         json.oilLevel = oil;
-        //     });
-        // });
-   
-        let data = await this.thing.readProperty("propOilLevel")
-        oil = data.value();
-        console.log("SUCCESS DAN: " + oil);
-
-        // ANOTHER OPTION
-
-        // return new Promise((resolve) => {
-        //     Do whatever you need to do in here and then 
-        //     put whatever you want to return into resolve(item to return)
-        // })
-
+        json.oilLevel = await allData.get('propOilLevel').value();
+        json.tyrePressure = await allData.get('propTyrePressure').value();
+        json.mileage = await allData.get('propTotalMileage').value();
+        json.nextServiceDistance = await allData.get('propServiceDistance').value();
+        json.doorStatus = await allData.get('propDoorStatus').value();
+        json.maintenanceNeeded = await allData.get('propMaintenanceNeeded').value();
     }
-
-    
-
-
 
     private updateVehicleID(vehicleID:string):string {
         let randomNum = this.randomInt(1, 9999);
@@ -108,27 +90,35 @@ export class WotConsumedDevice {
 
     private observeProperties(thing: WoT.ConsumedThing) {
         thing.observeProperty("propTotalMileage", async (data) => {
-            console.log("Observed 'propTotalMileage' property has changed! New value is:", await data.value(), "-> Thing-ID: ", this.td.id);
-        }).then();
+            // @ts-ignore
+            this.vehicleJSON.mileage = await data.value();
+        });
 
         thing.observeProperty("propMaintenanceNeeded", async (data) => {
-            console.log("Observed 'propMaintenanceNeeded' property has changed! New value is:", await data.value(), "-> Thing-ID: ", this.td.id);
-        }).then();
+            // @ts-ignore
+            this.vehicleJSON.maintenanceNeeded = await data.value();
+        });
 
         thing.observeProperty("propServiceDistance", async (data) => {
-            console.log("Observed 'propServiceDistance' property has changed! New value is:", await data.value(), "-> Thing-ID: ", this.td.id);
-        }).then();
+            // @ts-ignore
+            this.vehicleJSON.nextServiceDistance = await data.value();
+        });
+
+        thing.observeProperty("propDoorStatus", async (data) => {
+            // @ts-ignore
+            this.vehicleJSON.doorStatus = await data.value();
+        })
     }
 
     private subscribe(thing: WoT.ConsumedThing) {
         thing.subscribeEvent("eventLowOnOil", async (data) => {
             console.log("eventLowOnOil:", await data.value(), "-> Thing-ID: ", this.td.id);
-        }).then();
+        });
         thing.subscribeEvent("eventLowTyrePressure", async (data) => {
             console.log("eventLowTyrePressure:", await data.value(), "-> Thing-ID: ", this.td.id);
-        }).then();
+        });
         thing.subscribeEvent("eventMaintenanceNeeded", async (data) => {
             console.log("eventMaintenanceNeeded:", await data.value(), "-> Thing-ID: ", this.td.id);
-        }).then();
+        });
     }
 }

@@ -38,7 +38,7 @@ class WotConsumedDevice {
             this.thing = consumedThing;
             console.log("JSON representation is currently:");
             console.log(JSON.stringify(this.vehicleJSON));
-            this.vehicleJSON = yield this.initialiseJSON(this.vehicleJSON);
+            yield this.initialiseJSON(this.vehicleJSON);
             console.log("JSON representation is now:");
             console.log(JSON.stringify(this.vehicleJSON));
             this.observeProperties(this.thing);
@@ -61,20 +61,15 @@ class WotConsumedDevice {
     }
     initialiseJSON(json) {
         return __awaiter(this, void 0, void 0, function* () {
+            const allData = yield this.thing.readAllProperties();
             json.vehicleID = this.updateVehicleID(json.vehicleID);
             json.tdURL = json.tdURL + this.thing.getThingDescription().title;
-            let oil = 0;
-            yield this.thing.readProperty("propOilLevel")
-                .then((data) => {
-                data.value().then(value => {
-                    oil = value;
-                    console.log(oil);
-                    json.oilLevel = oil;
-                });
-            });
-            console.log(oil);
-            console.log("JSON oil level:", json.oilLevel);
-            return json;
+            json.oilLevel = yield allData.get('propOilLevel').value();
+            json.tyrePressure = yield allData.get('propTyrePressure').value();
+            json.mileage = yield allData.get('propTotalMileage').value();
+            json.nextServiceDistance = yield allData.get('propServiceDistance').value();
+            json.doorStatus = yield allData.get('propDoorStatus').value();
+            json.maintenanceNeeded = yield allData.get('propMaintenanceNeeded').value();
         });
     }
     updateVehicleID(vehicleID) {
@@ -101,25 +96,30 @@ class WotConsumedDevice {
     }
     observeProperties(thing) {
         thing.observeProperty("propTotalMileage", (data) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Observed 'propTotalMileage' property has changed! New value is:", yield data.value(), "-> Thing-ID: ", this.td.id);
-        })).then();
+            // console.log("Observed 'propTotalMileage' property has changed! New value is:",
+            //     await data.value(), "-> Thing-ID: ", this.td.id);
+            // @ts-ignore
+            this.vehicleJSON.mileage = yield data.value();
+            console.log("Mileage updated. Vehicle JSON is now:");
+            console.log(this.vehicleJSON);
+        }));
         thing.observeProperty("propMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("Observed 'propMaintenanceNeeded' property has changed! New value is:", yield data.value(), "-> Thing-ID: ", this.td.id);
-        })).then();
+        }));
         thing.observeProperty("propServiceDistance", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("Observed 'propServiceDistance' property has changed! New value is:", yield data.value(), "-> Thing-ID: ", this.td.id);
-        })).then();
+        }));
     }
     subscribe(thing) {
         thing.subscribeEvent("eventLowOnOil", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowOnOil:", yield data.value(), "-> Thing-ID: ", this.td.id);
-        })).then();
+        }));
         thing.subscribeEvent("eventLowTyrePressure", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowTyrePressure:", yield data.value(), "-> Thing-ID: ", this.td.id);
-        })).then();
+        }));
         thing.subscribeEvent("eventMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventMaintenanceNeeded:", yield data.value(), "-> Thing-ID: ", this.td.id);
-        })).then();
+        }));
     }
 }
 exports.WotConsumedDevice = WotConsumedDevice;

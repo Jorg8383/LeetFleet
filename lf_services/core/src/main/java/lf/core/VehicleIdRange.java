@@ -10,6 +10,9 @@ public class VehicleIdRange
     private long low;
     private long high;
 
+    public VehicleIdRange() {
+    }
+
     public VehicleIdRange(long low, long high){
         this.low = low;
         this.high = high;
@@ -18,4 +21,19 @@ public class VehicleIdRange
     public boolean contains(long number){
         return (number >= low && number <= high);
     }
+
+    public long getLow() {
+        return low;
+    }
+    public void setLow(long low) {
+        this.low = low;
+    }
+
+    public long getHigh() {
+        return high;
+    }
+    public void setHigh(long high) {
+        this.high = high;
+    }
+
 }

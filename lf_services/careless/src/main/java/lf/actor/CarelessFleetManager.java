@@ -12,9 +12,11 @@ import akka.actor.typed.receptionist.Receptionist;
 import lf.core.VehicleIdRange;
 import lf.message.FleetManagerMsg;
 import lf.message.FleetManagerMsg.Message;
+import lf.message.FleetManagerMsg.ProcessVehicleWotUpdate;
+import lf.message.FleetManagerMsg.ProcessVehicleWebUpdate;
 import lf.message.FleetManagerMsg.RegistrationSuccess;
+import lf.message.VehicleEventMsg;
 import lf.model.Vehicle;
-import lf.message.FleetManagerMsg.ProcessVehicleUpdate;
 
 /**
  * A Fleet Manager. This time for the Notional Careless Fleet. Could suit any
@@ -67,7 +69,8 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
     public Receive<Message> createReceive() {
         return newReceiveBuilder()
                 .onMessage(RegistrationSuccess.class, this::onRegistrationSuccess)
-                .onMessage(ProcessVehicleUpdate.class, this::onProcessVehicleUpdate)
+                .onMessage(ProcessVehicleWotUpdate.class, this::onProcessVehicleWotUpdate)
+                .onMessage(ProcessVehicleWebUpdate.class, this::onProcessVehicleWebUpdate)
                 .build();
     }
 
@@ -80,7 +83,12 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
         return this;
     }
 
-    private Behavior<Message> onProcessVehicleUpdate(ProcessVehicleUpdate message) {
+    /**
+     *
+     * @param message
+     * @return
+     */
+    private Behavior<Message> onProcessVehicleWotUpdate(ProcessVehicleWotUpdate message) {
         // Each VehicleId is in the format 'WoT-ID-Mfr-VIN-nnnn' in our Toy system
         // We extract the 'nnnn' (id) part to see if this vehicle belongs to this
         // fleet manager:
@@ -89,12 +97,12 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
 
         if (vehicleIdLong != 0) {
             if (carelessFleetIdRange.contains(vehicleIdLong)) {
-                getContext().getLog().info("Vehicle Event for CareleesFleet received.");
+                getContext().getLog().info("Vehicle Web Event for CareleesFleet received.");
 
-                // This might be the first communication for this vehicle. It
-                // might not. Just stamp it with this fleetId every time.
+                // This should NOT be the first communication for this vehicle.
+                // But... why assume anything. Just stamp it with this fleetId
+                // every time.
                 vehicle.setFleetManager(Long.toString(MANAGER_ID));
-                getContext().getLog().info("\tVehicle Manager ('ID') set to -> " + vehicle.getFleetManager());
 
                 ActorRef<VehicleTwin.Message> vehicleTwinRef;
 
@@ -113,14 +121,70 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
 
                 // Update the VehicleTwin with the 'vehicle' pojo we have been
                 // sent
-                vehicleTwinRef.tell(new VehicleTwin.Update(vehicle));
+                vehicleTwinRef.tell(new VehicleTwin.WotUpdate(vehicle));
 
-                // We message the VehicleEvent handler immediately to say we're
+                // We message the VehicleWotEvent handler immediately to say we're
                 // done. There's no confirmation etc.. Worst case - we lose one
                 // message and the client reporting is one transaction out of date.
                 // A real system might take a different approach here, depending
                 // on the designers goals.
-                message.vehicleEventRef.tell(new VehicleEvent.EventComplete(vehicle));
+                message.vehicleWotEventRef.tell(new VehicleEventMsg.EventComplete(vehicle));
+
+            } else {
+                getContext().getLog().info(
+                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong) + "). Ignoring.");
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     *
+     * @param message
+     * @return
+     */
+    private Behavior<Message> onProcessVehicleWebUpdate(ProcessVehicleWebUpdate message) {
+        // Each VehicleId is in the format 'WoT-ID-Mfr-VIN-nnnn' in our Toy system
+        // We extract the 'nnnn' (id) part to see if this vehicle belongs to this
+        // fleet manager:
+        Vehicle vehicle = message.vehicle;
+        long vehicleIdLong = vehicle.getVehicleIdLong();
+
+        if (vehicleIdLong != 0) {
+            if (carelessFleetIdRange.contains(vehicleIdLong)) {
+                getContext().getLog().info("Vehicle Event for CareleesFleet received.");
+
+                // This might be the first communication for this vehicle. It
+                // might not. Just stamp it with this fleetId every time.
+                vehicle.setFleetManager(Long.toString(MANAGER_ID));
+
+                ActorRef<VehicleTwin.Message> vehicleTwinRef;
+
+                // First - if the VehicleTwin for this vehicle doesn't exist, then
+                // something has gone wrong. The client should only be able to
+                // modify the state on active vehicles. If we don't find the
+                // vehicle in our active actor list we return a failure message,
+                // in this case an empty vehicle object with the description set
+                // to a warning message.
+                if (!vehicles.keySet().contains(vehicleIdLong)) {
+                    vehicle.setVehicleId("ERROR: Vehicle Not Found. It may have been switched off...");
+                }
+                else {
+                    vehicleTwinRef = vehicles.get(vehicleIdLong);
+
+                    // Ask the VehicleTwin to review the current update. If it
+                    // finds a changed value we support - it will update the
+                    // model AND attempt to change the state of the WoT using
+                    // the stored URI
+                    vehicleTwinRef.tell(new VehicleTwin.WebUpdate(vehicle));
+                }
+
+                // We message the VehicleWebEvent handler immediately to say we're
+                // done. There's no confirmation etc..
+                // On the client we inform the user the state change has been
+                // requested - to check for updates soon.
+                message.vehicleWebEventRef.tell(new VehicleEventMsg.EventComplete(vehicle));
 
             } else {
                 getContext().getLog().info(

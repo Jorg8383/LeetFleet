@@ -12,25 +12,18 @@ import akka.http.javadsl.marshallers.jackson.Jackson;
 import static akka.http.javadsl.server.Directives.*;
 
 import akka.http.javadsl.model.StatusCodes;
-import akka.http.javadsl.server.PathMatcher0;
-import akka.http.javadsl.server.PathMatcher1;
 import akka.http.javadsl.server.PathMatchers;
-import static akka.http.javadsl.server.PathMatchers.segment;
 import akka.http.javadsl.server.Route;
+import akka.http.javadsl.unmarshalling.StringUnmarshallers;
 import lf.actor.WebPortalGuardian;
 import lf.message.WebPortalMsg;
 import lf.model.Vehicle;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Routes can be defined in separated classes like shown in here
  */
 // #user-routes-class
 public class WebPortalRoutes extends WebPortalMsg {
-        // #user-routes-class
-        private final static Logger log = LoggerFactory.getLogger(WebPortalRoutes.class);
 
         private final ActorRef<WebPortalGuardian.Message> webPortalGuardianRef; // We can use this actor to spawn more
         // actors...
@@ -74,8 +67,28 @@ public class WebPortalRoutes extends WebPortalMsg {
         // man...", ref), askTimeout, scheduler);
         // }
 
-        private CompletionStage<WebPortalMsg.VehicleToWebP> vehicleToHandlerViaGuardian(Vehicle vehicle) {
-                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.ForwardToHandler(vehicle, ref),
+        private CompletionStage<WebPortalMsg.VehicleToWebP> vehicleToWotHandlerViaGuardian(Vehicle vehicle) {
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.ForwardToWotHandler(vehicle, ref),
+                                askTimeout, scheduler);
+        }
+
+        private CompletionStage<WebPortalMsg.VehicleToWebP> vehicleToWebHandlerViaGuardian(Vehicle vehicle) {
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.ForwardToWebHandler(vehicle, ref),
+                                askTimeout, scheduler);
+        }
+
+        private CompletionStage<WebPortalMsg.VehicleToWebP> requestFleetList() {
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebFleetList(ref),
+                                askTimeout, scheduler);
+        }
+
+        private CompletionStage<WebPortalMsg.VehicleToWebP> requestVehicleList(long managerId) {
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebVehicleList(managerId, ref),
+                                askTimeout, scheduler);
+        }
+
+        private CompletionStage<WebPortalMsg.VehicleToWebP> getVehicle(long managerId, long vehicleId) {
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebGetVehicle(managerId, vehicleId, ref),
                                 askTimeout, scheduler);
         }
 
@@ -141,12 +154,6 @@ public class WebPortalRoutes extends WebPortalMsg {
          * This method creates one route (of possibly many more that will be part of
          * your Web App)
          */
-        // #all-routes
-
-        PathMatcher1<String> milagePath = PathMatchers.segment("wot").slash(segment("total_mileage").concat(segment()));
-
-        // PathMatcher1<String> milagePath = PathMatchers
-        // .segment("wot").slash(parameter("total_mileage", milage ->));
 
         public Route vehicleEventRoutes() {
                 // We are using an 'actor per request' pattern. So:
@@ -155,103 +162,54 @@ public class WebPortalRoutes extends WebPortalMsg {
                 // asynchronously.
                 // - We *EXPECT* a response from it (we block here until we get a response)
                 // - Then when it responds we send that back to the user as the HTTP response
-                return concat(path("hello", () -> get(() -> complete("<h1>Say hello to akka-http</h1>"))),
-                                // Akka HTTP routes can interact with actors.
-                                // This route contains a request-response interaction with an actor.
-                                // (The resulting response is rendered as JSON and returned when the response
-                                // arrives from the actor.)
-                                //
-                                // Understanding the nested directives soup...
-                                // https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/index.html
-                                //
-                                // https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/alphabetically.html
-                                // onSuccess: This method will be invoked once when/if a Future that this
-                                // callback is registered on becomes successfully completed
-                                // rejectEmptyResponse: replaces a response with no content with an empty
-                                // rejection.
-                                // path("firstTest", () -> get(() -> onSuccess(firstTest(),
-                                // theMessage -> complete(StatusCodes.OK, theMessage.theProof)))),
-                                path("wot", () -> post(() -> entity(Jackson.unmarshaller(Vehicle.class),
-                                                vehicle -> onSuccess(vehicleToHandlerViaGuardian(vehicle),
-                                                                theMessage -> complete(StatusCodes.OK,
-                                                                                theMessage.vehicle,
-                                                                                Jackson.marshaller()))))),
+                return concat(
+                        path("hello", () -> get(() -> complete("<h1>Say hello to akka-http</h1>"))),
 
-                                // get(() -> path(milagePath, id -> complete("id is: " + id))));
+                        // Akka HTTP routes can interact with actors.
+                        // This route contains a request-response interaction with an actor.
+                        // (The resulting response is rendered as JSON and returned when the response
+                        // arrives from the actor.)
+                        //
+                        // Understanding the nested directives soup...
+                        // https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/index.html
+                        //
+                        // https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/alphabetically.html
+                        // onSuccess: This method will be invoked once when/if a Future that this
+                        // callback is registered on becomes successfully completed
+                        // rejectEmptyResponse: replaces a response with no content with an empty
+                        // rejection.
 
-                                // get(() -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
-                                // fleetId -> complete("Fleetid is" + fleetId + "vehicleid is " +
-                                // vehicleId)))));
+                        // This path handles EVERY wot update. Adequate for toy system
+                        path("wot", () -> post(() -> entity(Jackson.unmarshaller(Vehicle.class),
+                                vehicle -> onSuccess(vehicleToWotHandlerViaGuardian(vehicle),
+                                        theMessage -> complete(StatusCodes.OK,
+                                                theMessage.vehicle, Jackson.marshaller()))))),
 
-                                // MAKE FLEET ID OPTIONAL??
-                                concat(pathPrefix("wot", () -> concat(pathPrefix("total_mileage", () -> parameter(
-                                                "vehicle_id",
-                                                vehicleId -> parameter("fleet_id", fleet_id -> parameter(
-                                                                "total_mileage",
-                                                                total_mileage -> onSuccess(vehicleToHandlerViaGuardian(
-                                                                                Vehicle.createForMileage(vehicleId,
-                                                                                                fleet_id,
-                                                                                                Float.valueOf(total_mileage))),
-                                                                                theMessage -> complete(StatusCodes.OK,
-                                                                                                theMessage.vehicle,
-                                                                                                Jackson.marshaller()))))))))),
-                                concat(pathPrefix("wot", () -> concat(pathPrefix("next_service_distance",
-                                                () -> parameter("vehicle_id",
-                                                                vehicleId -> parameter("fleet_id", fleetId -> complete(
-                                                                                "next_service_distance - Fleetid is "
-                                                                                                + fleetId
-                                                                                                + " vehicleid is "
-                                                                                                + vehicleId))))))),
+                        // This path handles EVERY web update. Adequate for toy system
+                        path("web", () -> post(() -> entity(Jackson.unmarshaller(Vehicle.class),
+                                vehicle -> onSuccess(vehicleToWebHandlerViaGuardian(vehicle),
+                                        theMessage -> complete(StatusCodes.OK,
+                                                theMessage.vehicle, Jackson.marshaller()))))),
 
-                                concat(pathPrefix("wot", () -> concat(pathPrefix("door_status",
-                                                () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
-                                                                fleetId -> complete("door_status request - Fleetid is "
-                                                                                + fleetId + " vehicleid is "
-                                                                                + vehicleId))))))),
+                        // List all active fleets
+                        path(PathMatchers.segment("web").slash("list_fleets"),
+                                () -> onSuccess(requestFleetList(),
+                                        fleet_list -> complete(StatusCodes.OK, fleet_list, Jackson.marshaller()))),
 
-                                concat(pathPrefix("wot", () -> concat(pathPrefix("maintenance_needed", () -> parameter(
-                                                "vehicle_id",
-                                                vehicleId -> parameter("fleet_id", fleetId -> complete(
-                                                                "maintenance_needed request - Fleetid is " + fleetId
-                                                                                + " vehicleid is " + vehicleId))))))),
+                        // List all active vehicles for the selected fleet
+                        path(PathMatchers.segment("web").slash("list_vehicles"),
+                                () -> parameter(StringUnmarshallers.INTEGER,"fleetManager",
+                                fleetManager -> onSuccess(requestVehicleList(fleetManager),
+                                        vehicle_list -> complete(StatusCodes.OK, vehicle_list, Jackson.marshaller())))),
 
-                                concat(pathPrefix("wot", () -> concat(pathPrefix("lock_door",
-                                                () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
-                                                                fleetId -> complete("lock_door request - Fleetid is "
-                                                                                + fleetId + " vehicleid is "
-                                                                                + vehicleId))))))),
-
-                                concat(pathPrefix("wot", () -> concat(pathPrefix("unlock_door",
-                                                () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
-                                                                fleetId -> complete("unlock_door request - Fleetid is "
-                                                                                + fleetId + " vehicleid is "
-                                                                                + vehicleId))))))),
-
-                                concat(pathPrefix("wot", () -> concat(pathPrefix("low_on_oil",
-                                                () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
-                                                                fleetId -> complete("low_on_oil request - Fleetid is "
-                                                                                + fleetId + " vehicleid is "
-                                                                                + vehicleId))))))),
-
-                                concat(pathPrefix("wot", () -> concat(pathPrefix("low_tire_pressure",
-                                                () -> parameter("vehicle_id", vehicleId -> parameter("fleet_id",
-                                                                fleetId -> complete("low_tire_pressure - Fleetid is "
-                                                                                + fleetId + " vehicleid is "
-                                                                                + vehicleId))))))),
-
-                                concat(pathPrefix("wot", () -> concat(pathPrefix("maintenance_need", () -> parameter(
-                                                "vehicle_id",
-                                                vehicleId -> parameter("fleet_id", fleetId -> complete(
-                                                                "maintenance_need request - Fleetid is " + fleetId
-                                                                                + " vehicleid is " + vehicleId)))))))
+                        // List all details for the selected vehicle
+                        path(PathMatchers.segment("web").slash("get_vehicle"),
+                                () -> parameter(StringUnmarshallers.INTEGER,"fleetManager",
+                                fleetManager -> parameter("vehicleId",
+                                vehicleId -> onSuccess(getVehicle(fleetManager, Vehicle.wotIdToLongId(vehicleId)),
+                                        vehicle_list -> complete(StatusCodes.OK, vehicle_list, Jackson.marshaller())))))
 
                 );
-                // parameter("vehicle_id", vehicleId -> parameter("fleet_id",
-                // fleetId -> complete("Fleetid is" + fleetId + "vehicleid is " +
-                // vehicleId)))));
-
-                /// wot/total_mileage?vehicle_id=sssssss&fleet_id=ssssss
-                // #all-routes
         }
 
 }

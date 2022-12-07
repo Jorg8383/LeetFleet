@@ -8,57 +8,17 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import lf.actor.Registry.ListFleetManagers;
 import lf.message.FleetManagerMsg;
-import lf.message.LFSerialisable;
+import lf.message.VehicleEventMsg;
+import lf.message.VehicleEventMsg.Message;
 import lf.message.WebPortalMsg;
 import lf.model.Vehicle;
 
 import java.util.*;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
+public class VehicleWotEvent extends AbstractBehavior<VehicleEventMsg.Message> {
 
   // MESSAGES:
-  //
-  public interface Message {
-  }
-
-  public final static class EventFromWebP implements Message, LFSerialisable {
-    public final Vehicle vehicle;
-    public final ActorRef<WebPortalMsg.VehicleToWebP> replyTo;
-    public final ActorRef<Registry.Message> registryRef;
-
-    public EventFromWebP(
-        Vehicle vehicle, ActorRef<WebPortalMsg.VehicleToWebP> portalRef,
-        ActorRef<Registry.Message> registryRef) {
-      this.vehicle = vehicle;
-      // this.vehicle.setFleetId("success lads");
-      this.replyTo = portalRef;
-      this.registryRef = registryRef;
-    }
-  }
-
-  public final static class FleetManagerList implements Message, LFSerialisable {
-    public final Collection<ActorRef<FleetManagerMsg.Message>> fleetManagerRefs;
-    public final ActorRef<Registry.Message> registryRef;
-
-    public FleetManagerList(Collection<ActorRef<FleetManagerMsg.Message>> fleetManagerRefs,
-        ActorRef<Registry.Message> registryRef) {
-      this.fleetManagerRefs = fleetManagerRefs;
-      this.registryRef = registryRef;
-    }
-  }
-
-  public final static class EventComplete implements Message, LFSerialisable {
-    public final Vehicle vehicle;
-
-    // All constructors (technically) should be annotated - but we appear to get
-    // deserialisation errors for constructors with a single parameter:
-    // (@see: https://doc.akka.io/docs/akka/current/serialization-jackson.html)
-    public EventComplete(@JsonProperty("vehicle") Vehicle vehicle) {
-      this.vehicle = vehicle;
-    }
-  }
+  // Toy system. All messages shared with VehicleWebEvent.
 
   // ENCAPSULATION:
 
@@ -69,11 +29,11 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
 
   // CREATE THIS ACTOR
   public static Behavior<Message> create() {
-    return Behaviors.setup(VehicleEvent::new);
+    return Behaviors.setup(VehicleWotEvent::new);
   }
 
   // ADD TO CONTEXT
-  private VehicleEvent(ActorContext<Message> context) {
+  private VehicleWotEvent(ActorContext<Message> context) {
     super(context);
     // constructor stuff here
   }
@@ -85,10 +45,10 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
   @Override
   public Receive<Message> createReceive() {
     return newReceiveBuilder()
-        .onMessage(EventFromWebP.class, this::onEventFromWebP)
-        .onMessage(FleetManagerList.class, this::onFleetManagerList)
-        .onMessage(EventComplete.class, this::onEventComplete)
-        .build();
+      .onMessage(VehicleEventMsg.EventFromWebP.class, this::onWotEventFromWebP)
+      .onMessage(VehicleEventMsg.FleetManagerList.class, this::onFleetManagerList)
+      .onMessage(VehicleEventMsg.EventComplete.class, this::onEventComplete)
+      .build();
   }
 
   // From WebPortal
@@ -110,7 +70,7 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
    * @param message
    * @return
    */
-  private Behavior<Message> onEventFromWebP(EventFromWebP message) {
+  private Behavior<Message> onWotEventFromWebP(VehicleEventMsg.EventFromWebP message) {
     // this thing gets in a message which contains a vehicle
 
     // First, store the various Event attributes in this actor (for it's life)
@@ -122,7 +82,7 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
     // We don't care! We send off the fleetId 'as is' to the registry. If the
     // fleetId is valid we get back a list of 'one fleet manager'. If it's invalid
     // we should get back a list of all of them.
-    message.registryRef.tell(new ListFleetManagers(vehicle.getFleetManager(), this.getContext().getSelf()));
+    registryRef.tell(new ListFleetManagers(vehicle.getFleetManager(), this.getContext().getSelf()));
 
     return this;
   }
@@ -138,7 +98,7 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
    * @param message
    * @return
    */
-  private Behavior<Message> onFleetManagerList(FleetManagerList message) {
+  private Behavior<Message> onFleetManagerList(VehicleEventMsg.FleetManagerList message) {
     // Store the all important ref to the portal
     Collection<ActorRef<FleetManagerMsg.Message>> fleetManagerRefs = message.fleetManagerRefs;
 
@@ -146,12 +106,12 @@ public class VehicleEvent extends AbstractBehavior<VehicleEvent.Message> {
     // (initial) communication to all managers. We Will expect a reply with
     // the appropriate fleetId for this vehicle in due course...
     for (ActorRef<FleetManagerMsg.Message> fleetManagerRef : fleetManagerRefs) {
-      fleetManagerRef.tell(new FleetManagerMsg.ProcessVehicleUpdate(vehicle, getContext().getSelf()));
+      fleetManagerRef.tell(new FleetManagerMsg.ProcessVehicleWotUpdate(vehicle, getContext().getSelf()));
     }
     return this;
   }
 
-  private Behavior<Message> onEventComplete(EventComplete message) {
+  private Behavior<Message> onEventComplete(VehicleEventMsg.EventComplete message) {
     // Everything is done!
     vehicle = message.vehicle;  // pedantry. keep state updated so future mods don't break.
 

@@ -75,6 +75,38 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         }
     }
 
+    public final static class WebFleetList implements Message, LFSerialisable {
+        public final ActorRef<WebPortalMsg.VehicleToWebP> replyTo;
+
+        public WebFleetList(ActorRef<WebPortalMsg.VehicleToWebP> replyTo) {
+            this.replyTo = replyTo;
+        }
+    }
+
+    public final static class WebVehicleList implements Message, LFSerialisable {
+        public final long managerId;
+        public final ActorRef<WebPortalMsg.VehicleToWebP> replyTo;
+
+        public WebVehicleList(
+                long managerId, ActorRef<WebPortalMsg.VehicleToWebP> replyTo) {
+            this.managerId = managerId;
+            this.replyTo = replyTo;
+        }
+    }
+
+    public final static class WebGetVehicle implements Message, LFSerialisable {
+        public final long managerId;
+        public final long vehicleId;
+        public final ActorRef<WebPortalMsg.VehicleToWebP> replyTo;
+
+        public WebGetVehicle(
+                long managerId, long vehicleId, ActorRef<WebPortalMsg.VehicleToWebP> replyTo) {
+            this.managerId = managerId;
+            this.vehicleId = vehicleId;
+            this.replyTo = replyTo;
+        }
+    }
+
     /**
      * Message to handle Listing Response from Receptionist.
      *

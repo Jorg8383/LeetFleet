@@ -12,25 +12,18 @@ import akka.http.javadsl.marshallers.jackson.Jackson;
 import static akka.http.javadsl.server.Directives.*;
 
 import akka.http.javadsl.model.StatusCodes;
-import akka.http.javadsl.server.PathMatcher0;
-import akka.http.javadsl.server.PathMatcher1;
 import akka.http.javadsl.server.PathMatchers;
-import static akka.http.javadsl.server.PathMatchers.segment;
 import akka.http.javadsl.server.Route;
+import akka.http.javadsl.unmarshalling.StringUnmarshallers;
 import lf.actor.WebPortalGuardian;
 import lf.message.WebPortalMsg;
 import lf.model.Vehicle;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Routes can be defined in separated classes like shown in here
  */
 // #user-routes-class
 public class WebPortalRoutes extends WebPortalMsg {
-        // #user-routes-class
-        private final static Logger log = LoggerFactory.getLogger(WebPortalRoutes.class);
 
         private final ActorRef<WebPortalGuardian.Message> webPortalGuardianRef; // We can use this actor to spawn more
         // actors...
@@ -81,6 +74,21 @@ public class WebPortalRoutes extends WebPortalMsg {
 
         private CompletionStage<WebPortalMsg.VehicleToWebP> vehicleToWebHandlerViaGuardian(Vehicle vehicle) {
                 return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.ForwardToWebHandler(vehicle, ref),
+                                askTimeout, scheduler);
+        }
+
+        private CompletionStage<WebPortalMsg.VehicleToWebP> requestFleetList() {
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebFleetList(ref),
+                                askTimeout, scheduler);
+        }
+
+        private CompletionStage<WebPortalMsg.VehicleToWebP> requestVehicleList(long managerId) {
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebVehicleList(managerId, ref),
+                                askTimeout, scheduler);
+        }
+
+        private CompletionStage<WebPortalMsg.VehicleToWebP> getVehicle(long managerId, long vehicleId) {
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebGetVehicle(managerId, vehicleId, ref),
                                 askTimeout, scheduler);
         }
 
@@ -146,12 +154,6 @@ public class WebPortalRoutes extends WebPortalMsg {
          * This method creates one route (of possibly many more that will be part of
          * your Web App)
          */
-        // #all-routes
-
-        PathMatcher1<String> milagePath = PathMatchers.segment("wot").slash(segment("total_mileage").concat(segment()));
-
-        // PathMatcher1<String> milagePath = PathMatchers
-        // .segment("wot").slash(parameter("total_mileage", milage ->));
 
         public Route vehicleEventRoutes() {
                 // We are using an 'actor per request' pattern. So:
@@ -187,21 +189,25 @@ public class WebPortalRoutes extends WebPortalMsg {
                         path("web", () -> post(() -> entity(Jackson.unmarshaller(Vehicle.class),
                                 vehicle -> onSuccess(vehicleToWebHandlerViaGuardian(vehicle),
                                         theMessage -> complete(StatusCodes.OK,
-                                                theMessage.vehicle, Jackson.marshaller())))))
+                                                theMessage.vehicle, Jackson.marshaller()))))),
 
-                        // // List all active fleets
-                        // PathMatchers.segment("web").slash("list_fleets"),
-                        //         () -> onSuccess(vehicleToWotHandlerViaGuardian(
-                        //                                                 Vehicle.createForMileage(vehicleId,
-                        //                                                                 fleet_id,
-                        //                                                                 Float.valueOf(total_mileage))),
-                        //                                                 theMessage -> complete(StatusCodes.OK,
-                        //                                                                 theMessage.vehicle,
-                        //                                                                 Jackson.marshaller()))))))))),
+                        // List all active fleets
+                        path(PathMatchers.segment("web").slash("list_fleets"),
+                                () -> onSuccess(requestFleetList(),
+                                        fleet_list -> complete(StatusCodes.OK, fleet_list, Jackson.marshaller()))),
 
                         // List all active vehicles for the selected fleet
+                        path(PathMatchers.segment("web").slash("list_vehicles"),
+                                () -> parameter(StringUnmarshallers.INTEGER,"fleetManager",
+                                fleetManager -> onSuccess(requestVehicleList(fleetManager),
+                                        vehicle_list -> complete(StatusCodes.OK, vehicle_list, Jackson.marshaller())))),
 
                         // List all details for the selected vehicle
+                        path(PathMatchers.segment("web").slash("get_vehicle"),
+                                () -> parameter(StringUnmarshallers.INTEGER,"fleetManager",
+                                fleetManager -> parameter("vehicleId",
+                                vehicleId -> onSuccess(getVehicle(fleetManager, Vehicle.wotIdToLongId(vehicleId)),
+                                        vehicle_list -> complete(StatusCodes.OK, vehicle_list, Jackson.marshaller())))))
 
                 );
         }

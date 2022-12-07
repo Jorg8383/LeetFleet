@@ -38,6 +38,18 @@ export class WotConsumedDevice {
         await this.initialiseJSON(this.vehicleJSON);
         console.log("JSON representation is now:");
         console.log(JSON.stringify(this.vehicleJSON));
+        // TODO - check what this url is meant to be and start messing with our own ports on WoT
+        fetch("http://localhost:8080/web_portal", {
+            method: 'POST',
+            headers: {
+                "Content-type" : "application/json"
+            },
+            body: JSON.stringify(this.vehicleJSON)
+        }).then(res => res.json()).then(res => {
+            console.log(res);
+        }).catch(err => {
+            console.log(err);
+        })
         this.observeProperties(this.thing);
         this.subscribe(this.thing);
 
@@ -92,33 +104,120 @@ export class WotConsumedDevice {
         thing.observeProperty("propTotalMileage", async (data) => {
             // @ts-ignore
             this.vehicleJSON.mileage = await data.value();
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type" : "application/json"
+                },
+                body: JSON.stringify(this.vehicleJSON)
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            })
         });
 
         thing.observeProperty("propMaintenanceNeeded", async (data) => {
             // @ts-ignore
             this.vehicleJSON.maintenanceNeeded = await data.value();
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type" : "application/json"
+                },
+                body: JSON.stringify(this.vehicleJSON)
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            })
         });
 
         thing.observeProperty("propServiceDistance", async (data) => {
             // @ts-ignore
             this.vehicleJSON.nextServiceDistance = await data.value();
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type" : "application/json"
+                },
+                body: JSON.stringify(this.vehicleJSON)
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            })
         });
 
         thing.observeProperty("propDoorStatus", async (data) => {
             // @ts-ignore
             this.vehicleJSON.doorStatus = await data.value();
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type" : "application/json"
+                },
+                body: JSON.stringify(this.vehicleJSON)
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            })
         })
     }
 
     private subscribe(thing: WoT.ConsumedThing) {
         thing.subscribeEvent("eventLowOnOil", async (data) => {
             console.log("eventLowOnOil:", await data.value(), "-> Thing-ID: ", this.td.id);
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type" : "application/json"
+                },
+                body: "Event message - vehicle " + this.vehicleJSON.vehicleID
+                    + " is low on oil"
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            })
         });
         thing.subscribeEvent("eventLowTyrePressure", async (data) => {
             console.log("eventLowTyrePressure:", await data.value(), "-> Thing-ID: ", this.td.id);
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type" : "application/json"
+                },
+                body: "Event message - vehicle " + this.vehicleJSON.vehicleID
+                    + " has low tyre pressure"
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            })
         });
         thing.subscribeEvent("eventMaintenanceNeeded", async (data) => {
             console.log("eventMaintenanceNeeded:", await data.value(), "-> Thing-ID: ", this.td.id);
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type" : "application/json"
+                },
+                body: "Event message - vehicle " + this.vehicleJSON.vehicleID
+                    + " requires maintenance"
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            })
         });
     }
 }

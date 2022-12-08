@@ -137,7 +137,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
     // ENCAPSULATION:
     public ActorRef<Registry.Message> REGISTRY_REF = null;
-    public ActorRef<VehicleQuery.Message> VEHICLE_QUERY_REF = null;
+    //public ActorRef<VehicleQuery.Message> VEHICLE_QUERY_REF = null;
 
     // =========================================================================
 
@@ -196,10 +196,10 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
                 .onMessage(WebPortalGuardian.ForwardToWotHandler.class, this::onForwardWotToHandler)
                 .onMessage(WebPortalGuardian.ForwardToWebHandler.class, this::onForwardToWebHandler)
                 .onMessage(WebPortalGuardian.WebListFleetJson.class, this::onWebListFleetJson)
-                .onMessage(WebPortalGuardian.WebListVehicleJson.class, this::onWebListVehicleJson)
+ //               .onMessage(WebPortalGuardian.WebListVehicleJson.class, this::onWebListVehicleJson)
                 // .onMessage(WebPortalGuardian.WebGetVehicle.class, this::onWebGetVehicle)
                 .onMessage(RegistryListingResponse.class, this::onRegistryListing)
-                .onMessage(VehicleQueryListingResponse.class, this::onVehicleQueryListing)
+//                .onMessage(VehicleQueryListingResponse.class, this::onVehicleQueryListing)
                 .build();
     }
 
@@ -251,11 +251,11 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         return this;
     }
 
-    private Behavior<Message> WebListVehicleJson(WebListVehicleJson message) {
-        ActorRef<VehicleEventMsg.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleWotEvent.create());  // 'anonymous' actor
-        vehicleEventRef.tell(new VehicleEventMsg.EventFromWebP(message.managerId, message.replyTo));
-        return this;
-    }
+    // private Behavior<Message> WebListVehicleJson(WebListVehicleJson message) {
+    //     ActorRef<VehicleEventMsg.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleWotEvent.create());  // 'anonymous' actor
+    //     vehicleEventRef.tell(new VehicleEventMsg.EventFromWebP(message.managerId, message.replyTo));
+    //     return this;
+    // }
 
     // private Behavior<Message> onWebGetVehicle(WebGetVehicle message) {
     //     ActorRef<VehicleEventMsg.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleWotEvent.create());  // 'anonymous' actor

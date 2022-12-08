@@ -83,7 +83,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
         getContext().getLog().info("FleetManager Registration Confirmed.");
 
         // Send manager name to registry
-        REGISTRY_REF.tell(new Registry.SuccessfulRegistry(MANAGER_ID, "careless"));
+        REGISTRY_REF.tell(new Registry.SetFleetManagerName(MANAGER_ID, "careless"));
         return this;
     }
 

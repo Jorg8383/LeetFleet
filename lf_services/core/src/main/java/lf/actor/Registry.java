@@ -14,6 +14,7 @@ import lf.message.VehicleEventMsg;
 import lf.message.WebPortalMsg;
 import lf.model.Fleet;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -70,11 +71,11 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     }
   }
 
-  public final static class SuccessfulRegistry implements Message {
+  public final static class SetFleetManagerName implements Message {
     public final long managerId;
     public final String managerName;
 
-    public SuccessfulRegistry(long manId, String manName) {
+    public SetFleetManagerName(long manId, String manName) {
       this.managerId = manId;
       this.managerName = manName;
     }
@@ -91,6 +92,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
       this.portalRef = portalRef;
     }
   }
+
 
   /**
    * Message to handle Listing Response from Receptionist.
@@ -112,7 +114,11 @@ public class Registry extends AbstractBehavior<Registry.Message> {
 
   // Track which id's map to which 'FleetManager Actor References' (as the manager
   // registrations can arrive in any order).
-  private static HashMap<Long, ActorRef<FleetManagerMsg.Message>> registry = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
+  private static HashMap<Long, ActorRef<FleetManagerMsg.Message>> registry
+    = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
+  // Encapsulating ActorRefs and names for each FleetManager in an class involves
+  // some extra processing - we elected not to do that due to time constraints.
+  private static HashMap<Long, String> fleetManagerNames = new HashMap<Long, String>();
 
   // We need an 'adaptor' - to convert the Receptionist Listing to one we
   // understand!!
@@ -159,6 +165,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
         // .onMessage(DeRegisterManager.class, this::onDeRegFleetManager)
         .onMessage(ListFleetMgrRefs.class, this::onListFleetMgrRefs)
         .onMessage(ListFleetMgrsJson.class, this::onListFleetMgrsJson)
+        .onMessage(SetFleetManagerName.class, this::onSetFleetManagerName)
         .onMessage(ListingResponse.class, this::onListing)
         .build();
   }
@@ -195,9 +202,9 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     // method anywhere - I put it here as "it's the closest thing to where fleet
     // managers are actually stored" in our demo system.
     ArrayList<Fleet> fleets = new ArrayList<Fleet>();
-    fleets.add(new Fleet("CarelessFleet", "1"));
-    fleets.add(new Fleet("FastidiousFleet", "2"));
-    fleets.add(new Fleet("FleetleesFleet", "3"));
+
+    // Loop over the manager names now and generate the content for the manager list..
+
     fleets.add(new Fleet("ParanoidFleet", "4"));
     message.portalRef.tell(new WebPortalMsg.FleetListToWebP(fleets));
 
@@ -206,6 +213,11 @@ public class Registry extends AbstractBehavior<Registry.Message> {
 
   // From Receptionist
 
+  /**
+   *
+   * @param msg
+   * @return
+   */
   private Behavior<Message> onListing(ListingResponse msg) {
     getContext().getLog().info("Receptionist Notification - Fleet Manager Created:");
 
@@ -222,6 +234,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
             // This is a new FleetManager reference - we want to add it.
             long newId = SEED_ID++;
             registry.put(newId, fleetManagerRef);
+            fleetManagerNames.put(newId, "New");
             getContext().getLog().info("\t(fleet manager ref added to registry cache)");
 
             // We inform the FleetManager that registration was successful
@@ -243,6 +256,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     }
     for (Long key : deadFleetManagerKeys) {
       registry.remove(key);
+      fleetManagerNames.remove(key);
       getContext().getLog().info("\t(fleet manager ref removed from registry cache)");
       // The is no actor to inform that "FleetManager Has been De-registered"
       // as the actor is already gone.
@@ -250,6 +264,19 @@ public class Registry extends AbstractBehavior<Registry.Message> {
 
     return Behaviors.same();
   }
+
+  /**
+   *
+   * @param message
+   * @return
+   */
+  private Behavior<Message> onSetFleetManagerName(SetFleetManagerName message) {
+    fleetManagerNames.put(message.managerId, message.managerName);
+
+    return this;
+  }
+
 }
 
-// TODO STORE message.fleetManName!!
+
+

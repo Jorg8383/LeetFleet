@@ -1,11 +1,11 @@
-# The WoT-Bridge and Directory
+# The WoT-Bridge, the WoT-Hive Directory and Exposed-Things
 
-Author: Jörg Striebel
+Authors: Jörg Striebel & Ian Foster
 
 ## Code structure:
 
 -	**index.js:**  The index.js contains the bridge logic which is responsible for retrieving Thing-Descriptons (TD) of all registered Exposed-Things and spinning up so-called "Consumed-Things" for each of them. 
--	**src:** This directory contains the logic of the Consumed-Thing in TypeScript
+-	**src:** This directory contains the logic of the Consumed-Thing in TypeScript. The Consumed-Thing communicates with the Web-Portal via HTTP.
 -	**dist:** This directory contains the trans-compiled logic of the Consumed-Thing in JavaScript source format, which is then invoked by the index.js.
 -	**Package.json:** Contains all dependencies for the npm project.
 

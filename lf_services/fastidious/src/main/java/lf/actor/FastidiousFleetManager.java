@@ -19,12 +19,13 @@ import lf.message.VehicleEventMsg;
 import lf.model.Vehicle;
 
 /**
- * A Fleet Manager. This time for the Notional Fastidious Fleet. Could suit any abstraction.
+ * A Fleet Manager. This time for the Notional Fastidious Fleet. Could suit any
+ * abstraction.
  */
 public class FastidiousFleetManager extends AbstractBehavior<Message> {
 
     // ENCAPSULATION:
-    public long MANAGER_ID;  // The Registry assigns an ID on registration. Subject to change.
+    public long MANAGER_ID; // The Registry assigns an ID on registration. Subject to change.
 
     private VehicleIdRange fastidiousFleetIdRange = new VehicleIdRange(2500, 4999);
 
@@ -39,22 +40,21 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
     // CREATE THIS ACTOR
     public static Behavior<Message> create() {
         return Behaviors.setup(
-            // Register this actor with the receptionist
-            context -> {
-                context
-                    .getSystem()
-                    .receptionist()
-                    .tell(Receptionist.register(FleetManagerMsg.fleetManagerServiceKey, context.getSelf()));
+                // Register this actor with the receptionist
+                context -> {
+                    context
+                            .getSystem()
+                            .receptionist()
+                            .tell(Receptionist.register(FleetManagerMsg.fleetManagerServiceKey, context.getSelf()));
 
-                return Behaviors.setup(FastidiousFleetManager::new);
-            }
-        );
+                    return Behaviors.setup(FastidiousFleetManager::new);
+                });
     }
 
     // ADD TO CONTEXT
     protected FastidiousFleetManager(ActorContext<Message> context) {
         super(context);
-        // send a message to the registry to register!!!!  FFS
+        // send a message to the registry to register!!!! FFS
 
         // akka://my-sys@host.example.com:5678/user/service-b
         // registry.tell(new Registry.RegisterFleetManager(getContext().getSelf()));
@@ -75,9 +75,11 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
     private Behavior<Message> onRegistrationSuccess(RegistrationSuccess message) {
         // Store the unique id assigned to this FleetManager. We'll need it if
         // we want to 'DeRegister' on shutdown...
-        MANAGER_ID   = message.mgrId;
+        MANAGER_ID = message.mgrId;
         REGISTRY_REF = message.registryRef;
         getContext().getLog().info("FleetManager Registration Confirmed.");
+        // Send manager name to registry
+        REGISTRY_REF.tell(new Registry.SuccessfulRegistry(MANAGER_ID, "fastidious"));
         return this;
     }
 
@@ -109,10 +111,9 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
                     // Create an (anonymous) VehicleTwin actor to represent this vehicle on the
                     // actor system
                     vehicleTwinRef = getContext()
-                            .spawnAnonymous(VehicleTwin.create(vehicle.getVehicleId()));  // 'anonymous' actor
+                            .spawnAnonymous(VehicleTwin.create(vehicle.getVehicleId())); // 'anonymous' actor
                     vehicles.put(vehicleIdLong, vehicleTwinRef);
-                }
-                else {
+                } else {
                     vehicleTwinRef = vehicles.get(vehicleIdLong);
                 }
 
@@ -129,7 +130,8 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
 
             } else {
                 getContext().getLog().info(
-                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong) + "). Ignoring.");
+                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong)
+                                + "). Ignoring.");
             }
         }
 
@@ -166,8 +168,7 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
                 // to a warning message.
                 if (!vehicles.keySet().contains(vehicleIdLong)) {
                     vehicle.setVehicleId("ERROR: Vehicle Not Found. It may have been switched off...");
-                }
-                else {
+                } else {
                     vehicleTwinRef = vehicles.get(vehicleIdLong);
 
                     // Ask the VehicleTwin to review the current update. If it
@@ -185,7 +186,8 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
 
             } else {
                 getContext().getLog().info(
-                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong) + "). Ignoring.");
+                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong)
+                                + "). Ignoring.");
             }
         }
 

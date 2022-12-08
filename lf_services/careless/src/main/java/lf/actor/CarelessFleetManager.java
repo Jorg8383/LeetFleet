@@ -25,7 +25,7 @@ import lf.model.Vehicle;
 public class CarelessFleetManager extends AbstractBehavior<Message> {
 
     // ENCAPSULATION:
-    public long MANAGER_ID;  // The Registry assigns an ID on registration. Subject to change.
+    public long MANAGER_ID; // The Registry assigns an ID on registration. Subject to change.
 
     // We need some way to have vehicles 'belong' in a fleet. In this toy example
     // we just use a range. In a real system this would be some set of values
@@ -81,6 +81,9 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
         MANAGER_ID = message.mgrId;
         REGISTRY_REF = message.registryRef;
         getContext().getLog().info("FleetManager Registration Confirmed.");
+
+        // Send manager name to registry
+        REGISTRY_REF.tell(new Registry.SuccessfulRegistry(MANAGER_ID, "careless"));
         return this;
     }
 
@@ -113,10 +116,9 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
                     // Create an (anonymous) VehicleTwin actor to represent this vehicle on the
                     // actor system
                     vehicleTwinRef = getContext()
-                            .spawnAnonymous(VehicleTwin.create(vehicle.getVehicleId()));  // 'anonymous' actor
+                            .spawnAnonymous(VehicleTwin.create(vehicle.getVehicleId())); // 'anonymous' actor
                     vehicles.put(vehicleIdLong, vehicleTwinRef);
-                }
-                else {
+                } else {
                     vehicleTwinRef = vehicles.get(vehicleIdLong);
                 }
 
@@ -133,7 +135,8 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
 
             } else {
                 getContext().getLog().info(
-                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong) + "). Ignoring.");
+                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong)
+                                + "). Ignoring.");
             }
         }
 
@@ -170,8 +173,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
                 // to a warning message.
                 if (!vehicles.keySet().contains(vehicleIdLong)) {
                     vehicle.setVehicleId("ERROR: Vehicle Not Found. It may have been switched off...");
-                }
-                else {
+                } else {
                     vehicleTwinRef = vehicles.get(vehicleIdLong);
 
                     // Ask the VehicleTwin to review the current update. If it
@@ -189,7 +191,8 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
 
             } else {
                 getContext().getLog().info(
-                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong) + "). Ignoring.");
+                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong)
+                                + "). Ignoring.");
             }
         }
 

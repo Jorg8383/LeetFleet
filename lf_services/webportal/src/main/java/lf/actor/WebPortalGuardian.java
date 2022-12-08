@@ -122,22 +122,22 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     }
 
     /**
-     * Message to handle VehicleQueryListing Response from Receptionist.
+     * Message to handle VehicleWebQueryListing Response from Receptionist.
      *
      * NOTE: We need to emply a 'messageAdaptor' to convert the message we recieve
      * from the Receptioninst to the one define here that we can understand.
      */
-    private static class VehicleQueryListingResponse implements Message, LFSerialisable {
-        final Receptionist.Listing listing;
+    // private static class VehicleWebQueryListingResponse implements Message, LFSerialisable {
+    //     final Receptionist.Listing listing;
 
-        private VehicleQueryListingResponse(Receptionist.Listing listing) {
-            this.listing = listing;
-        }
-    }
+    //     private VehicleWebQueryListingResponse(Receptionist.Listing listing) {
+    //         this.listing = listing;
+    //     }
+    // }
 
     // ENCAPSULATION:
     public ActorRef<Registry.Message> REGISTRY_REF = null;
-    //public ActorRef<VehicleQuery.Message> VEHICLE_QUERY_REF = null;
+    public ActorRef<VehicleWebQuery.Message> VEHICLE_WEB_QUERY_REF = null;
 
     // =========================================================================
 
@@ -170,17 +170,17 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
         //------------------------------
 
-        // We need an 'adaptor' - to convert the Receptionist VehicleQuery Listing to one we understand!!
-        ActorRef<Receptionist.Listing> vehicleQueryListingResponseAdapter
-            = context.messageAdapter(Receptionist.Listing.class, VehicleQueryListingResponse::new);;
+        // // We need an 'adaptor' - to convert the Receptionist VehicleWebQuery Listing to one we understand!!
+        // ActorRef<Receptionist.Listing> vehicleWebQueryListingResponseAdapter
+        //     = context.messageAdapter(Receptionist.Listing.class, VehicleWebQueryListingResponse::new);;
 
-        // // Subscribe for VehicleQuery actor list updates (returns current set of entries upon subscription)
+        // // Subscribe for VehicleWebQuery actor list updates (returns current set of entries upon subscription)
         // context
         //     .getSystem()
         //     .receptionist()
         //     .tell(
         //         Receptionist.subscribe(
-        //             VehicleQuery.vehicleQuerySK, vehicleQueryListingResponseAdapter));
+        //             VehicleWebQuery.vehicleWebQuerySK, vehicleWebQueryListingResponseAdapter));
 
     }
 
@@ -199,7 +199,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
  //               .onMessage(WebPortalGuardian.WebListVehicleJson.class, this::onWebListVehicleJson)
                 // .onMessage(WebPortalGuardian.WebGetVehicle.class, this::onWebGetVehicle)
                 .onMessage(RegistryListingResponse.class, this::onRegistryListing)
-//                .onMessage(VehicleQueryListingResponse.class, this::onVehicleQueryListing)
+//                .onMessage(VehicleWebQueryListingResponse.class, this::onVehicleWebQueryListing)
                 .build();
     }
 
@@ -277,13 +277,13 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         return Behaviors.same();
     }
 
-    // private Behavior<Message> onVehicleQueryListing(VehicleQueryListingResponse msg) {
+    // private Behavior<Message> onVehicleWebQueryListing(VehicleWebQueryListingResponse msg) {
     //     // There will only every be one registry in the list in our toy akka system.
-    //     msg.listing.getServiceInstances(VehicleQuery.vehicleQuerySK)
+    //     msg.listing.getServiceInstances(VehicleWebQuery.vehicleWebQuerySK)
     //             .forEach(
-    //                 vehicleQueryRef -> {
-    //                     getContext().getLog().info("Success. \"VehicleQuery\" Reference from Receptionist complete.");
-    //                     VEHICLE_QUERY_REF = vehicleQueryRef;
+    //                 vehicleWebQueryRef -> {
+    //                     getContext().getLog().info("Success. \"VehicleWebQuery\" Reference from Receptionist complete.");
+    //                     VEHICLE_WEB_QUERY_REF = vehicleWebQueryRef;
     //                 });
     //     return Behaviors.same();
     // }

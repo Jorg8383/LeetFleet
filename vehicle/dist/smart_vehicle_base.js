@@ -1,4 +1,50 @@
 "use strict";
+/********************************************************************************
+        Smart-Vehicle (Exposed-Thing) with node-wot as npm dependency
+********************************************************************************
+Author: Jörg Striebel
+
+This TypeScript code implements the base of our smart vehicle thing,
+containing the logic of the so-called Exposed-Thing.
+Unlike in our first attempt (see directory “old_scripts”) were we implemented
+an Exposed-Thing and a Consumed-Thing directly in JavaScript, the approach of
+using TypeScript provides not only type safety but more importantly allows
+the separation of source code and build directories. Moreover, by using node-wot
+merely as a npm dependency enables us to only install the dependencies required
+for this specific use case. For instance, in our case we have only installed the
+HTTP binding while omitting all other dependencies such as CoAP, MQTT, etc.
+
+This smart vehicle provides the following so-called Property Affordances,
+Action Affordances, and Event Affordances:
+
+Properties:
+-	propFleetId
+-	propVehicleId
+-	propOilLevel
+-	propTyrePressure
+-	propTotalMileage
+-	propServiceDistance
+-	propDoorStatus
+-	propMaintenanceNeeded
+Actions:
+-	actionLockDoor
+-	actionUnlockDoor
+Events:
+-	eventLowOnOil
+-	eventLowTyrePressure
+-	eventMaintenanceNeeded
+
+All these affordances are defined in the Thing Description (TD) which is embedded
+in this vehicle. To maintain reusability, certain properties can be injected via
+the constructor from the starting point (index.js) which can be seen as the
+index.html of websites. Depending on the property, they may possess all or only a
+subset of the following attributes [readable, writable, observable].
+
+For demonstration purposes, the smart-vehicle Exposed-Thing implementation also
+contains an emulation which emulates the mileage increase, the oil consumption,
+and the tyre pressure loss over time. Whenever a critical threshold is reached,
+the emulation then triggers the events accordingly.
+********************************************************************************/
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -202,7 +248,7 @@ class WotDevice {
                 console.warn("Failed to register TD. Will try again in 10 Seconds...");
                 setTimeout(() => {
                     this.register(directory);
-                }, 10000);
+                }, 15000);
                 return;
             }
         });
@@ -406,7 +452,7 @@ class WotDevice {
                         this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - oil level is low.`);
                     }
                 }
-            }, 5000);
+            }, 15000);
             // Emulation: decrease tyre pressure every ten seconds
             setInterval(() => {
                 this.propTyrePressure = this.emulateAndReadSensor("tyrePressure");
@@ -426,7 +472,7 @@ class WotDevice {
                         this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - tyre pressure is low.`);
                     }
                 }
-            }, 10000);
+            }, 15000);
             // Emulation: increase milometer every second
             setInterval(() => {
                 this.emulateOdometer();
@@ -448,7 +494,7 @@ class WotDevice {
                         this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);
                     }
                 }
-            }, 8000);
+            }, 10000);
         });
     }
 }

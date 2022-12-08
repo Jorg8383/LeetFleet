@@ -13,6 +13,15 @@ exports.WotConsumedDevice = void 0;
 class WotConsumedDevice {
     constructor(deviceWoT, tdId) {
         this.wotHiveUri = "http://localhost:9000/api/things/";
+        this.vehicleJSON = { vehicleID: "WoT-ID-Mfr-VIN",
+            fleetManager: "N/A",
+            tdURL: "http://localhost:8080/",
+            oilLevel: 50,
+            tyrePressure: 30,
+            mileage: 10000,
+            nextServiceDistance: 10000,
+            doorStatus: "LOCKED",
+            maintenanceNeeded: false };
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         if (tdId) {
@@ -27,6 +36,11 @@ class WotConsumedDevice {
             const consumedThing = yield this.deviceWoT.consume(this.td);
             console.log("Thing is now consumed with ID: " + this.td.id);
             this.thing = consumedThing;
+            console.log("JSON representation is currently:");
+            console.log(JSON.stringify(this.vehicleJSON));
+            yield this.initialiseJSON(this.vehicleJSON);
+            console.log("JSON representation is now:");
+            console.log(JSON.stringify(this.vehicleJSON));
             this.observeProperties(this.thing);
             this.subscribe(this.thing);
             return true;
@@ -45,27 +59,67 @@ class WotConsumedDevice {
             }
         });
     }
+    initialiseJSON(json) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const allData = yield this.thing.readAllProperties();
+            json.vehicleID = this.updateVehicleID(json.vehicleID);
+            json.tdURL = json.tdURL + this.thing.getThingDescription().title;
+            json.oilLevel = yield allData.get('propOilLevel').value();
+            json.tyrePressure = yield allData.get('propTyrePressure').value();
+            json.mileage = yield allData.get('propTotalMileage').value();
+            json.nextServiceDistance = yield allData.get('propServiceDistance').value();
+            json.doorStatus = yield allData.get('propDoorStatus').value();
+            json.maintenanceNeeded = yield allData.get('propMaintenanceNeeded').value();
+        });
+    }
+    updateVehicleID(vehicleID) {
+        let randomNum = this.randomInt(1, 9999);
+        let randomNumString = "";
+        if (randomNum / 10 < 1) {
+            randomNumString = "000" + randomNum;
+        }
+        else if (randomNum / 10 < 10) {
+            randomNumString = "00" + randomNum;
+        }
+        else if (randomNum / 10 < 100) {
+            randomNumString = "0" + randomNum;
+        }
+        else {
+            randomNumString = randomNum;
+        }
+        return vehicleID + "-" + randomNumString;
+    }
+    randomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
     observeProperties(thing) {
         thing.observeProperty("propTotalMileage", (data) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Observed 'propTotalMileage' property has changed! New value is:", yield data.value(), "-> Thing-ID: ", this.td.id);
-        })).then();
+            // console.log("Observed 'propTotalMileage' property has changed! New value is:",
+            //     await data.value(), "-> Thing-ID: ", this.td.id);
+            // @ts-ignore
+            this.vehicleJSON.mileage = yield data.value();
+            console.log("Mileage updated. Vehicle JSON is now:");
+            console.log(this.vehicleJSON);
+        }));
         thing.observeProperty("propMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("Observed 'propMaintenanceNeeded' property has changed! New value is:", yield data.value(), "-> Thing-ID: ", this.td.id);
-        })).then();
+        }));
         thing.observeProperty("propServiceDistance", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("Observed 'propServiceDistance' property has changed! New value is:", yield data.value(), "-> Thing-ID: ", this.td.id);
-        })).then();
+        }));
     }
     subscribe(thing) {
         thing.subscribeEvent("eventLowOnOil", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowOnOil:", yield data.value(), "-> Thing-ID: ", this.td.id);
-        })).then();
+        }));
         thing.subscribeEvent("eventLowTyrePressure", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowTyrePressure:", yield data.value(), "-> Thing-ID: ", this.td.id);
-        })).then();
+        }));
         thing.subscribeEvent("eventMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventMaintenanceNeeded:", yield data.value(), "-> Thing-ID: ", this.td.id);
-        })).then();
+        }));
     }
 }
 exports.WotConsumedDevice = WotConsumedDevice;

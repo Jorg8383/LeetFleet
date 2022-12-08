@@ -80,7 +80,7 @@ public class FleetlessFleetManager extends AbstractBehavior<Message> {
         getContext().getLog().info("FleetManager Registration Confirmed.");
 
         // Send manager name to registry
-        REGISTRY_REF.tell(new Registry.SetFleetManagerName(MANAGER_ID, "fleetless"));
+        REGISTRY_REF.tell(new Registry.SetFleetManagerName(MANAGER_ID, "Fleetless"));
         return this;
     }
 

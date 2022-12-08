@@ -79,7 +79,7 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
         REGISTRY_REF = message.registryRef;
         getContext().getLog().info("FleetManager Registration Confirmed.");
         // Send manager name to registry
-        REGISTRY_REF.tell(new Registry.SetFleetManagerName(MANAGER_ID, "fastidious"));
+        REGISTRY_REF.tell(new Registry.SetFleetManagerName(MANAGER_ID, "Fastidious"));
         return this;
     }
 

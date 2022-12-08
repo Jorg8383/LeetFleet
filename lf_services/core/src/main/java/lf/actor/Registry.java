@@ -93,7 +93,6 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     }
   }
 
-
   /**
    * Message to handle Listing Response from Receptionist.
    *
@@ -114,8 +113,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
 
   // Track which id's map to which 'FleetManager Actor References' (as the manager
   // registrations can arrive in any order).
-  private static HashMap<Long, ActorRef<FleetManagerMsg.Message>> registry
-    = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
+  private static HashMap<Long, ActorRef<FleetManagerMsg.Message>> registry = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
   // Encapsulating ActorRefs and names for each FleetManager in an class involves
   // some extra processing - we elected not to do that due to time constraints.
   private static HashMap<Long, String> fleetManagerNames = new HashMap<Long, String>();
@@ -203,9 +201,13 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     // managers are actually stored" in our demo system.
     ArrayList<Fleet> fleets = new ArrayList<Fleet>();
 
-    // Loop over the manager names now and generate the content for the manager list..
+    // Loop over the manager names now and generate the content for the manager
+    // list..
+    for (Map.Entry<Long, String> man : fleetManagerNames.entrySet()) {
+      fleets.add(new Fleet(man.getValue(), Long.toString(man.getKey())));
 
-    fleets.add(new Fleet("ParanoidFleet", "4"));
+    }
+    // fleets.add(new Fleet("ParanoidFleet", "4"));
     message.portalRef.tell(new WebPortalMsg.FleetListToWebP(fleets));
 
     return this;
@@ -277,6 +279,3 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   }
 
 }
-
-
-

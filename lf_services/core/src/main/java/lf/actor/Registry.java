@@ -71,7 +71,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     }
   }
 
-  public final static class SetFleetManagerName implements Message {
+  public final static class SetFleetManagerName implements Message, LFSerialisable {
     public final long managerId;
     public final String managerName;
 
@@ -203,10 +203,17 @@ public class Registry extends AbstractBehavior<Registry.Message> {
 
     // Loop over the manager names now and generate the content for the manager
     // list..
-    for (Map.Entry<Long, String> man : fleetManagerNames.entrySet()) {
-      fleets.add(new Fleet(man.getValue(), Long.toString(man.getKey())));
+    try {
+      for (Map.Entry<Long, String> man : fleetManagerNames.entrySet()) {
 
+        fleets.add(new Fleet(man.getValue(), Long.toString(man.getKey())));
+        System.out.println(man.getValue() + " will be sent to the client.");
+      }
+    } catch (Exception e) {
+      System.out.println("Error in onListFleetMgrsJson");
+      System.out.println(e);
     }
+
     // fleets.add(new Fleet("ParanoidFleet", "4"));
     message.portalRef.tell(new WebPortalMsg.FleetListToWebP(fleets));
 

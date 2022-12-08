@@ -24,7 +24,8 @@ import lf.model.Vehicle;
 public class FastidiousFleetManager extends AbstractBehavior<Message> {
 
     // ENCAPSULATION:
-    public long MANAGER_ID = 2;
+    public long MANAGER_ID;  // The Registry assigns an ID on registration. Subject to change.
+
     private VehicleIdRange fastidiousFleetIdRange = new VehicleIdRange(2500, 4999);
 
     public ActorRef<Registry.Message> REGISTRY_REF = null;

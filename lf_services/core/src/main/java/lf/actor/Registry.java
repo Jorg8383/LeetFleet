@@ -11,8 +11,12 @@ import akka.actor.typed.receptionist.ServiceKey;
 import lf.message.FleetManagerMsg;
 import lf.message.LFSerialisable;
 import lf.message.VehicleEventMsg;
+import lf.message.WebPortalMsg;
+import lf.model.Fleet;
 
 import java.util.*;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 // READ THESE FIRST:
 // What is an Actor?
@@ -26,7 +30,9 @@ import java.util.*;
 // Behavior that receives the message and acts upon it.
 
 /**
- *
+ * The Registry is used in LeetFleet for routing Vehcile events to the correct
+ * FleetManager.  It is lightweight, doesn't store any message state and should
+ * be "restartable" with minimum impact.
  */
 public class Registry extends AbstractBehavior<Registry.Message> {
 
@@ -54,31 +60,25 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   // your data type.
   // This will make it easier to use, understand and debug actor-based system
 
-  public final static class RegisterFleetManager implements Message, LFSerialisable {
-    public final ActorRef<FleetManagerMsg.Message> fleetManRef;
-
-    public RegisterFleetManager(ActorRef<FleetManagerMsg.Message> fleetManRef) {
-      this.fleetManRef = fleetManRef;
-    }
-  }
-
-  /* This message does not warrant a response - so no ActorRef stored */
-  public final static class DeRegisterManager implements Message, LFSerialisable {
-    public final long idToBeDeRegistered;
-
-    public DeRegisterManager(long idToBeDeRegistered) {
-      this.idToBeDeRegistered = idToBeDeRegistered;
-    }
-  }
-
   // COMMENT COMMENT COMMENT
-  public final static class ListFleetManagers implements Message, LFSerialisable {
+  public final static class ListFleetMgrRefs implements Message, LFSerialisable {
     public final String fleetId;
     public final ActorRef<VehicleEventMsg.Message> vehicleEventHandlerRef;
 
-    public ListFleetManagers(String fleetId, ActorRef<VehicleEventMsg.Message> vehicleEventHandlerRef) {
+    public ListFleetMgrRefs(String fleetId, ActorRef<VehicleEventMsg.Message> vehicleEventHandlerRef) {
       this.fleetId = fleetId;
       this.vehicleEventHandlerRef = vehicleEventHandlerRef;
+    }
+  }
+
+ /**
+  * Request for a list the registered fleet managers in JSON format.
+  */
+  public final static class ListFleetMgrsJson implements Message, LFSerialisable {
+    public final ActorRef<WebPortalMsg.FleetListToWebP> portalRef;
+
+    public ListFleetMgrsJson(@JsonProperty("portalRef") ActorRef<WebPortalMsg.FleetListToWebP> portalRef) {
+      this.portalRef = portalRef;
     }
   }
 
@@ -100,9 +100,9 @@ public class Registry extends AbstractBehavior<Registry.Message> {
 
   private static long SEED_ID = 10000;
 
-  // Track which id's map to which 'ClientInfos' (as the responses
-  // can arrive in any order).
-  private static HashMap<Long, ActorRef<FleetManagerMsg.Message>> registry = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
+  // Track which id's map to which 'FleetManager Actor References' (as the manager registrations can arrive in any order).
+  private static HashMap<Long, ActorRef<FleetManagerMsg.Message>> registry
+    = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
 
   // We need an 'adaptor' - to convert the Receptionist Listing to one we
   // understand!!
@@ -145,36 +145,19 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   @Override
   public Receive<Message> createReceive() {
     return newReceiveBuilder()
-        .onMessage(RegisterFleetManager.class, this::onRegFleetManager)
-        .onMessage(DeRegisterManager.class, this::onDeRegFleetManager)
-        .onMessage(ListFleetManagers.class, this::onListFleetManagers)
+        // .onMessage(RegisterFleetManager.class, this::onRegFleetManager)
+        // .onMessage(DeRegisterManager.class, this::onDeRegFleetManager)
+        .onMessage(ListFleetMgrRefs.class, this::onListFleetMgrRefs)
+        .onMessage(ListFleetMgrsJson.class, this::onListFleetMgrsJson)
         .onMessage(ListingResponse.class, this::onListing)
         .build();
   }
 
   // From FleetManager
 
-  // The type of the messages handled by this behavior is declared to be of class
-  // message
-  private Behavior<Message> onRegFleetManager(RegisterFleetManager message) {
-    // The fleet manager has registered.
-    long new_fleet_id = SEED_ID++;
-    registry.put(new_fleet_id, message.fleetManRef);
-
-    // We inform the FleetManager that registration was successful
-    message.fleetManRef.tell(new FleetManagerMsg.RegistrationSuccess(new_fleet_id, getContext().getSelf()));
-    return this;
-  }
-
-  // DeRegistration is part of orderly shutdown. We don't confirm.
-  private Behavior<Message> onDeRegFleetManager(DeRegisterManager message) {
-    registry.remove(message.idToBeDeRegistered);
-    return this;
-  }
-
   // From VehicleEvent
 
-  private Behavior<Message> onListFleetManagers(ListFleetManagers message) {
+  private Behavior<Message> onListFleetMgrRefs(ListFleetMgrRefs message) {
     // If valid fleetId
     boolean validFleetId = false;
     long fleetId         = 0;
@@ -186,11 +169,26 @@ public class Registry extends AbstractBehavior<Registry.Message> {
 
     if (validFleetId) {
       // We have to return a Collection - use the singletonList convenience...
-      message.vehicleEventHandlerRef.tell(new VehicleEventMsg.FleetManagerList(Collections.singletonList(registry.get(fleetId)), getContext().getSelf()));
+      message.vehicleEventHandlerRef.tell(new VehicleEventMsg.FleetMgrRefList(Collections.singletonList(registry.get(fleetId)), getContext().getSelf()));
     }
     else {
-      message.vehicleEventHandlerRef.tell(new VehicleEventMsg.FleetManagerList(registry.values(), getContext().getSelf()));
+      message.vehicleEventHandlerRef.tell(new VehicleEventMsg.FleetMgrRefList(registry.values(), getContext().getSelf()));
     }
+
+    return this;
+  }
+
+  private Behavior<Message> onListFleetMgrsJson(ListFleetMgrsJson message) {
+    // Spoof method. In reality we would have modelled fleet managers. In this
+    // toy system the four managers are just hard coded.  We could have put this
+    // method anywhere - I put it here as "it's the closest thing to where fleet
+    // managers are actually stored" in our demo system.
+    ArrayList<Fleet> fleets = new ArrayList<Fleet>();
+    fleets.add(new Fleet("CarelessFleet", "1"));
+    fleets.add(new Fleet("FastidiousFleet", "2"));
+    fleets.add(new Fleet("FleetleesFleet", "3"));
+    fleets.add(new Fleet("ParanoidFleet", "4"));
+    message.portalRef.tell(new WebPortalMsg.FleetListToWebP(fleets));
 
     return this;
   }
@@ -199,14 +197,43 @@ public class Registry extends AbstractBehavior<Registry.Message> {
 
   private Behavior<Message> onListing(ListingResponse msg) {
     getContext().getLog().info("Receptionist Notification - Fleet Manager Created:");
-    registry = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
-    msg.listing.getServiceInstances(FleetManagerMsg.fleetManagerServiceKey)
-        .forEach(
-            fleetManagerRef -> {
-              // Refresh entire registry every time?
-              registry.put(SEED_ID++, fleetManagerRef);
-              getContext().getLog().info("\t(fleet manager ref added to registry cache)");
-            });
+
+    Set<ActorRef<FleetManagerMsg.Message>> fleetManagerServiceInstances
+      = msg.listing.getServiceInstances(FleetManagerMsg.fleetManagerServiceKey);
+
+    // We need to loop over the set of fleetmanager references received from the
+    // receptionist and carefully compare the contents:
+    // -> If new actors are present they have been created - we need to add them
+    //    and assign an ID to them.
+    // -> If actors are missing they have been removed - we need to remove them too
+    fleetManagerServiceInstances.forEach(
+      fleetManagerRef -> {
+        if (!registry.values().contains(fleetManagerRef)) {
+          // This is a new FleetManager reference - we want to add it.
+          long newId = SEED_ID++;
+          registry.put(newId, fleetManagerRef);
+          getContext().getLog().info("\t(fleet manager ref added to registry cache)");
+
+          // We inform the FleetManager that registration was successful
+          fleetManagerRef.tell(new FleetManagerMsg.RegistrationSuccess(newId, getContext().getSelf()));
+        }
+      });
+
+
+    registry.values().forEach(
+      fleetManagerRef -> {
+        if (!registry.values().contains(fleetManagerRef)) {
+          // This is a new FleetManager reference - we want to add it.
+          long newId = SEED_ID++;
+          registry.put(newId, fleetManagerRef);
+          getContext().getLog().info("\t(fleet manager ref added to registry cache)");
+
+          // We inform the FleetManager that registration was successful
+          fleetManagerRef.tell(new FleetManagerMsg.RegistrationSuccess(newId, getContext().getSelf()));
+        }
+      });
+
+    // TODO STORE message.fleetManName!!
     return Behaviors.same();
   }
 

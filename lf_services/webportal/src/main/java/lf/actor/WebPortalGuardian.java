@@ -75,31 +75,31 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         }
     }
 
-    public final static class WebFleetList implements Message, LFSerialisable {
-        public final ActorRef<WebPortalMsg.VehicleToWebP> replyTo;
+    public final static class WebListFleetJson implements Message, LFSerialisable {
+        public final ActorRef<WebPortalMsg.FleetListToWebP> replyTo;
 
-        public WebFleetList(ActorRef<WebPortalMsg.VehicleToWebP> replyTo) {
+        public WebListFleetJson(ActorRef<WebPortalMsg.FleetListToWebP> replyTo) {
             this.replyTo = replyTo;
         }
     }
 
-    public final static class WebVehicleList implements Message, LFSerialisable {
+    public final static class WebListVehicleJson implements Message, LFSerialisable {
         public final long managerId;
-        public final ActorRef<WebPortalMsg.VehicleToWebP> replyTo;
+        public final ActorRef<WebPortalMsg.VehicleListToWebP> replyTo;
 
-        public WebVehicleList(
-                long managerId, ActorRef<WebPortalMsg.VehicleToWebP> replyTo) {
+        public WebListVehicleJson(
+                long managerId, ActorRef<WebPortalMsg.VehicleListToWebP> replyTo) {
             this.managerId = managerId;
             this.replyTo = replyTo;
         }
     }
 
-    public final static class WebGetVehicle implements Message, LFSerialisable {
+    public final static class WebGetVehicleJson implements Message, LFSerialisable {
         public final long managerId;
         public final long vehicleId;
         public final ActorRef<WebPortalMsg.VehicleToWebP> replyTo;
 
-        public WebGetVehicle(
+        public WebGetVehicleJson(
                 long managerId, long vehicleId, ActorRef<WebPortalMsg.VehicleToWebP> replyTo) {
             this.managerId = managerId;
             this.vehicleId = vehicleId;
@@ -108,25 +108,36 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     }
 
     /**
-     * Message to handle Listing Response from Receptionist.
+     * Message to handle RegistryListing Response from Receptionist.
      *
      * NOTE: We need to emply a 'messageAdaptor' to convert the message we recieve
      * from the Receptioninst to the one define here that we can understand.
      */
-    private static class ListingResponse implements Message, LFSerialisable {
+    private static class RegistryListingResponse implements Message, LFSerialisable {
         final Receptionist.Listing listing;
 
-        private ListingResponse(Receptionist.Listing listing) {
+        private RegistryListingResponse(Receptionist.Listing listing) {
+            this.listing = listing;
+        }
+    }
+
+    /**
+     * Message to handle VehicleQueryListing Response from Receptionist.
+     *
+     * NOTE: We need to emply a 'messageAdaptor' to convert the message we recieve
+     * from the Receptioninst to the one define here that we can understand.
+     */
+    private static class VehicleQueryListingResponse implements Message, LFSerialisable {
+        final Receptionist.Listing listing;
+
+        private VehicleQueryListingResponse(Receptionist.Listing listing) {
             this.listing = listing;
         }
     }
 
     // ENCAPSULATION:
-    @IgnoreError // Ignore unused error for registry - spawned but not used.
     public ActorRef<Registry.Message> REGISTRY_REF = null;
-    // We need an 'adaptor' - to convert the Receptionist Listing to one we
-    // understand!!
-    private final ActorRef<Receptionist.Listing> listingResponseAdapter;
+    public ActorRef<VehicleQuery.Message> VEHICLE_QUERY_REF = null;
 
     // =========================================================================
 
@@ -145,23 +156,31 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
     private WebPortalGuardian(ActorContext<Message> context) {
         super(context);
 
-        this.listingResponseAdapter = context.messageAdapter(Receptionist.Listing.class, ListingResponse::new);
+        // We need an 'adaptor' - to convert the Receptionist Registry Listing to one we understand!!
+        ActorRef<Receptionist.Listing> registryListingResponseAdapter
+            = context.messageAdapter(Receptionist.Listing.class, RegistryListingResponse::new);
 
-        // Ask about current state of Registry!
-        context
-            .getSystem()
-            .receptionist()
-            .tell(
-                Receptionist.find(
-                    Registry.registrySK, listingResponseAdapter));
-
-        // Subscribe for Registry list updates!
+        // Subscribe for Registry list updates (returns current set of entries upon subscription)
         context
             .getSystem()
             .receptionist()
             .tell(
                 Receptionist.subscribe(
-                    Registry.registrySK, listingResponseAdapter));
+                    Registry.registrySK, registryListingResponseAdapter));
+
+        //------------------------------
+
+        // We need an 'adaptor' - to convert the Receptionist VehicleQuery Listing to one we understand!!
+        ActorRef<Receptionist.Listing> vehicleQueryListingResponseAdapter
+            = context.messageAdapter(Receptionist.Listing.class, VehicleQueryListingResponse::new);;
+
+        // // Subscribe for VehicleQuery actor list updates (returns current set of entries upon subscription)
+        // context
+        //     .getSystem()
+        //     .receptionist()
+        //     .tell(
+        //         Receptionist.subscribe(
+        //             VehicleQuery.vehicleQuerySK, vehicleQueryListingResponseAdapter));
 
     }
 
@@ -176,7 +195,11 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
                 // this::onForwardToHandler)
                 .onMessage(WebPortalGuardian.ForwardToWotHandler.class, this::onForwardWotToHandler)
                 .onMessage(WebPortalGuardian.ForwardToWebHandler.class, this::onForwardToWebHandler)
-                .onMessage(ListingResponse.class, this::onListing)
+                .onMessage(WebPortalGuardian.WebListFleetJson.class, this::onWebListFleetJson)
+                .onMessage(WebPortalGuardian.WebListVehicleJson.class, this::onWebListVehicleJson)
+                // .onMessage(WebPortalGuardian.WebGetVehicle.class, this::onWebGetVehicle)
+                .onMessage(RegistryListingResponse.class, this::onRegistryListing)
+                .onMessage(VehicleQueryListingResponse.class, this::onVehicleQueryListing)
                 .build();
     }
 
@@ -223,18 +246,46 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         return this;
     }
 
+    private Behavior<Message> onWebListFleetJson(WebListFleetJson message) {
+        REGISTRY_REF.tell(new Registry.ListFleetMgrsJson(message.replyTo));
+        return this;
+    }
+
+    private Behavior<Message> WebListVehicleJson(WebListVehicleJson message) {
+        ActorRef<VehicleEventMsg.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleWotEvent.create());  // 'anonymous' actor
+        vehicleEventRef.tell(new VehicleEventMsg.EventFromWebP(message.managerId, message.replyTo));
+        return this;
+    }
+
+    // private Behavior<Message> onWebGetVehicle(WebGetVehicle message) {
+    //     ActorRef<VehicleEventMsg.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleWotEvent.create());  // 'anonymous' actor
+    //     vehicleEventRef.tell(new VehicleEventMsg.EventFromWebP(message, message.replyTo, REGISTRY_REF));
+    //     return this;
+    // }
+
     // From Receptionist
 
-    private Behavior<Message> onListing(ListingResponse msg) {
+    private Behavior<Message> onRegistryListing(RegistryListingResponse msg) {
         // There will only every be one registry in the list in our toy akka system.
         msg.listing.getServiceInstances(Registry.registrySK)
                 .forEach(
                         registryRef -> {
                             // Refresh entire registry every time?
-                            getContext().getLog().info("Success. Registry Reference from Receptionist complete.");
+                            getContext().getLog().info("Success. \"Registry\" Reference from Receptionist complete.");
                             REGISTRY_REF = registryRef;
                         });
         return Behaviors.same();
     }
+
+    // private Behavior<Message> onVehicleQueryListing(VehicleQueryListingResponse msg) {
+    //     // There will only every be one registry in the list in our toy akka system.
+    //     msg.listing.getServiceInstances(VehicleQuery.vehicleQuerySK)
+    //             .forEach(
+    //                 vehicleQueryRef -> {
+    //                     getContext().getLog().info("Success. \"VehicleQuery\" Reference from Receptionist complete.");
+    //                     VEHICLE_QUERY_REF = vehicleQueryRef;
+    //                 });
+    //     return Behaviors.same();
+    // }
 
 }

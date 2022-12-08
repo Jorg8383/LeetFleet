@@ -24,7 +24,8 @@ import lf.model.Vehicle;
 public class ParanoidFleetManager extends AbstractBehavior<Message> {
 
     // ENCAPSULATION:
-    public long MANAGER_ID = 4;
+    public long MANAGER_ID;  // The Registry assigns an ID on registration. Subject to change.
+
     private VehicleIdRange paranoidFleetIdRange = new VehicleIdRange(7500, 9999);
 
     public ActorRef<Registry.Message> REGISTRY_REF = null;

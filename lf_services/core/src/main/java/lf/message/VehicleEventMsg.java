@@ -33,11 +33,11 @@ public class VehicleEventMsg {
       }
     }
 
-    public final static class FleetManagerList implements Message, LFSerialisable {
+    public final static class FleetMgrRefList implements Message, LFSerialisable {
       public final Collection<ActorRef<FleetManagerMsg.Message>> fleetManagerRefs;
       public final ActorRef<Registry.Message> registryRef;
 
-      public FleetManagerList(Collection<ActorRef<FleetManagerMsg.Message>> fleetManagerRefs,
+      public FleetMgrRefList(Collection<ActorRef<FleetManagerMsg.Message>> fleetManagerRefs,
           ActorRef<Registry.Message> registryRef) {
         this.fleetManagerRefs = fleetManagerRefs;
         this.registryRef = registryRef;

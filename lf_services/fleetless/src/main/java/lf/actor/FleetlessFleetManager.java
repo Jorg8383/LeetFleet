@@ -24,7 +24,8 @@ import lf.model.Vehicle;
 public class FleetlessFleetManager extends AbstractBehavior<Message> {
 
     // ENCAPSULATION:
-    public long MANAGER_ID = 3;
+    public long MANAGER_ID;  // The Registry assigns an ID on registration. Subject to change.
+
     private VehicleIdRange fleetlessFleetIdRange = new VehicleIdRange(5000, 7499);
 
     public ActorRef<Registry.Message> REGISTRY_REF = null;

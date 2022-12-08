@@ -25,7 +25,8 @@ import lf.model.Vehicle;
 public class CarelessFleetManager extends AbstractBehavior<Message> {
 
     // ENCAPSULATION:
-    public long MANAGER_ID = 1;
+    public long MANAGER_ID;  // The Registry assigns an ID on registration. Subject to change.
+
     // We need some way to have vehicles 'belong' in a fleet. In this toy example
     // we just use a range. In a real system this would be some set of values
     // (perhaps a hashmap) persisted in a db...

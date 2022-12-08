@@ -77,18 +77,18 @@ public class WebPortalRoutes extends WebPortalMsg {
                                 askTimeout, scheduler);
         }
 
-        private CompletionStage<WebPortalMsg.VehicleToWebP> requestFleetList() {
-                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebFleetList(ref),
+        private CompletionStage<WebPortalMsg.FleetListToWebP> requestFleetList() {
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebListFleetJson(ref),
                                 askTimeout, scheduler);
         }
 
-        private CompletionStage<WebPortalMsg.VehicleToWebP> requestVehicleList(long managerId) {
-                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebVehicleList(managerId, ref),
+        private CompletionStage<WebPortalMsg.VehicleListToWebP> requestVehicleList(long managerId) {
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebListVehicleJson(managerId, ref),
                                 askTimeout, scheduler);
         }
 
         private CompletionStage<WebPortalMsg.VehicleToWebP> getVehicle(long managerId, long vehicleId) {
-                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebGetVehicle(managerId, vehicleId, ref),
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebGetVehicleJson(managerId, vehicleId, ref),
                                 askTimeout, scheduler);
         }
 
@@ -194,20 +194,20 @@ public class WebPortalRoutes extends WebPortalMsg {
                         // List all active fleets
                         path(PathMatchers.segment("web").slash("list_fleets"),
                                 () -> onSuccess(requestFleetList(),
-                                        fleet_list -> complete(StatusCodes.OK, fleet_list, Jackson.marshaller()))),
+                                        theMessage -> complete(StatusCodes.OK, theMessage.fleets, Jackson.marshaller()))),
 
                         // List all active vehicles for the selected fleet
                         path(PathMatchers.segment("web").slash("list_vehicles"),
                                 () -> parameter(StringUnmarshallers.INTEGER,"fleetManager",
                                 fleetManager -> onSuccess(requestVehicleList(fleetManager),
-                                        vehicle_list -> complete(StatusCodes.OK, vehicle_list, Jackson.marshaller())))),
+                                        theMessage -> complete(StatusCodes.OK, theMessage.vehicles, Jackson.marshaller())))),
 
                         // List all details for the selected vehicle
                         path(PathMatchers.segment("web").slash("get_vehicle"),
                                 () -> parameter(StringUnmarshallers.INTEGER,"fleetManager",
                                 fleetManager -> parameter("vehicleId",
                                 vehicleId -> onSuccess(getVehicle(fleetManager, Vehicle.wotIdToLongId(vehicleId)),
-                                        vehicle_list -> complete(StatusCodes.OK, vehicle_list, Jackson.marshaller())))))
+                                        theMessage -> complete(StatusCodes.OK, theMessage.vehicle, Jackson.marshaller())))))
 
                 );
         }

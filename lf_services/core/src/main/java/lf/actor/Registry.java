@@ -205,7 +205,6 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     // receptionist and carefully compare the contents:
     // -> If new actors are present they have been created - we need to add them
     //    and assign an ID to them.
-    // -> If actors are missing they have been removed - we need to remove them too
     fleetManagerServiceInstances.forEach(
       fleetManagerRef -> {
         if (!registry.values().contains(fleetManagerRef)) {
@@ -219,22 +218,27 @@ public class Registry extends AbstractBehavior<Registry.Message> {
         }
       });
 
-
-    registry.values().forEach(
-      fleetManagerRef -> {
-        if (!registry.values().contains(fleetManagerRef)) {
-          // This is a new FleetManager reference - we want to add it.
-          long newId = SEED_ID++;
-          registry.put(newId, fleetManagerRef);
-          getContext().getLog().info("\t(fleet manager ref added to registry cache)");
-
-          // We inform the FleetManager that registration was successful
-          fleetManagerRef.tell(new FleetManagerMsg.RegistrationSuccess(newId, getContext().getSelf()));
+    // The Registry should now contain all the latest FleetManager refs. But what
+    // if some have been removed?
+    // -> If actors currently present in the registry are missing from the received
+    //    Set that implies they have been removed - we need to remove them too!
+    ArrayList<Long> deadFleetManagerKeys = new ArrayList<Long>();
+    for (Map.Entry<Long, ActorRef<FleetManagerMsg.Message>> registryEntry : registry.entrySet()) {
+        if (!fleetManagerServiceInstances.contains(registryEntry.getValue())) {
+          // This is an old FleetManager reference - we want to remove it.
+          // Cannot modify a map while iterating over it.
+          deadFleetManagerKeys.add(registryEntry.getKey());
         }
-      });
+    }
+    for (Long key : deadFleetManagerKeys) {
+      registry.remove(key);
+      getContext().getLog().info("\t(fleet manager ref removed from registry cache)");
+      // The is no actor to inform that "FleetManager Has been De-registered"
+      // as the actor is already gone.
+    }
 
-    // TODO STORE message.fleetManName!!
     return Behaviors.same();
   }
 
+    // TODO STORE message.fleetManName!!
 }

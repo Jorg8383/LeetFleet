@@ -6,9 +6,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import org.json.JSONPropertyIgnore;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
@@ -37,6 +41,30 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     public final static class WebUpdate implements Message, LFSerialisable {
         public final Vehicle vehicle;
         public WebUpdate(Vehicle vehicle) {
+          this.vehicle = vehicle;
+        }
+    }
+
+    /**
+     * Return a copy of the current vehicle state, for reporting etc. elsewhere.
+     */
+    public final static class RequestVehicleModel implements Message, LFSerialisable {
+        // NOTE: the return type here. We define our own response message!
+        //       designed for the 'akka ask pattern'
+        public final ActorRef<VehicleModel> respondTo;
+        public RequestVehicleModel(@JsonProperty("respondTo") ActorRef<VehicleModel> respondTo) {
+            this.respondTo = respondTo;
+        }
+    }
+
+    // Now... here's an interesting little message. Notice is *does not*
+    // implement the Message interface.  That's because this message is not
+    // handled here. "So why not declare it where it is handled?" Well... it
+    // could be handled anywhere. It will be used as the response to an 'ask'
+    // pattern request.
+    public final static class VehicleModel implements LFSerialisable {
+        public final Vehicle vehicle;
+        public VehicleModel(@JsonProperty("vehicle") Vehicle vehicle) {
           this.vehicle = vehicle;
         }
     }
@@ -126,6 +154,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         return newReceiveBuilder()
                 .onMessage(WotUpdate.class, this::onWotUpdate)
                 .onMessage(WebUpdate.class, this::onWebUpdate)
+                .onMessage(RequestVehicleModel.class, this::onRequestVehicleModel)
                 .onMessage(GracefulShutdown.class, this::onGracefulShutdown)
                 .build();
     }
@@ -223,4 +252,15 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
             }
         }
     }
+
+    /**
+     * When a copy of the vehicle modelis requested, supply it!
+     * @param message
+     * @return
+     */
+    private Behavior<Message> onRequestVehicleModel(RequestVehicleModel message) {
+        message.respondTo.tell(new VehicleModel(this.vehicle));
+        return this;
+    }
+
 }

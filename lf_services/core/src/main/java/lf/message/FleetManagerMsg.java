@@ -1,5 +1,7 @@
 package lf.message;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.receptionist.ServiceKey;
 import lf.actor.Registry;
@@ -59,6 +61,18 @@ public class FleetManagerMsg {
         public ProcessVehicleWebUpdate(Vehicle vehicle, ActorRef<VehicleEventMsg.Message> vehicleWebEventRef) {
             this.vehicle = vehicle;
             this.vehicleWebEventRef = vehicleWebEventRef;
+        }
+    }
+
+    /**
+     * Every fleet manager has a list of active vehicles. Receipt of this message
+     * is a request for a list of those vehicles in JSON format.
+     */
+    public final static class ListVehiclesJson implements Message, LFSerialisable {
+        public final ActorRef<WebPortalMsg.VehicleListToWebP> portalRef;
+
+        public ListVehiclesJson(@JsonProperty("portalRef") ActorRef<WebPortalMsg.VehicleListToWebP> portalRef) {
+            this.portalRef = portalRef;
         }
     }
 

@@ -238,10 +238,8 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   }
 
   private Behavior<Message> onListFleetMgrsJson(ListFleetMgrsJson message) {
-    // Spoof method. In reality we would have modelled fleet managers. In this
-    // toy system the four managers are just hard coded. We could have put this
-    // method anywhere - I put it here as "it's the closest thing to where fleet
-    // managers are actually stored" in our demo system.
+    // In reality we would have modelled fleet managers. In this toy system the
+    // four managers are just hard coded.
     ArrayList<Fleet> fleets = new ArrayList<Fleet>();
 
     // Loop over the manager names now and generate the content for the manager

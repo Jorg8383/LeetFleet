@@ -1,6 +1,10 @@
 package lf.actor;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletionStage;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
@@ -9,13 +13,18 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import akka.actor.typed.receptionist.Receptionist;
+import akka.stream.javadsl.Flow;
+import akka.stream.javadsl.Sink;
+import akka.stream.typed.javadsl.ActorFlow;
 import lf.core.VehicleIdRange;
 import lf.message.FleetManagerMsg;
+import lf.message.FleetManagerMsg.ListVehiclesJson;
 import lf.message.FleetManagerMsg.Message;
 import lf.message.FleetManagerMsg.ProcessVehicleWotUpdate;
 import lf.message.FleetManagerMsg.ProcessVehicleWebUpdate;
 import lf.message.FleetManagerMsg.RegistrationSuccess;
 import lf.message.VehicleEventMsg;
+import lf.message.WebPortalMsg;
 import lf.model.Vehicle;
 
 /**
@@ -33,6 +42,8 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
     private VehicleIdRange carelessFleetIdRange = new VehicleIdRange(0, 2499);
 
     public ActorRef<Registry.Message> REGISTRY_REF = null;
+
+    private Duration timeout = Duration.ofMillis(2500);
 
     // Track the VehicleTwin actors we have "live" (active actor refs in the
     // cluster).
@@ -72,6 +83,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
                 .onMessage(RegistrationSuccess.class, this::onRegistrationSuccess)
                 .onMessage(ProcessVehicleWotUpdate.class, this::onProcessVehicleWotUpdate)
                 .onMessage(ProcessVehicleWebUpdate.class, this::onProcessVehicleWebUpdate)
+                .onMessage(ListVehiclesJson.class, this::onListVehiclesJson)
                 .build();
     }
 
@@ -198,5 +210,51 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
 
         return this;
     }
+
+    /**
+     * Return a list of active registered vehicles in JSON format
+     * @param message
+     * @return
+     */
+    private Behavior<Message> onListVehiclesJson(ListVehiclesJson message) {
+        ArrayList<Vehicle> vehModels = new ArrayList<Vehicle>();
+
+        // Loop over the manager names now and generate the content for the manager
+        // list..
+        try {
+          for (Map.Entry<Long, ActorRef<VehicleTwin.Message>> entry : vehicles.entrySet())
+          {
+            // Flows... more on these here:
+            // https://doc.akka.io/docs/akka/current/stream/stream-flows-and-basics.html
+
+            // Request-response pattern with ask:
+            // https://doc.akka.io/docs/akka/current/typed/interaction-patterns.html
+            getContext().ask(
+                VehicleTwin.VehicleModel.class,
+                entry.getValue(),
+                timeout,
+                // construct the outgoing message
+                (ActorRef<VehicleTwin.VehicleModel> ref) -> new VehicleTwin.RequestVehicleModel(ref),
+                // adapt the response (or failure to respond)
+                (response, throwable) -> {
+                    if (response != null) {
+                        return new AdaptedResponse(response.message);
+                    } else {
+                        return new AdaptedResponse("Request failed");
+                    }
+                });
+
+// CHRRIST - do I add a completion stage??? or what????
+
+            getContext().getLog().info(man.getValue() + " will be sent to the client.");
+          }
+        } catch (Exception e) {
+          getContext().getLog().error("", e);
+        }
+
+        message.portalRef.tell(new WebPortalMsg.VehicleListToWebP(vehModels));
+
+        return this;
+      }
 
 }

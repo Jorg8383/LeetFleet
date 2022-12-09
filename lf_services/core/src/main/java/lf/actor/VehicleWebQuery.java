@@ -47,9 +47,14 @@ public class VehicleWebQuery extends AbstractBehavior<VehicleWebQuery.Message> {
   * Request for a list the registered fleet managers in JSON format.
   */
   public final static class ListVehiclesJson implements Message, LFSerialisable {
-    public final ActorRef<WebPortalMsg.FleetListToWebP> portalRef;
+    public final long fleetManagerId;
+    public final ActorRef<WebPortalMsg.VehicleListToWebP> portalRef;
 
-    public ListVehiclesJson(@JsonProperty("portalRef") ActorRef<WebPortalMsg.FleetListToWebP> portalRef) {
+    public ListVehiclesJson(
+      @JsonProperty("fleetManagerId") long fleetManagerId,
+      @JsonProperty("portalRef") ActorRef<WebPortalMsg.VehicleListToWebP> portalRef)
+    {
+      this.fleetManagerId = fleetManagerId;
       this.portalRef = portalRef;
     }
   }
@@ -131,6 +136,7 @@ public class VehicleWebQuery extends AbstractBehavior<VehicleWebQuery.Message> {
         //.onMessage(ListFleetMgrsJson.class, this::onListFleetMgrsJson)
         .onMessage(ListingResponse.class, this::onListing)
         .onMessage(UpdatedFleetManagerList.class, this::onUpdatedFleetManagerList)
+        .onMessage(ListVehiclesJson.class, this::onListVehiclesJson)
         .build();
   }
 
@@ -179,6 +185,26 @@ public class VehicleWebQuery extends AbstractBehavior<VehicleWebQuery.Message> {
 
     // Nothing smart... just update our copy of the 'id to ref' mapping.
     this.registryMirror = msg.registry;
+
+    return Behaviors.same();
+  }
+
+  /**
+   * For the received fleet manager id - get a list of all active vehicles in
+   * Json format.
+   * @param msg
+   * @return
+   */
+  private Behavior<Message> onListVehiclesJson(ListVehiclesJson msg) {
+    // Want a list of all vehicles for the selected managerId
+    ActorRef<FleetManagerMsg.Message> managerRef = registryMirror.get(msg.fleetManagerId);
+    // Do a null check just in case an invalidId was received.
+    if (managerRef != null) {
+      managerRef.tell(new FleetManagerMsg.ListVehiclesJson(msg.portalRef));
+    }
+    else {
+      // Should we send an empty list with a message here!
+    }
 
     return Behaviors.same();
   }

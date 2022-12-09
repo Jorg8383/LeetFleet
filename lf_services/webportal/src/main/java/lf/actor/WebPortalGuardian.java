@@ -195,7 +195,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
                 .onMessage(WebPortalGuardian.ForwardToWotHandler.class, this::onForwardWotToHandler)
                 .onMessage(WebPortalGuardian.ForwardToWebHandler.class, this::onForwardToWebHandler)
                 .onMessage(WebPortalGuardian.WebListFleetJson.class, this::onWebListFleetJson)
- //               .onMessage(WebPortalGuardian.WebListVehicleJson.class, this::onWebListVehicleJson)
+                .onMessage(WebPortalGuardian.WebListVehicleJson.class, this::onWebListVehiclesJson)
                 // .onMessage(WebPortalGuardian.WebGetVehicle.class, this::onWebGetVehicle)
                 .onMessage(ReceptionistListingResponse.class, this::onReceptionistListing)
 //                .onMessage(VehicleWebQueryListingResponse.class, this::onVehicleWebQueryListing)
@@ -250,11 +250,10 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         return this;
     }
 
-    // private Behavior<Message> WebListVehicleJson(WebListVehicleJson message) {
-    //     ActorRef<VehicleEventMsg.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleWotEvent.create());  // 'anonymous' actor
-    //     vehicleEventRef.tell(new VehicleEventMsg.EventFromWebP(message.managerId, message.replyTo));
-    //     return this;
-    // }
+    private Behavior<Message> onWebListVehiclesJson(WebListVehicleJson message) {
+        VEHICLE_WEB_QUERY_REF.tell(new VehicleWebQuery.ListVehiclesJson(message.managerId, message.replyTo));
+        return this;
+    }
 
     // private Behavior<Message> onWebGetVehicle(WebGetVehicle message) {
     //     ActorRef<VehicleEventMsg.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleWotEvent.create());  // 'anonymous' actor

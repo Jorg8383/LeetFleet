@@ -60,7 +60,17 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   // your data type.
   // This will make it easier to use, understand and debug actor-based system
 
-  // COMMENT COMMENT COMMENT
+  /**
+   * <p>The update (change in state) events that arrive into the system need
+   * to discover which FleetManager to route their query to. This is the key
+   * discovery mechanism in the LeetFleet system.</p>
+   * <p>A 'ListFleetMgrRefs' message is sent which may or may not contain a valid
+   * fleetId.</p>
+   * <ul>
+   *  <li>If the fleetId is valid - just the ref to the actor for that fleet is returned</li>
+   *  <li>If the fleetId is not valid/missing - all fleet manager actor refs are returned</li>
+   * </ul>
+   */
   public final static class ListFleetMgrRefs implements Message, LFSerialisable {
     public final String fleetId;
     public final ActorRef<VehicleEventMsg.Message> vehicleEventHandlerRef;
@@ -68,6 +78,19 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     public ListFleetMgrRefs(String fleetId, ActorRef<VehicleEventMsg.Message> vehicleEventHandlerRef) {
       this.fleetId = fleetId;
       this.vehicleEventHandlerRef = vehicleEventHandlerRef;
+    }
+  }
+
+  /**
+   * The VehicleWebQuery actor subscribes for updates to the FleetManager list
+   * (so it can route read only queries from the web client to the correct fleet
+   * manager).
+   */
+  public final static class SubToFleetMgrList implements Message, LFSerialisable {
+    public final ActorRef<VehicleWebQuery.Message> vehicleWebQueryRef;
+
+    public SubToFleetMgrList(@JsonProperty("vehiclewebQueryRef") ActorRef<VehicleWebQuery.Message> vehicleWebQueryRef) {
+      this.vehicleWebQueryRef = vehicleWebQueryRef;
     }
   }
 
@@ -114,9 +137,15 @@ public class Registry extends AbstractBehavior<Registry.Message> {
   // Track which id's map to which 'FleetManager Actor References' (as the manager
   // registrations can arrive in any order).
   private static HashMap<Long, ActorRef<FleetManagerMsg.Message>> registry = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
+
   // Encapsulating ActorRefs and names for each FleetManager in an class involves
   // some extra processing - we elected not to do that due to time constraints.
   private static HashMap<Long, String> fleetManagerNames = new HashMap<Long, String>();
+
+  // The VehicleWeb query actor subscribes for fleet manager list updates. Keep
+  // a reference to it. If (this) Registry actor dies, the receptionist will
+  // notify the VehicleWebQuery actor (so it can resubscribe) on registry recovery.
+  public ActorRef<VehicleWebQuery.Message> VEHICLE_WEB_QUERY_REF = null;
 
   // We need an 'adaptor' - to convert the Receptionist Listing to one we
   // understand!!
@@ -133,7 +162,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
               .tell(Receptionist.register(registrySK, context.getSelf()));
 
           // TODO FIX FIX FIX - THINK FOLLOWING IS CORRECT - TEST IT TEST IT TEST IT
-          // return new Registry(context);
+          //return new Registry(context);
           return Behaviors.setup(Registry::new);
         });
   }
@@ -164,6 +193,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
         .onMessage(ListFleetMgrRefs.class, this::onListFleetMgrRefs)
         .onMessage(ListFleetMgrsJson.class, this::onListFleetMgrsJson)
         .onMessage(SetFleetManagerName.class, this::onSetFleetManagerName)
+        .onMessage(SubToFleetMgrList.class, this::onSubToFleetMgrList)
         .onMessage(ListingResponse.class, this::onListing)
         .build();
   }
@@ -194,6 +224,19 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     return this;
   }
 
+  /**
+   * Subscribe to updates to the registry itself (List of FleetManager ids and references)
+   * @param message
+   * @return
+   */
+  private Behavior<Message> onSubToFleetMgrList(SubToFleetMgrList message) {
+      // Send an initial response with the current state of the registry on subscription
+      message.vehicleWebQueryRef
+          .tell(new VehicleWebQuery.UpdatedFleetManagerList(registry));
+
+    return this;
+  }
+
   private Behavior<Message> onListFleetMgrsJson(ListFleetMgrsJson message) {
     // Spoof method. In reality we would have modelled fleet managers. In this
     // toy system the four managers are just hard coded. We could have put this
@@ -207,11 +250,10 @@ public class Registry extends AbstractBehavior<Registry.Message> {
       for (Map.Entry<Long, String> man : fleetManagerNames.entrySet()) {
 
         fleets.add(new Fleet(man.getValue(), Long.toString(man.getKey())));
-        System.out.println(man.getValue() + " will be sent to the client.");
+        getContext().getLog().info(man.getValue() + " will be sent to the client.");
       }
     } catch (Exception e) {
-      System.out.println("Error in onListFleetMgrsJson");
-      System.out.println(e);
+      getContext().getLog().error("Error in onListFleetMgrsJson", e);
     }
 
     // fleets.add(new Fleet("ParanoidFleet", "4"));
@@ -228,7 +270,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
    * @return
    */
   private Behavior<Message> onListing(ListingResponse msg) {
-    getContext().getLog().info("Receptionist Notification - Fleet Manager Created:");
+    getContext().getLog().info("Receptionist Notification (Fleet Manager List Update):");
 
     Set<ActorRef<FleetManagerMsg.Message>> fleetManagerServiceInstances = msg.listing
         .getServiceInstances(FleetManagerMsg.fleetManagerServiceKey);
@@ -269,6 +311,12 @@ public class Registry extends AbstractBehavior<Registry.Message> {
       getContext().getLog().info("\t(fleet manager ref removed from registry cache)");
       // The is no actor to inform that "FleetManager Has been De-registered"
       // as the actor is already gone.
+    }
+
+    // Finally - notify our subscriber of the updated list (we just send a complete
+    // refresh every time, just like the receptionist)
+    if (VEHICLE_WEB_QUERY_REF != null) {
+      VEHICLE_WEB_QUERY_REF.tell(new VehicleWebQuery.UpdatedFleetManagerList(registry));
     }
 
     return Behaviors.same();

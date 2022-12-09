@@ -326,7 +326,7 @@ export class WotDevice {
         });
 
         // Property Vehicle ID
-        this.propVehicleId = "XAKALAGLG1395940";
+        this.propVehicleId = "WoT-ID-Mfr-VIN" + this.vehicleNumber;
         this.thing.setPropertyReadHandler("propVehicleId", async () => this.propVehicleId);
         
         // Property Oil Level

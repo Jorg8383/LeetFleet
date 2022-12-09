@@ -1,7 +1,24 @@
 
 // call to get cars
-let fleets = ["fleetless", "paranoid", "kadokola"]
+// let fleets = [{"managerId":"10000","name":"Fastidious"},{"managerId":"10001","name":"Careless"},{"managerId":"10002","name":"Paranoid"},{"managerId":"10003","name":"Fleetless"}]
 
+async function getFleets(){
+    console.log("gothere")
+    var xhttp = new XMLHttpRequest();
+    xhttp.onload = function() {
+            var response = xhttp.response
+           setUpDropDown(JSON.parse(response))
+        }
+    xhttp.open("GET", "http://localhost:8080/web/list_fleets", true);
+    xhttp.send();
+   
+    
+
+}
+
+var home = document.querySelector(".home")
+
+getFleets()
 
 // dummy json
 
@@ -66,14 +83,32 @@ function showVehicle(vehicleJson){
 
 }
 
-let insideDropdown = "";
-fleets.forEach(element => {
-    insideDropdown += "<a class='dropdown-item' value='" + element + "'href='#'>" + element +"</a>";
-});
+function setUpDropDown(fleetMgrs) {
+        let insideDropdown = "";
+        fleetMgrs.forEach(element => {
+        insideDropdown += "<a class='dropdown-item' value='" + element.name + "'href='#'>" + element.name +" Manager</a>";
+        
 
-let home = document.querySelectorAll(".home")[0];
+        document.getElementsByClassName("dropdown-menu")[0].innerHTML = insideDropdown;
+        })
+        let dropdownItems = document.querySelectorAll(".dropdown-item")
 
-document.getElementsByClassName("dropdown-menu")[0].innerHTML = insideDropdown;
+        dropdownItems.forEach(element => {
+            element.addEventListener("click", () => {
+                // console.log(element.classList)
+                var indiVehicle = showFleetVehicles(element.innerHTML);
+
+            })
+        })
+};
+
+
+// let insideDropdown = "";
+// fleets.forEach(element => {
+//     insideDropdown += "<a class='dropdown-item' value='" + element.name + "'href='#'>" + element.name +" Manager</a>";
+// });
+
+
 
 function showFleetVehicles(fleet){
     let vehicleDiv = document.getElementById("vehicles")

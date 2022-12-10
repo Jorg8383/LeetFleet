@@ -6,8 +6,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import org.json.JSONPropertyIgnore;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
@@ -18,6 +16,7 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import lf.message.FleetManagerMsg;
 import lf.message.LFSerialisable;
 import lf.model.Vehicle;
 import redis.clients.jedis.HostAndPort;
@@ -46,26 +45,15 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     }
 
     /**
-     * Return a copy of the current vehicle state, for reporting etc. elsewhere.
+     * Return a copy of the current vehicle state to the FleetManager
      */
     public final static class RequestVehicleModel implements Message, LFSerialisable {
-        // NOTE: the return type here. We define our own response message!
-        //       designed for the 'akka ask pattern'
-        public final ActorRef<VehicleModel> respondTo;
-        public RequestVehicleModel(@JsonProperty("respondTo") ActorRef<VehicleModel> respondTo) {
-            this.respondTo = respondTo;
-        }
-    }
-
-    // Now... here's an interesting little message. Notice is *does not*
-    // implement the Message interface.  That's because this message is not
-    // handled here. "So why not declare it where it is handled?" Well... it
-    // could be handled anywhere. It will be used as the response to an 'ask'
-    // pattern request.
-    public final static class VehicleModel implements LFSerialisable {
-        public final Vehicle vehicle;
-        public VehicleModel(@JsonProperty("vehicle") Vehicle vehicle) {
-          this.vehicle = vehicle;
+        public long query_id;
+        public final ActorRef<FleetManagerMsg.Message> replyTo;
+        public RequestVehicleModel(
+            @JsonProperty("query_id") long query_id,
+            @JsonProperty("replyTo") ActorRef<FleetManagerMsg.Message> replyTo) {
+            this.replyTo = replyTo;
         }
     }
 
@@ -254,12 +242,12 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     }
 
     /**
-     * When a copy of the vehicle modelis requested, supply it!
+     * When a copy of the vehicle model is requested, supply it!
      * @param message
      * @return
      */
     private Behavior<Message> onRequestVehicleModel(RequestVehicleModel message) {
-        message.respondTo.tell(new VehicleModel(this.vehicle));
+        message.replyTo.tell(new FleetManagerMsg.VehicleModelResponse(message.query_id, this.vehicle));
         return this;
     }
 

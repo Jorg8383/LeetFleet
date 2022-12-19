@@ -1,6 +1,10 @@
 package lf.actor;
 
+import java.time.Duration;
+import java.util.Collection;
 import java.util.HashMap;
+
+import com.typesafe.config.Config;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
@@ -8,14 +12,20 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import akka.actor.typed.javadsl.TimerScheduler;
 import akka.actor.typed.receptionist.Receptionist;
 import lf.core.VehicleIdRange;
+import lf.core.VehicleQuery;
 import lf.message.FleetManagerMsg;
+import lf.message.FleetManagerMsg.ListVehiclesJson;
 import lf.message.FleetManagerMsg.Message;
 import lf.message.FleetManagerMsg.ProcessVehicleWotUpdate;
+import lf.message.FleetManagerMsg.QueryTimeout;
 import lf.message.FleetManagerMsg.ProcessVehicleWebUpdate;
 import lf.message.FleetManagerMsg.RegistrationSuccess;
+import lf.message.FleetManagerMsg.VehicleModelResponse;
 import lf.message.VehicleEventMsg;
+import lf.message.WebPortalMsg;
 import lf.model.Vehicle;
 
 /**
@@ -40,27 +50,47 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
     // "consumed thing" that was ALSO an akka actor. That... would have been sweet.
     private static HashMap<Long, ActorRef<VehicleTwin.Message>> vehicles = new HashMap<Long, ActorRef<VehicleTwin.Message>>();
 
+    public long SEED_QUERY_ID; // The FleetManager assigns an ID on messages 'in play'
+    private Duration timeout;
+
+    // Track the vehicle queries from the web client.
+    private static HashMap<Long, VehicleQuery> queries = new HashMap<Long, VehicleQuery>();
+
+    private final TimerScheduler<Message> timers;
+
     // CREATE THIS ACTOR
+    // To get access to the timers you start with Actor.withTimers that will pass
+    // a TimerScheduler instance to the function. This can be used with any type
+    // of Behavior, such as immutable or mutable.
     public static Behavior<Message> create() {
-        return Behaviors.setup(
-                // Register this actor with the receptionist
-                context -> {
-                    context
+        return Behaviors.withTimers(
+            timers -> {
+                return Behaviors.setup(
+                    // Register this actor with the receptionist
+                    context -> {
+                        context
                             .getSystem()
                             .receptionist()
                             .tell(Receptionist.register(FleetManagerMsg.fleetManagerServiceKey, context.getSelf()));
 
-                    return Behaviors.setup(CarelessFleetManager::new);
-                });
+                        return new CarelessFleetManager(timers, context);
+                    });
+                }
+            );
     }
 
     // ADD TO CONTEXT
-    protected CarelessFleetManager(ActorContext<Message> context) {
+    protected CarelessFleetManager(TimerScheduler<Message> timers, ActorContext<Message> context) {
         super(context);
-        // send a message to the registry to register!!!! FFS
 
-        // akka://my-sys@host.example.com:5678/user/service-b
-        // registry.tell(new Registry.RegisterFleetManager(getContext().getSelf()));
+        this.timers = timers;
+
+        Config config = context.getSystem().settings().config().getConfig("akka.fleet-manager");
+        // The fleetmanager can at times gather information from its fleet. When
+        // it does so in response to a web request it must - of needs - timeout
+        // if some expected responses do not arrive.  This is configured in the
+        // application config so that it can be updated without altering code.
+        this.timeout = config.getDuration("query-timeout");  // config string specifies the Duration units.
     }
 
     // =========================================================================
@@ -72,6 +102,9 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
                 .onMessage(RegistrationSuccess.class, this::onRegistrationSuccess)
                 .onMessage(ProcessVehicleWotUpdate.class, this::onProcessVehicleWotUpdate)
                 .onMessage(ProcessVehicleWebUpdate.class, this::onProcessVehicleWebUpdate)
+                .onMessage(ListVehiclesJson.class, this::onListVehiclesJson)
+                .onMessage(VehicleModelResponse.class, this::onVehicleModelResponse)
+                .onMessage(QueryTimeout.class, this::onQueryTimeout)
                 .build();
     }
 
@@ -198,5 +231,89 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
 
         return this;
     }
+
+    /**
+     * Return a list of active registered vehicles in JSON format
+     * @param message
+     * @return
+     */
+    private Behavior<Message> onListVehiclesJson(ListVehiclesJson message) {
+        long query_id = SEED_QUERY_ID++;
+
+        Collection<ActorRef<VehicleTwin.Message>> vehicleTwinRefs = vehicles.values();
+
+        // Each timer has a key and if a new timer with same key is started the previous is cancelled
+        // and it’s guaranteed that a message from the previous timer is not received, even though it
+        // might already be enqueued in the mailbox when the new timer is started
+        // ** WE NEED THE TIMER_KEY ** so we can cancel it if all the vehicles respond before the
+        // timeout.
+        Object timer_key = new Object();
+
+        VehicleQuery thisQuery = new VehicleQuery(
+            query_id, message.portalRef, timer_key, vehicleTwinRefs.size());
+
+        // Loop over the Vehicle twins. Request the content for the vehicle list..
+        try {
+          for (ActorRef<VehicleTwin.Message> vehicleTwinRef : vehicleTwinRefs)
+          {
+            vehicleTwinRef.tell(
+                new VehicleTwin.RequestVehicleModel(query_id, getContext().getSelf())
+                );
+          }
+        } catch (Exception e) {
+          getContext().getLog().error("", e);
+        }
+
+        // Send a future message to self with the timeout for this query...
+        timers.startSingleTimer(timer_key, new FleetManagerMsg.QueryTimeout(query_id), timeout);
+
+        // Store the query in the local map for tracking:
+        queries.put(query_id, thisQuery);
+
+        return this;
+    }
+
+    /**
+     * Accept a Vehicle model from one of the vehicle twins. Store it in the
+     * relevant query. If the query is complete - return it.
+     * @param message
+     * @return
+     */
+    private Behavior<Message> onVehicleModelResponse(VehicleModelResponse message) {
+        VehicleQuery thisQuery = queries.get(message.query_id);
+
+        thisQuery.vehicles.add(message.vehicle);
+
+        // Is the query complete?
+        if (thisQuery.expected_query_size == thisQuery.vehicles.size()) {
+            thisQuery.portalRef.tell(new WebPortalMsg.VehicleListToWebP(thisQuery.vehicles));
+
+            // Cancel the timer...
+            timers.cancel(thisQuery.timer_key);
+
+            queries.remove(thisQuery.query_id);
+        }
+
+        return this;
+    }
+
+    /**
+     * Query timeout. We take the view we have gathered all the information we
+     * can and return the query as it.  It is possible one of the queried vehicles
+     * has gone offline while the query was in progress.
+     * @param message
+     * @return
+     */
+    private Behavior<Message> onQueryTimeout(QueryTimeout message) {
+        VehicleQuery thisQuery = queries.get(message.query_id);
+
+        // The query is now complete (timed out)
+        thisQuery.portalRef.tell(new WebPortalMsg.VehicleListToWebP(thisQuery.vehicles));
+        queries.remove(thisQuery.query_id);
+
+        return this;
+    }
+
+    // DO WE DEAL WITH THE SINGLE VEHICLE QUERY????????
 
 }

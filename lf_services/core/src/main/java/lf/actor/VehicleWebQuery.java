@@ -33,8 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * if it fails any messages its handling are lost. These messages are read-only
  * queries.
  */
-//public class VehicleWebQuery extends AbstractBehavior<Registry.Message> {
-public class VehicleWebQuery {
+public class VehicleWebQuery extends AbstractBehavior<VehicleWebQuery.Message> {
 
   // Create a ServiceKey so we can find the VehicleWebQuery actor using the Receptioninst
   // The API of the receptionist is based on actor messages.
@@ -48,12 +47,29 @@ public class VehicleWebQuery {
   * Request for a list the registered fleet managers in JSON format.
   */
   public final static class ListVehiclesJson implements Message, LFSerialisable {
-    public final ActorRef<WebPortalMsg.FleetListToWebP> portalRef;
+    public final long fleetManagerId;
+    public final ActorRef<WebPortalMsg.VehicleListToWebP> portalRef;
 
-    public ListVehiclesJson(@JsonProperty("portalRef") ActorRef<WebPortalMsg.FleetListToWebP> portalRef) {
+    public ListVehiclesJson(
+      @JsonProperty("fleetManagerId") long fleetManagerId,
+      @JsonProperty("portalRef") ActorRef<WebPortalMsg.VehicleListToWebP> portalRef)
+    {
+      this.fleetManagerId = fleetManagerId;
       this.portalRef = portalRef;
     }
   }
+
+  /**
+  * Request for a list the registered fleet managers in JSON format.
+  */
+  public final static class UpdatedFleetManagerList implements Message, LFSerialisable {
+    public final HashMap<Long, ActorRef<FleetManagerMsg.Message>> registry;
+
+    public UpdatedFleetManagerList(@JsonProperty("registry") HashMap<Long, ActorRef<FleetManagerMsg.Message>> registry) {
+      this.registry = registry;
+    }
+  }
+
 
   /**
    * Message to handle Listing Response from Receptionist.
@@ -71,56 +87,58 @@ public class VehicleWebQuery {
 
   // ENCAPSULATION:
 
-  private static long MESSAGE_ID = 10000;
-
   // Track which id's map to which 'FleetManager' (as the responses
   // can arrive in any order).
-  private static HashMap<Long, ActorRef<FleetManagerMsg.Message>> registry = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
+  private HashMap<Long, ActorRef<FleetManagerMsg.Message>> registryMirror;
 
-  // We need an 'adaptor' - to convert the Receptionist Listing to one we
-  // understand!!
-  //private final ActorRef<Receptionist.Listing> listingResponseAdapter;
+  public ActorRef<Registry.Message> REGISTRY_REF = null;
 
-  // // CREATE THIS ACTOR
-  // public static Behavior<Message> create() {
-  //   return Behaviors.setup(
-  //       // Register this actor with the receptionist
-  //       context -> {
-  //         context
-  //             .getSystem()
-  //             .receptionist()
-  //             .tell(Receptionist.register(vehicleWebQuerySK, context.getSelf()));
+    // We need an 'adaptor' - to convert the Receptionist Listing to one we
+    // understand!!
+    private final ActorRef<Receptionist.Listing> listingResponseAdapter;
 
-  //         //return new VehicleWebQuery(context);
-  //         return Behaviors.setup(VehicleWebQuery::new);
-  //       });
-  // }
+  // CREATE THIS ACTOR
+  public static Behavior<Message> create() {
+    return Behaviors.setup(
+        // Register this (key) actor with the receptionist
+        context -> {
+          context
+              .getSystem()
+              .receptionist()
+              .tell(Receptionist.register(vehicleWebQuerySK, context.getSelf()));
 
-  // // ADD TO CONTEXT
-  // private VehicleWebQuery(ActorContext<Message> context) {
-  //   super(context);
+          //return new VehicleWebQuery(context);
+          return Behaviors.setup(VehicleWebQuery::new);
+        });
+  }
 
-  //   this.listingResponseAdapter = context.messageAdapter(Receptionist.Listing.class, ListingResponse::new);
+  // ADD TO CONTEXT
+  private VehicleWebQuery(ActorContext<Message> context) {
+    super(context);
 
-  //   // Subscribe for FleetManager list updates!
-  //   context
-  //       .getSystem()
-  //       .receptionist()
-  //       .tell(
-  //           Receptionist.subscribe(
-  //               FleetManagerMsg.fleetManagerServiceKey, listingResponseAdapter));
-  // }
+    this.listingResponseAdapter = context.messageAdapter(Receptionist.Listing.class, ListingResponse::new);
 
-  // // =========================================================================
+    // Subscribe for Registry list updates!
+    context
+        .getSystem()
+        .receptionist()
+        .tell(
+            Receptionist.subscribe(
+                Registry.registrySK, listingResponseAdapter));
+  }
 
-  // // MESSAGE HANDLING:
-  // @Override
-  // public Receive<Message> createReceive() {
-  //   return newReceiveBuilder()
-  //       .onMessage(ListFleetMgrsJson.class, this::onListFleetMgrsJson)
-  //       .onMessage(ListingResponse.class, this::onListing)
-  //       .build();
-  // }
+  // =========================================================================
+
+  // MESSAGE HANDLING:
+  @Override
+  public Receive<Message> createReceive() {
+    return newReceiveBuilder()
+        //.onMessage(ListFleetMgrsJson.class, this::onListFleetMgrsJson)
+        .onMessage(ListingResponse.class, this::onListing)
+        .onMessage(UpdatedFleetManagerList.class, this::onUpdatedFleetManagerList)
+        .onMessage(ListVehiclesJson.class, this::onListVehiclesJson)
+        .build();
+  }
 
   // From FleetManager
 
@@ -141,19 +159,54 @@ public class VehicleWebQuery {
   //   return this;
   // }
 
-  // // From Receptionist
+  // From Receptionist
 
-  // private Behavior<Message> onListing(ListingResponse msg) {
-  //   getContext().getLog().info("Receptionist Notification - Fleet Manager Created:");
-  //   registry = new HashMap<Long, ActorRef<FleetManagerMsg.Message>>();
-  //   msg.listing.getServiceInstances(FleetManagerMsg.fleetManagerServiceKey)
-  //       .forEach(
-  //           fleetManagerRef -> {
-  //             // Refresh entire registry every time?
-  //             registry.put(SEED_ID++, fleetManagerRef);
-  //             getContext().getLog().info("\t(fleet manager ref added to registry cache)");
-  //           });
-  //   return Behaviors.same();
-  // }
+  private Behavior<Message> onListing(ListingResponse msg) {
+    getContext().getLog().info("Receptionist Notification (Registry List Update)");
+    msg.listing.getServiceInstances(Registry.registrySK)
+        .forEach(
+            registryRef -> {
+              REGISTRY_REF = registryRef;
+              getContext().getLog().info("\tREGISTRY_REF updated.");
+            });
+
+    // When we know the REGISTRY_REF (or it is updated) we subscribe to the
+    // fleetManagerList is contains. Do a null check just in case we get sub'ed
+    // to the list BEFORE the registry has registered.
+    if (REGISTRY_REF != null) {
+      REGISTRY_REF.tell(new Registry.SubToFleetMgrList(getContext().getSelf()));
+    }
+
+    return Behaviors.same();
+  }
+
+  private Behavior<Message> onUpdatedFleetManagerList(UpdatedFleetManagerList msg) {
+    getContext().getLog().info("Registry Notification (Registry FleetMgr List Update)");
+
+    // Nothing smart... just update our copy of the 'id to ref' mapping.
+    this.registryMirror = msg.registry;
+
+    return Behaviors.same();
+  }
+
+  /**
+   * For the received fleet manager id - get a list of all active vehicles in
+   * Json format.
+   * @param msg
+   * @return
+   */
+  private Behavior<Message> onListVehiclesJson(ListVehiclesJson msg) {
+    // Want a list of all vehicles for the selected managerId
+    ActorRef<FleetManagerMsg.Message> managerRef = registryMirror.get(msg.fleetManagerId);
+    // Do a null check just in case an invalidId was received.
+    if (managerRef != null) {
+      managerRef.tell(new FleetManagerMsg.ListVehiclesJson(msg.portalRef));
+    }
+    else {
+      // Should we send an empty list with a message here!
+    }
+
+    return Behaviors.same();
+  }
 
 }

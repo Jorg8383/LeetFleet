@@ -6,14 +6,17 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import lf.message.FleetManagerMsg;
 import lf.message.LFSerialisable;
 import lf.model.Vehicle;
 import redis.clients.jedis.HostAndPort;
@@ -38,6 +41,19 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         public final Vehicle vehicle;
         public WebUpdate(Vehicle vehicle) {
           this.vehicle = vehicle;
+        }
+    }
+
+    /**
+     * Return a copy of the current vehicle state to the FleetManager
+     */
+    public final static class RequestVehicleModel implements Message, LFSerialisable {
+        public long query_id;
+        public final ActorRef<FleetManagerMsg.Message> replyTo;
+        public RequestVehicleModel(
+            @JsonProperty("query_id") long query_id,
+            @JsonProperty("replyTo") ActorRef<FleetManagerMsg.Message> replyTo) {
+            this.replyTo = replyTo;
         }
     }
 
@@ -126,6 +142,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         return newReceiveBuilder()
                 .onMessage(WotUpdate.class, this::onWotUpdate)
                 .onMessage(WebUpdate.class, this::onWebUpdate)
+                .onMessage(RequestVehicleModel.class, this::onRequestVehicleModel)
                 .onMessage(GracefulShutdown.class, this::onGracefulShutdown)
                 .build();
     }
@@ -223,4 +240,15 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
             }
         }
     }
+
+    /**
+     * When a copy of the vehicle model is requested, supply it!
+     * @param message
+     * @return
+     */
+    private Behavior<Message> onRequestVehicleModel(RequestVehicleModel message) {
+        message.replyTo.tell(new FleetManagerMsg.VehicleModelResponse(message.query_id, this.vehicle));
+        return this;
+    }
+
 }

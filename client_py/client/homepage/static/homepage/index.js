@@ -12,6 +12,39 @@
 //     xhttp.send();
 // }
 
+async function getVehicles(id){
+    var url = "http://localhost:8080/web/list_vehicles?fleetManager=" + id
+    // $.getJSON(url,
+    // function(data){
+    //     setUpDropDown(data);
+    //    return false;
+    // });
+    console.log(url)
+    $.support.cors = true;
+
+    
+    $.ajax({
+        
+        url: url,
+        type: "POST",
+        
+        dataType: 'json',
+        
+        headers: {
+            'Access-Control-Allow-Origin': '*'
+        },
+        success: function(data){
+            showFleetVehicles(data)
+            
+            
+        },
+        error: function(jqXhr, textStatus, errorMessage){
+            console.log("error message: " + textStatus + jqXhr)
+        }
+    })
+
+}
+
 async function getFleets(){
     var url = "http://localhost:8080/web/list_fleets"
     // $.getJSON(url,
@@ -26,16 +59,15 @@ async function getFleets(){
         
         url: "http://localhost:8080/web/list_fleets",
         type: "GET",
-        // cors: true,
+        
         dataType: 'json',
-        // support.cors = true,
+        
         headers: {
             'Access-Control-Allow-Origin': '*'
         },
         success: function(data){
-            console.log("got here")
-            var data = $.parseJSON(data)
-            setUpDropDown(JSON.parse(data))
+            
+            setUpDropDown(data)
         },
         error: function(jqXhr, textStatus, errorMessage){
             console.log("error message: " + textStatus + jqXhr)
@@ -113,7 +145,7 @@ function showVehicle(vehicleJson){
         newInnerHtml += "<p> Maintanence needed: " + vehicleJson.maintenanceNeeded + "</p>";
         newInnerHtml += "<button class='btn btn-warning vehicle-btn' value='" + vehicleJson.vehicleId + "'>" + vehicleJson.vehicleId + "</button>";
 
-        newInnerHtml += "<p>-------------------------------------------------------------------</p>";
+        
         newInnerHtml += "</div>"
 
         return newInnerHtml
@@ -123,7 +155,7 @@ function showVehicle(vehicleJson){
 function setUpDropDown(fleetMgrs) {
         let insideDropdown = "";
         fleetMgrs.forEach(element => {
-        insideDropdown += "<a class='dropdown-item' value='" + element.name + "'href='#'>" + element.name +" Manager</a>";
+        insideDropdown += "<a class='dropdown-item' id='" + element.managerId + "'>" + element.name +" Manager</a>";
         
 
         document.getElementsByClassName("dropdown-menu")[0].innerHTML = insideDropdown;
@@ -132,8 +164,10 @@ function setUpDropDown(fleetMgrs) {
 
         dropdownItems.forEach(element => {
             element.addEventListener("click", () => {
+                
                 // console.log(element.classList)
-                var indiVehicle = showFleetVehicles(element.innerHTML);
+                getVehicles(element.id)
+                // var indiVehicle = showFleetVehicles(element.innerHTML);
 
             })
         })
@@ -152,12 +186,17 @@ function showFleetVehicles(fleet){
     // make api call to get vehicles from akka
     
     let InnerHtml = "";
-    dummy_json.forEach(vehicleJson => {
+    console.log(fleet)
+    //change dummy json to fleet
+    fleet.forEach(vehicleJson => {
 
         InnerHtml += showVehicle(vehicleJson)
     })
 
-    vehicleDiv.style.display = "inline-block";
+    vehicleDiv.style.display = "grid";
+    vehicleDiv.style.gridTemplateColumns = "30% 30% 30%";
+    vehicleDiv.style.justifyContent = "center";
+    
     home.style.display = "none";
     vehicleDiv.innerHTML = InnerHtml;
     addEventListenertoButtons();
@@ -178,13 +217,13 @@ document.querySelector(".back").addEventListener("click", () => {
 
 let dropdownItems = document.querySelectorAll(".dropdown-item")
 
-dropdownItems.forEach(element => {
-    element.addEventListener("click", () => {
-        // console.log(element.classList)
-        var indiVehicle = showFleetVehicles(element.innerHTML);
+// dropdownItems.forEach(element => {
+//     element.addEventListener("click", () => {
+//         // console.log(element.classList)
+//         var indiVehicle = showFleetVehicles(element.innerHTML);
 
-    })
-})
+//     })
+// })
 
 
 function addEventListenertoButtons(){

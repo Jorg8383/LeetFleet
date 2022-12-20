@@ -61,6 +61,8 @@
             <scope>test</scope>
         </dependency>
         <!-- Akka Http directives implementing the CORS specifications defined by W3C  -->
+        <!-- While not a proprietary solution, this is an officially supported extension,
+             as listed here: https://doc.akka.io/docs/akka-http/current/extensions.html -->
         <dependency>
             <groupId>ch.megard</groupId>
             <artifactId>akka-http-cors_3</artifactId>

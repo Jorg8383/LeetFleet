@@ -1,5 +1,7 @@
 package lf.message;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.receptionist.ServiceKey;
 import lf.actor.Registry;
@@ -61,5 +63,61 @@ public class FleetManagerMsg {
             this.vehicleWebEventRef = vehicleWebEventRef;
         }
     }
+
+    /**
+     * Every fleet manager has a list of active vehicles. Receipt of this message
+     * is a request for a list of those vehicles in JSON format.
+     */
+    public final static class ListVehiclesJson implements Message, LFSerialisable {
+        public final ActorRef<WebPortalMsg.VehicleListToWebP> portalRef;
+
+        public ListVehiclesJson(@JsonProperty("portalRef") ActorRef<WebPortalMsg.VehicleListToWebP> portalRef) {
+            this.portalRef = portalRef;
+        }
+    }
+
+    /**
+     * Receive a vehicle model back from a VehicleTwin.
+     */
+    public final static class VehicleModelResponse implements Message, LFSerialisable {
+        public final long query_id;
+        public final Vehicle vehicle;
+
+        public VehicleModelResponse(
+            @JsonProperty("query_id") long query_id, @JsonProperty("vehicle") Vehicle vehicle)
+        {
+            this.query_id = query_id;
+            this.vehicle = vehicle;
+        }
+    }
+    /**
+     * Every fleet manager has a list of active vehicles. Receipt of this message
+     * is a request for a list of those vehicles in JSON format.
+     */
+    public final static class GetVehicleJson implements Message, LFSerialisable {
+        public final long vehicleId;
+        public final ActorRef<WebPortalMsg.VehicleListToWebP> portalRef;
+
+        public GetVehicleJson(
+            @JsonProperty("vehicleId") long vehicleId,
+            @JsonProperty("portalRef") ActorRef<WebPortalMsg.VehicleListToWebP> portalRef)
+        {
+            this.vehicleId = vehicleId;
+            this.portalRef = portalRef;
+        }
+    }
+
+    /**
+     * A message indicating a timeout has occurred for a query.
+     */
+    public final static class QueryTimeout implements Message, LFSerialisable {
+        public final long query_id;
+
+        public QueryTimeout(@JsonProperty("query_id") long query_id)
+        {
+            this.query_id = query_id;
+        }
+    }
+
 
 }

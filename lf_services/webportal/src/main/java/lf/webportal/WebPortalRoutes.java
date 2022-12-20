@@ -1,7 +1,10 @@
 package lf.webportal;
 
 import java.time.Duration;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
@@ -12,12 +15,18 @@ import akka.http.javadsl.marshallers.jackson.Jackson;
 import static akka.http.javadsl.server.Directives.*;
 
 import akka.http.javadsl.model.StatusCodes;
+import akka.http.javadsl.server.Directives;
+import akka.http.javadsl.server.ExceptionHandler;
 import akka.http.javadsl.server.PathMatchers;
+import akka.http.javadsl.server.RejectionHandler;
 import akka.http.javadsl.server.Route;
 import akka.http.javadsl.unmarshalling.StringUnmarshallers;
 import lf.actor.WebPortalGuardian;
 import lf.message.WebPortalMsg;
 import lf.model.Vehicle;
+
+import static ch.megard.akka.http.cors.javadsl.CorsDirectives.cors;
+import static ch.megard.akka.http.cors.javadsl.CorsDirectives.corsRejectionHandler;
 
 /**
  * Routes can be defined in separated classes like shown in here
@@ -77,18 +86,18 @@ public class WebPortalRoutes extends WebPortalMsg {
                                 askTimeout, scheduler);
         }
 
-        private CompletionStage<WebPortalMsg.VehicleToWebP> requestFleetList() {
-                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebFleetList(ref),
+        private CompletionStage<WebPortalMsg.FleetListToWebP> requestFleetList() {
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebListFleetJson(ref),
                                 askTimeout, scheduler);
         }
 
-        private CompletionStage<WebPortalMsg.VehicleToWebP> requestVehicleList(long managerId) {
-                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebVehicleList(managerId, ref),
+        private CompletionStage<WebPortalMsg.VehicleListToWebP> requestVehicleList(long managerId) {
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebListVehicleJson(managerId, ref),
                                 askTimeout, scheduler);
         }
 
         private CompletionStage<WebPortalMsg.VehicleToWebP> getVehicle(long managerId, long vehicleId) {
-                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebGetVehicle(managerId, vehicleId, ref),
+                return AskPattern.ask(webPortalGuardianRef, ref -> new WebPortalGuardian.WebGetVehicleJson(managerId, vehicleId, ref),
                                 askTimeout, scheduler);
         }
 
@@ -156,13 +165,31 @@ public class WebPortalRoutes extends WebPortalMsg {
          */
 
         public Route vehicleEventRoutes() {
+                // Your CORS settings are loaded from `application.conf`
+
+                // Your rejection handler
+                final RejectionHandler rejectionHandler = corsRejectionHandler().withFallback(RejectionHandler.defaultHandler());
+
+                // Your exception handler
+                final ExceptionHandler exceptionHandler = ExceptionHandler.newBuilder()
+                        .match(NoSuchElementException.class, ex -> complete(StatusCodes.NOT_FOUND, ex.getMessage()))
+                        .build();
+
+                // Combining the two handlers only for convenience
+                final Function<Supplier<Route>, Route> handleErrors = inner -> Directives.allOf(
+                        s -> handleExceptions(exceptionHandler, s),
+                        s -> handleRejections(rejectionHandler, s),
+                        inner
+                );
+
                 // We are using an 'actor per request' pattern. So:
                 // For every single request we spawn a 'VehicleEvent' actor.
                 // - This actor talks to the AKKA system and does whatever we need
                 // asynchronously.
                 // - We *EXPECT* a response from it (we block here until we get a response)
                 // - Then when it responds we send that back to the user as the HTTP response
-                return concat(
+                return handleErrors.apply(() -> cors(() -> handleErrors.apply(() ->
+                        concat(
                         path("hello", () -> get(() -> complete("<h1>Say hello to akka-http</h1>"))),
 
                         // Akka HTTP routes can interact with actors.
@@ -194,22 +221,22 @@ public class WebPortalRoutes extends WebPortalMsg {
                         // List all active fleets
                         path(PathMatchers.segment("web").slash("list_fleets"),
                                 () -> onSuccess(requestFleetList(),
-                                        fleet_list -> complete(StatusCodes.OK, fleet_list, Jackson.marshaller()))),
+                                        theMessage -> complete(StatusCodes.OK, theMessage.fleets, Jackson.marshaller()))),
 
                         // List all active vehicles for the selected fleet
                         path(PathMatchers.segment("web").slash("list_vehicles"),
                                 () -> parameter(StringUnmarshallers.INTEGER,"fleetManager",
                                 fleetManager -> onSuccess(requestVehicleList(fleetManager),
-                                        vehicle_list -> complete(StatusCodes.OK, vehicle_list, Jackson.marshaller())))),
+                                        theMessage -> complete(StatusCodes.OK, theMessage.vehicles, Jackson.marshaller())))),
 
                         // List all details for the selected vehicle
                         path(PathMatchers.segment("web").slash("get_vehicle"),
                                 () -> parameter(StringUnmarshallers.INTEGER,"fleetManager",
                                 fleetManager -> parameter("vehicleId",
                                 vehicleId -> onSuccess(getVehicle(fleetManager, Vehicle.wotIdToLongId(vehicleId)),
-                                        vehicle_list -> complete(StatusCodes.OK, vehicle_list, Jackson.marshaller())))))
+                                        theMessage -> complete(StatusCodes.OK, theMessage.vehicle, Jackson.marshaller())))))
 
-                );
+                ))));
         }
 
 }

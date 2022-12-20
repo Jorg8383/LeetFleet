@@ -6,7 +6,7 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import lf.actor.Registry.ListFleetManagers;
+import lf.actor.Registry.ListFleetMgrRefs;
 import lf.message.FleetManagerMsg;
 import lf.message.VehicleEventMsg;
 import lf.message.VehicleEventMsg.Message;
@@ -18,7 +18,7 @@ import java.util.*;
 public class VehicleWotEvent extends AbstractBehavior<VehicleEventMsg.Message> {
 
   // MESSAGES:
-  // Toy system. All messages shared with VehicleWebEvent.
+  // All messages shared with VehicleWebEvent.
 
   // ENCAPSULATION:
 
@@ -46,7 +46,7 @@ public class VehicleWotEvent extends AbstractBehavior<VehicleEventMsg.Message> {
   public Receive<Message> createReceive() {
     return newReceiveBuilder()
       .onMessage(VehicleEventMsg.EventFromWebP.class, this::onWotEventFromWebP)
-      .onMessage(VehicleEventMsg.FleetManagerList.class, this::onFleetManagerList)
+      .onMessage(VehicleEventMsg.FleetMgrRefList.class, this::onFleetManagerList)
       .onMessage(VehicleEventMsg.EventComplete.class, this::onEventComplete)
       .build();
   }
@@ -82,7 +82,7 @@ public class VehicleWotEvent extends AbstractBehavior<VehicleEventMsg.Message> {
     // We don't care! We send off the fleetId 'as is' to the registry. If the
     // fleetId is valid we get back a list of 'one fleet manager'. If it's invalid
     // we should get back a list of all of them.
-    registryRef.tell(new ListFleetManagers(vehicle.getFleetManager(), this.getContext().getSelf()));
+    registryRef.tell(new ListFleetMgrRefs(vehicle.getFleetManager(), this.getContext().getSelf()));
 
     return this;
   }
@@ -98,7 +98,7 @@ public class VehicleWotEvent extends AbstractBehavior<VehicleEventMsg.Message> {
    * @param message
    * @return
    */
-  private Behavior<Message> onFleetManagerList(VehicleEventMsg.FleetManagerList message) {
+  private Behavior<Message> onFleetManagerList(VehicleEventMsg.FleetMgrRefList message) {
     // Store the all important ref to the portal
     Collection<ActorRef<FleetManagerMsg.Message>> fleetManagerRefs = message.fleetManagerRefs;
 

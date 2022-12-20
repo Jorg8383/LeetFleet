@@ -60,6 +60,11 @@
             <version>${akka.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-stream-typed_${scala.binary.version}</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
         <!-- Unit Testing -->
          <dependency>
             <groupId>junit</groupId>

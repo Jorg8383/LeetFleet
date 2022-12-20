@@ -1,7 +1,61 @@
-
 // call to get cars
-let fleets = ["fleetless", "paranoid", "kadokola"]
+// let fleets = [{"managerId":"10000","name":"Fastidious"},{"managerId":"10001","name":"Careless"},{"managerId":"10002","name":"Paranoid"},{"managerId":"10003","name":"Fleetless"}]
 
+// async function getFleets(){
+//     console.log("gothere")
+//     var xhttp = new XMLHttpRequest();
+//     xhttp.onload = function() {
+//             var response = xhttp.response
+//            setUpDropDown(JSON.parse(response))
+//         }
+//     xhttp.open("GET", "http://localhost:8080/web/list_fleets", true);
+//     xhttp.send();
+// }
+
+async function getFleets(){
+    var url = "http://localhost:8080/web/list_fleets"
+    // $.getJSON(url,
+    // function(data){
+    //     setUpDropDown(data);
+    //    return false;
+    // });
+    $.support.cors = true;
+
+    
+    $.ajax({
+        
+        url: "http://localhost:8080/web/list_fleets",
+        type: "GET",
+        // cors: true,
+        dataType: 'json',
+        // support.cors = true,
+        headers: {
+            'Access-Control-Allow-Origin': '*'
+        },
+        success: function(data){
+            console.log("got here")
+            var data = $.parseJSON(data)
+            setUpDropDown(JSON.parse(data))
+        },
+        error: function(jqXhr, textStatus, errorMessage){
+            console.log("error message: " + textStatus + jqXhr)
+        }
+    })
+    
+
+    // console.log("gothere")
+    // var xhttp = new XMLHttpRequest();
+    // xhttp.onload = function() {
+    //         var response = xhttp.response
+    //        setUpDropDown(JSON.parse(response))
+    //     }
+    // xhttp.open("GET", "http://localhost:8080/web/list_fleets", true);
+    // xhttp.send();
+}
+
+var home = document.querySelector(".home")
+
+getFleets()
 
 // dummy json
 
@@ -9,7 +63,7 @@ let dummy_json = [
 
 { "vehicleId" : "WoT-ID-Mfr-VIN-1",
 "fleetManager" : "fleetless",
-"tdURL" : "http://localhost:8080/smart-vehicle",
+"tdURL" : "http://localhost:8080/smart-vehicle/",
 "oilLevel" : 50,
 "tyrePressure" : 30,
 "mileage" : 10000,
@@ -20,7 +74,7 @@ let dummy_json = [
 
 { "vehicleId" : "WoT-ID-Mfr-VIN-2",
 "fleetManager" : "fleetless",
-"tdURL" : "http://localhost:8080/smart-vehicle",
+"tdURL" : "http://localhost:8080/smart-vehicle/",
 "oilLevel" : 50,
 "tyrePressure" : 30,
 "mileage" : 10000,
@@ -31,7 +85,7 @@ let dummy_json = [
 
 { "vehicleId" : "WoT-ID-Mfr-VIN-3",
 "fleetManager" : "fleetless",
-"tdURL" : "http://localhost:8080/smart-vehicle",
+"tdURL" : "http://localhost:8080/smart-vehicle/",
 "oilLevel" : 50,
 "tyrePressure" : 30,
 "mileage" : 10000,
@@ -66,14 +120,32 @@ function showVehicle(vehicleJson){
 
 }
 
-let insideDropdown = "";
-fleets.forEach(element => {
-    insideDropdown += "<a class='dropdown-item' value='" + element + "'href='#'>" + element +"</a>";
-});
+function setUpDropDown(fleetMgrs) {
+        let insideDropdown = "";
+        fleetMgrs.forEach(element => {
+        insideDropdown += "<a class='dropdown-item' value='" + element.name + "'href='#'>" + element.name +" Manager</a>";
+        
 
-let home = document.querySelectorAll(".home")[0];
+        document.getElementsByClassName("dropdown-menu")[0].innerHTML = insideDropdown;
+        })
+        let dropdownItems = document.querySelectorAll(".dropdown-item")
 
-document.getElementsByClassName("dropdown-menu")[0].innerHTML = insideDropdown;
+        dropdownItems.forEach(element => {
+            element.addEventListener("click", () => {
+                // console.log(element.classList)
+                var indiVehicle = showFleetVehicles(element.innerHTML);
+
+            })
+        })
+};
+
+
+// let insideDropdown = "";
+// fleets.forEach(element => {
+//     insideDropdown += "<a class='dropdown-item' value='" + element.name + "'href='#'>" + element.name +" Manager</a>";
+// });
+
+
 
 function showFleetVehicles(fleet){
     let vehicleDiv = document.getElementById("vehicles")

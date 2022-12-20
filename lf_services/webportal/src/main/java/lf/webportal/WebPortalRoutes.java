@@ -13,11 +13,15 @@ import static akka.http.javadsl.server.Directives.*;
 
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.server.PathMatchers;
+import akka.http.javadsl.server.RejectionHandler;
 import akka.http.javadsl.server.Route;
 import akka.http.javadsl.unmarshalling.StringUnmarshallers;
 import lf.actor.WebPortalGuardian;
 import lf.message.WebPortalMsg;
 import lf.model.Vehicle;
+
+import static ch.megard.akka.http.cors.javadsl.CorsDirectives.cors;
+import static ch.megard.akka.http.cors.javadsl.CorsDirectives.corsRejectionHandler;
 
 /**
  * Routes can be defined in separated classes like shown in here
@@ -156,13 +160,18 @@ public class WebPortalRoutes extends WebPortalMsg {
          */
 
         public Route vehicleEventRoutes() {
+                // Your CORS settings are loaded from `application.conf`
+
+                // // Your rejection handler
+                // final RejectionHandler rejectionHandler = corsRejectionHandler().withFallback(RejectionHandler.defaultHandler());
+
                 // We are using an 'actor per request' pattern. So:
                 // For every single request we spawn a 'VehicleEvent' actor.
                 // - This actor talks to the AKKA system and does whatever we need
                 // asynchronously.
                 // - We *EXPECT* a response from it (we block here until we get a response)
                 // - Then when it responds we send that back to the user as the HTTP response
-                return concat(
+                return cors(() -> concat(
                         path("hello", () -> get(() -> complete("<h1>Say hello to akka-http</h1>"))),
 
                         // Akka HTTP routes can interact with actors.
@@ -209,7 +218,7 @@ public class WebPortalRoutes extends WebPortalMsg {
                                 vehicleId -> onSuccess(getVehicle(fleetManager, Vehicle.wotIdToLongId(vehicleId)),
                                         theMessage -> complete(StatusCodes.OK, theMessage.vehicle, Jackson.marshaller())))))
 
-                );
+                ));
         }
 
 }

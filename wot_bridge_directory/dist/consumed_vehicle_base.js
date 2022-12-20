@@ -13,15 +13,15 @@ exports.WotConsumedDevice = void 0;
 class WotConsumedDevice {
     constructor(deviceWoT, tdId) {
         this.wotHiveUri = "http://localhost:9000/api/things/";
-        this.vehicleJSON = { vehicleID: "WoT-ID-Mfr-VIN",
-            fleetManager: "N/A",
-            tdURL: "http://localhost:8080/",
-            oilLevel: 50,
-            tyrePressure: 30,
-            mileage: 10000,
-            nextServiceDistance: 10000,
-            doorStatus: "LOCKED",
-            maintenanceNeeded: false };
+        this.vehicleJSON = { "vehicleID": "WoT-ID-Mfr-VIN",
+            "fleetManager": "N/A",
+            "tdURL": "http://localhost:8081/",
+            "oilLevel": 50,
+            "tyrePressure": 30,
+            "mileage": 10000,
+            "nextServiceDistance": 10000,
+            "doorStatus": "LOCKED",
+            "maintenanceNeeded": false };
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         if (tdId) {
@@ -41,6 +41,23 @@ class WotConsumedDevice {
             yield this.initialiseJSON(this.vehicleJSON);
             console.log("JSON representation is now:");
             console.log(JSON.stringify(this.vehicleJSON));
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/wot", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify({ vehicle: this.vehicleJSON })
+            }).then(res => {
+                if (res.status >= 300) {
+                    throw new Error("There was an error with the request: " + res.status);
+                }
+                res.json();
+            }).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
             this.observeProperties(this.thing);
             this.subscribe(this.thing);
             return true;
@@ -62,14 +79,14 @@ class WotConsumedDevice {
     initialiseJSON(json) {
         return __awaiter(this, void 0, void 0, function* () {
             const allData = yield this.thing.readAllProperties();
-            json.vehicleID = this.updateVehicleID(json.vehicleID);
-            json.tdURL = json.tdURL + this.thing.getThingDescription().title;
-            json.oilLevel = yield allData.get('propOilLevel').value();
-            json.tyrePressure = yield allData.get('propTyrePressure').value();
-            json.mileage = yield allData.get('propTotalMileage').value();
-            json.nextServiceDistance = yield allData.get('propServiceDistance').value();
-            json.doorStatus = yield allData.get('propDoorStatus').value();
-            json.maintenanceNeeded = yield allData.get('propMaintenanceNeeded').value();
+            json["vehicleID"] = this.updateVehicleID(json.vehicleID);
+            json["tdURL"] = json.tdURL + this.thing.getThingDescription().title;
+            json["oilLevel"] = yield allData.get('propOilLevel').value();
+            json["tyrePressure"] = yield allData.get('propTyrePressure').value();
+            json["mileage"] = yield allData.get('propTotalMileage').value();
+            json["nextServiceDistance"] = yield allData.get('propServiceDistance').value();
+            json["doorStatus"] = yield allData.get('propDoorStatus').value();
+            json["maintenanceNeeded"] = yield allData.get('propMaintenanceNeeded').value();
         });
     }
     updateVehicleID(vehicleID) {
@@ -96,29 +113,120 @@ class WotConsumedDevice {
     }
     observeProperties(thing) {
         thing.observeProperty("propTotalMileage", (data) => __awaiter(this, void 0, void 0, function* () {
-            // console.log("Observed 'propTotalMileage' property has changed! New value is:",
-            //     await data.value(), "-> Thing-ID: ", this.td.id);
             // @ts-ignore
-            this.vehicleJSON.mileage = yield data.value();
-            console.log("Mileage updated. Vehicle JSON is now:");
-            console.log(this.vehicleJSON);
+            this.vehicleJSON["mileage"] = yield data.value();
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/wot", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify(this.vehicleJSON)
+            }).then(res => res.json()).then(res => {
+                console.log("Request occurred");
+                console.log(res);
+            }).catch(err => {
+                console.log("Request didn't happen");
+                console.log(err);
+            });
         }));
         thing.observeProperty("propMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Observed 'propMaintenanceNeeded' property has changed! New value is:", yield data.value(), "-> Thing-ID: ", this.td.id);
+            // @ts-ignore
+            this.vehicleJSON["maintenanceNeeded"] = yield data.value();
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/wot", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify(this.vehicleJSON)
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
         }));
         thing.observeProperty("propServiceDistance", (data) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Observed 'propServiceDistance' property has changed! New value is:", yield data.value(), "-> Thing-ID: ", this.td.id);
+            // @ts-ignore
+            this.vehicleJSON["nextServiceDistance"] = yield data.value();
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/wot", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify(this.vehicleJSON)
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
+        }));
+        thing.observeProperty("propDoorStatus", (data) => __awaiter(this, void 0, void 0, function* () {
+            // @ts-ignore
+            this.vehicleJSON["doorStatus"] = yield data.value();
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/wot", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify(this.vehicleJSON)
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
         }));
     }
     subscribe(thing) {
         thing.subscribeEvent("eventLowOnOil", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowOnOil:", yield data.value(), "-> Thing-ID: ", this.td.id);
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/wot", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: "Event message - vehicle " + this.vehicleJSON.vehicleID
+                    + " is low on oil"
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
         }));
         thing.subscribeEvent("eventLowTyrePressure", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowTyrePressure:", yield data.value(), "-> Thing-ID: ", this.td.id);
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/wot", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: "Event message - vehicle " + this.vehicleJSON.vehicleID
+                    + " has low tyre pressure"
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
         }));
         thing.subscribeEvent("eventMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventMaintenanceNeeded:", yield data.value(), "-> Thing-ID: ", this.td.id);
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/wot", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: "Event message - vehicle " + this.vehicleJSON.vehicleID
+                    + " requires maintenance"
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
         }));
     }
 }

@@ -129,3 +129,8 @@ The action "unlockDoor" unlocks the vehicle door and returns the status "UNLOCKE
 
 POST http://localhost:8080/smart-vehicle/actions/unLockDoor
 
+# Docker
+
+Creating and running a container and defining a name for it, e.g. "vehicle1"
+
+docker run -d --name vehicle1 leetfleet/vehicle

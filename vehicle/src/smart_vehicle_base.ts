@@ -5,7 +5,7 @@ Author: Jörg Striebel
 
 This TypeScript code implements the base of our smart vehicle thing,
 containing the logic of the so-called Exposed-Thing. 
-Unlike in our first attempt (see directory “old_scripts”) were we implemented
+Unlike in our first attempt (see directory “old_scripts”) where we implemented
 an Exposed-Thing and a Consumed-Thing directly in JavaScript, the approach of
 using TypeScript provides not only type safety but more importantly allows 
 the separation of source code and build directories. Moreover, by using node-wot 
@@ -42,7 +42,10 @@ subset of the following attributes [readable, writable, observable].
 For demonstration purposes, the smart-vehicle Exposed-Thing implementation also 
 contains an emulation which emulates the mileage increase, the oil consumption,
 and the tyre pressure loss over time. Whenever a critical threshold is reached,
-the emulation then triggers the events accordingly. 
+the emulation then triggers the events accordingly.
+
+The vehicle number, which is a number uniquely defined in the docker-compose.yml for 
+each vehicle, is injected via constructor for each vehicle instance (exposed-thing).
 ********************************************************************************/
 
 import * as WoT from "wot-typescript-definitions";
@@ -220,6 +223,7 @@ export class WotDevice {
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         this.vehicleNumber = vehicleNumber;
+        // console.log("Vehicle number being injected: " + this.vehicleNumber);
         if (tdDirectory) this.tdDirectory = tdDirectory;
     }
 
@@ -227,7 +231,12 @@ export class WotDevice {
     // Start Device - This method is invoked externally
     // ------------------------------------------------------------------------
     public async startDevice() {
-        console.log(`Producing Thing: ${this.thingModel.title}`);
+        // For some reason the vehicle number couldn't be injected into the thing-model-
+        // title via constructor and string-inline-variable. As so often, a workaround will do the trick.
+        // That's why we're redefining the title now while starting the device and
+        // before producing the actual WoT-device.
+        this.thingModel.title = "smart-vehicle-" + this.vehicleNumber;
+        console.log(`Producing Thing: ${this.thingModel.title} with vehicle number ${this.vehicleNumber}`);
         const exposedThing = await this.deviceWoT.produce(this.thingModel);
         console.log("Thing produced");
 

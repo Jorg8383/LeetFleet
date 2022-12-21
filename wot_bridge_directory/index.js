@@ -50,8 +50,9 @@ For more information about the WoT-Hive directory, check out:
 https://github.com/oeg-upm/wot-hive
 ********************************************************************************************/
 
-const URI_API_THINGS = "http://localhost:9000/api/things";
-const FIRST_HTTP_SERVER_PORT = 8090;
+// const URI_API_THINGS = "http://localhost:9000/api/things";
+const URI_API_THINGS = "http://triple-store-wothive-1:9000/api/things";
+const FIRST_HTTP_SERVER_PORT = process.env.ENV_FIRST_SERVER_PORT;
 const wotBridgeTimeStarted = Date.now();
 
 let wotHiveLocalTdCache = {};
@@ -170,7 +171,8 @@ async function createConsumedThings() {
             if (!wotIsConsumedThingDict.has(key)) {
                 //  console.log("Dict size of to be consumed: " + wotIsConsumedThingDict.size);
                 //Creating the instances of the binding servers
-                let httpServer = new HttpServer({port: FIRST_HTTP_SERVER_PORT + httpServerPortCount++});
+                let serverPort = parseInt(FIRST_HTTP_SERVER_PORT) + httpServerPortCount++;
+                let httpServer = new HttpServer({port: serverPort});
                 // //Build the servient object
                 let servient = new Servient();
                 servient.addClientFactory(new HttpClientFactory(null));
@@ -180,7 +182,8 @@ async function createConsumedThings() {
                     wotDevice = new WotDevice(WoT, key);
                     wotDevice.startDevice();
                 });
-                console.log("New consumed thing with ID " + JSON.stringify(key) + " is now up and running.");
+                console.log("New consumed thing with ID " + JSON.stringify(key) 
+                        + " is now up and running on port " + serverPort);
                 // Update dictionaries
                 wotIsConsumedThingDict.set(key, td);
                 wotToBeConsumedThingDict.delete(key);

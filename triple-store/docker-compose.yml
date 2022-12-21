@@ -8,11 +8,18 @@ services:
       - triplestore:/fuseki
     ports:
       - '3030:3030'
+    networks:
+      - leetnetwork
   wothive:
     image: acimmino/wot-hive:latest
     # volumes:
     # - ./configuration.json:/usr/src/wothive/configuration.json
     ports:
       - '9000:9000'
+    networks:
+      - leetnetwork
 volumes:
   triplestore:
+networks:
+  leetnetwork:
+    external: true

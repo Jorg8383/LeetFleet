@@ -314,7 +314,7 @@ class WotDevice {
             }
         }));
         // Property Vehicle ID
-        this.propVehicleId = "XAKALAGLG1395940";
+        this.propVehicleId = "WoT-ID-Mfr-VIN" + this.vehicleNumber;
         this.thing.setPropertyReadHandler("propVehicleId", () => __awaiter(this, void 0, void 0, function* () { return this.propVehicleId; }));
         // Property Oil Level
         this.thing.setPropertyReadHandler("propOilLevel", () => __awaiter(this, void 0, void 0, function* () { return this.propOilLevel = this.varOilLevel; }));

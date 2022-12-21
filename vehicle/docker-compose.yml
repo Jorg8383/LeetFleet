@@ -1,0 +1,34 @@
+version: "3.9"
+name: leet-fleet-vehicles
+services:
+  careless-fleet-vehicle-1:
+    image: leetfleet/vehicle:latest
+    environment:
+      - ENV_PORT=8100
+      - ENV_VEHICLE_NUMBER=1
+    networks:
+      - leetnetwork
+  careless-fleet-vehicle-2:
+    image: leetfleet/vehicle:latest
+    environment:
+      - ENV_PORT=8101
+      - ENV_VEHICLE_NUMBER=2
+    networks:
+      - leetnetwork
+  fastidious-fleet-vehicle-1:
+    image: leetfleet/vehicle:latest
+    environment:
+      - ENV_PORT=8110
+      - ENV_VEHICLE_NUMBER=2500
+    networks:
+      - leetnetwork
+  fastidious-fleet-vehicle-2:
+    image: leetfleet/vehicle:latest
+    environment:
+      - ENV_PORT=8111
+      - ENV_VEHICLE_NUMBER=2501
+    networks:
+      - leetnetwork
+networks:
+  leetnetwork:
+    external: true

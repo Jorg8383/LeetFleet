@@ -131,6 +131,32 @@ POST http://localhost:8080/smart-vehicle/actions/unLockDoor
 
 # Docker
 
-Creating and running a container and defining a name for it, e.g. "vehicle1"
+### Creating a Docker network
 
-docker run -d --name vehicle1 leetfleet/vehicle
+In this example, we create a Docker network, where the name of the network is "leetnetwork".
+
+* docker network create leetnetwork
+### Listing all Docker networks
+
+* docker network ls
+
+### Building a Docker image
+
+In this example, we create a Docker image where "leetfleet" is the namespace, "vehicle" the image name, and as a tag "latest" will be automatically defined unless specified otherwise.
+
+* docker build . -t leetfleet/vehicle
+
+### Creating and running a vehicle container
+
+In this example, we define the name "vehicle1" as the container name.
+
+* docker run --rm --name vehicle1 --network-alias vehicle1 --network="leetnetwork" leetfleet/vehicle:latest
+
+### Inspecting on which network a container is on
+
+In this example, we want to inpsect on which network the container  "triple-store-wothive-1" is on.
+
+* docker inspect triple-store-wothive-1 -f "{{json .NetworkSettings.Networks }}"
+
+
+

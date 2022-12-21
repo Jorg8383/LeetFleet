@@ -36,11 +36,23 @@ class WotConsumedDevice {
             const consumedThing = yield this.deviceWoT.consume(this.td);
             console.log("Thing is now consumed with ID: " + this.td.id);
             this.thing = consumedThing;
+            yield this.initialiseJSON(this.vehicleJSON);
             console.log("JSON representation is currently:");
             console.log(JSON.stringify(this.vehicleJSON));
-            yield this.initialiseJSON(this.vehicleJSON);
             console.log("JSON representation is now:");
             console.log(JSON.stringify(this.vehicleJSON));
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify(this.vehicleJSON)
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
             this.observeProperties(this.thing);
             this.subscribe(this.thing);
             return true;
@@ -96,29 +108,118 @@ class WotConsumedDevice {
     }
     observeProperties(thing) {
         thing.observeProperty("propTotalMileage", (data) => __awaiter(this, void 0, void 0, function* () {
-            // console.log("Observed 'propTotalMileage' property has changed! New value is:",
-            //     await data.value(), "-> Thing-ID: ", this.td.id);
             // @ts-ignore
             this.vehicleJSON.mileage = yield data.value();
-            console.log("Mileage updated. Vehicle JSON is now:");
-            console.log(this.vehicleJSON);
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify(this.vehicleJSON)
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
         }));
         thing.observeProperty("propMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Observed 'propMaintenanceNeeded' property has changed! New value is:", yield data.value(), "-> Thing-ID: ", this.td.id);
+            // @ts-ignore
+            this.vehicleJSON.maintenanceNeeded = yield data.value();
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify(this.vehicleJSON)
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
         }));
         thing.observeProperty("propServiceDistance", (data) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Observed 'propServiceDistance' property has changed! New value is:", yield data.value(), "-> Thing-ID: ", this.td.id);
+            // @ts-ignore
+            this.vehicleJSON.nextServiceDistance = yield data.value();
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify(this.vehicleJSON)
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
+        }));
+        thing.observeProperty("propDoorStatus", (data) => __awaiter(this, void 0, void 0, function* () {
+            // @ts-ignore
+            this.vehicleJSON.doorStatus = yield data.value();
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify(this.vehicleJSON)
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
         }));
     }
     subscribe(thing) {
         thing.subscribeEvent("eventLowOnOil", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowOnOil:", yield data.value(), "-> Thing-ID: ", this.td.id);
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: "Event message - vehicle " + this.vehicleJSON.vehicleID
+                    + " is low on oil"
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
         }));
         thing.subscribeEvent("eventLowTyrePressure", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowTyrePressure:", yield data.value(), "-> Thing-ID: ", this.td.id);
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: "Event message - vehicle " + this.vehicleJSON.vehicleID
+                    + " has low tyre pressure"
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
         }));
         thing.subscribeEvent("eventMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventMaintenanceNeeded:", yield data.value(), "-> Thing-ID: ", this.td.id);
+            // TODO - check what this url is meant to be and start messing with our own ports on WoT
+            fetch("http://localhost:8080/web_portal", {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: "Event message - vehicle " + this.vehicleJSON.vehicleID
+                    + " requires maintenance"
+            }).then(res => res.json()).then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.log(err);
+            });
         }));
     }
 }

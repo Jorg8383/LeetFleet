@@ -227,7 +227,7 @@ export class WotDevice {
     // Start Device - This method is invoked externally
     // ------------------------------------------------------------------------
     public async startDevice() {
-        console.log(`Producing Thing: ${this.thingModel.title}`);
+        console.log(`Producing Thing: ${this.thingModel.title} with vehicle number ${this.vehicleNumber}`);
         const exposedThing = await this.deviceWoT.produce(this.thingModel);
         console.log("Thing produced");
 

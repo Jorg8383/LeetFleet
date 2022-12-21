@@ -16,7 +16,7 @@ Servient = require("@node-wot/core").Servient
 HttpServer = require("@node-wot/binding-http").HttpServer
 
 //Creating the instances of the binding servers
-var httpServer = new HttpServer({port: process.env.port});
+var httpServer = new HttpServer({port: process.env.ENV_PORT});
 // var httpServer2 = new HttpServer({port: 8081});
 
 //Building the servient object
@@ -25,7 +25,9 @@ var servient = new Servient();
 servient.addServer(httpServer);
 
 servient.start().then((WoT) => {
-    SmartVehicle = new SmartVehicle(WoT, TD_DIRECTORY, process.env.vehicle_number);
+    console.log("Starting new device on port " + process.env.ENV_PORT + 
+            " with vehicle number " + process.env.ENV_VEHICLE_NUMBER);
+    SmartVehicle = new SmartVehicle(WoT, TD_DIRECTORY, process.env.ENV_VEHICLE_NUMBER);
     // SmartVehicle1 = new SmartVehicle1(WoT);
     SmartVehicle.startDevice();
     SmartVehicle.emulateDevice();

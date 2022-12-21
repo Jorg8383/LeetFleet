@@ -215,7 +215,7 @@ class WotDevice {
     // ------------------------------------------------------------------------
     startDevice() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log(`Producing Thing: ${this.thingModel.title}`);
+            console.log(`Producing Thing: ${this.thingModel.title} with vehicle number ${this.vehicleNumber}`);
             const exposedThing = yield this.deviceWoT.produce(this.thingModel);
             console.log("Thing produced");
             this.thing = exposedThing;

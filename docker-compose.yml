@@ -1,23 +1,167 @@
 version: "3.9"
-name: leet-fleet
+name: lf-services
 services:
+  #
+  #-----------------------------------------------------------------------------
+  # The firstnext service we spin up is the directory service used for WoT discovery
+  # Ideally - this will have completely started before any vehicles try to register.
+  #
+  triplestore:
+    image: acimmino/auroral-fuseky:latest
+    environment:
+      ADMIN_PASSWORD: pw123
+    ports:
+      - '3030:3030'
+  wothive:
+    image: acimmino/wot-hive:latest
+    # volumes:
+    # - ./configuration.json:/usr/src/wothive/configuration.json
+    ports:
+      - '9000:9000'
+  #
+  #-----------------------------------------------------------------------------
+  # The next service we spin up is REDIS in-memory data store
+  # This is used for demonstration purposes only, we don't persist state.
+  #
   redis:
-    #image: redislabs/rejson:latest
+    container_name: leet_fleet_redis
     image: redis/redis-stack:latest
     ports:
+      # Redis
       - 6379:6379
+      # Redis Insight
+      - 8001:8001
     volumes:
-      - ./config/redis.conf:/redis.conf
-      - ./data:/data
-  # core:
-  #   build: core
-  #   ports:
-  #     - 8080:8080
-  #   depends_on:
-  #     - redis
-  # client:
-  #   image: "client:latest"
-  #   depends_on:
-  #     - "wish_I_knew"
-
-
+      # Following is redis-stack config file. Using it creates unexpected behaviour
+      #- ./_the_cloud/_redis_config/redis.conf:/redis-stack.conf
+      - ./lf_services/_the_cloud/_redis_logs/:/logs
+      - ./lf_services/_the_cloud/:/leetfleet
+    environment:
+      # Logging (debug / verbose / notice / warning ):
+      #  -> loglevel notice
+      # By default Redis will save the DB:
+      #   * After 3600 seconds (an hour) if at least 1 change was performed
+      #   * After 300 seconds (5 minutes) if at least 100 changes were performed
+      #   * After 60 seconds if at least 10000 changes were performed
+      # You can set these explicitly:
+      #  -> save 3600 1 300 100 60 10000
+      - REDIS_ARGS=--logfile /logs/redis-stack.log --dbfilename leetfleet.rdb --dir /leetfleet
+  #
+  #-----------------------------------------------------------------------------
+  # The next services we spin up are the AKKA Seed nodes (registry is #1, webportal is #2)
+  #
+  registry:
+    image: "registry:latest"
+    depends_on:
+      - "redis"
+  webportal:
+      image: "webportal:latest"
+      depends_on:
+        - "redis"
+        - "registry"
+      ports:
+        - 8080:8080
+  #
+  #-----------------------------------------------------------------------------
+  # The next we spin up the Fleet Managers
+  #
+  careless:
+    image: "careless:latest"
+    depends_on:
+      - "redis"
+      - "registry"
+      - "webportal"
+  fastidious:
+    image: "fastidious:latest"
+    depends_on:
+      - "redis"
+      - "registry"
+      - "webportal"
+  fleetless:
+    image: "fleetless:latest"
+    depends_on:
+      - "redis"
+      - "registry"
+      - "webportal"
+  paranoid:
+    image: "paranoid:latest"
+    depends_on:
+      - "redis"
+      - "registry"
+      - "webportal"
+  #
+  #-----------------------------------------------------------------------------
+  # And finally...  We spin up a couple of vehicles per fleet...
+  #
+  careless-vehicle-1:
+    image: vehicle:latest
+    environment:
+      - ENV_PORT=8100
+      - ENV_VEHICLE_NUMBER=0001
+    depends_on:
+      - "triplestore"
+      - "wothive"
+  careless-vehicle-2:
+    image: vehicle:latest
+    environment:
+      - ENV_PORT=8101
+      - ENV_VEHICLE_NUMBER=0002
+    depends_on:
+      - "triplestore"
+      - "wothive"
+  fastidious-vehicle-1:
+    image: vehicle:latest
+    environment:
+      - ENV_PORT=8110
+      - ENV_VEHICLE_NUMBER=2500
+    depends_on:
+      - "triplestore"
+      - "wothive"
+  fastidious-vehicle-2:
+    image: vehicle:latest
+    environment:
+      - ENV_PORT=8111
+      - ENV_VEHICLE_NUMBER=2501
+    depends_on:
+      - "triplestore"
+      - "wothive"
+  fleetless-vehicle-1:
+    image: vehicle:latest
+    environment:
+      - ENV_PORT=8120
+      - ENV_VEHICLE_NUMBER=5000
+    depends_on:
+      - "triplestore"
+      - "wothive"
+  fleetless-vehicle-2:
+    image: vehicle:latest
+    environment:
+      - ENV_PORT=8121
+      - ENV_VEHICLE_NUMBER=5001
+    depends_on:
+      - "triplestore"
+      - "wothive"
+  fleetless-vehicle-3:
+    image: vehicle:latest
+    environment:
+      - ENV_PORT=8122
+      - ENV_VEHICLE_NUMBER=5002
+    depends_on:
+      - "triplestore"
+      - "wothive"
+  paranoid-vehicle-1:
+    image: vehicle:latest
+    environment:
+      - ENV_PORT=8130
+      - ENV_VEHICLE_NUMBER=7500
+    depends_on:
+      - "triplestore"
+      - "wothive"
+  paranoid-vehicle-2:
+    image: vehicle:latest
+    environment:
+      - ENV_PORT=8131
+      - ENV_VEHICLE_NUMBER=7501
+    depends_on:
+    - "triplestore"
+    - "wothive"

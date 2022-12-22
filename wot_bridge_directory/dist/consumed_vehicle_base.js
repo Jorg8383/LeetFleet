@@ -42,7 +42,7 @@ class WotConsumedDevice {
             console.log("JSON representation is now:");
             console.log(JSON.stringify(this.vehicleJSON));
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8090/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
@@ -116,17 +116,20 @@ class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["mileage"] = yield data.value();
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: JSON.stringify(this.vehicleJSON)
-            }).then(res => res.json()).then(res => {
-                console.log("Request occurred");
+                body: JSON.stringify({ vehicle: this.vehicleJSON })
+            }).then(res => {
+                if (res.status >= 300) {
+                    throw new Error("There was an error with the request: " + res.status);
+                }
+                res.json();
+            }).then(res => {
                 console.log(res);
             }).catch(err => {
-                console.log("Request didn't happen");
                 console.log(err);
             });
         }));
@@ -134,13 +137,18 @@ class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["maintenanceNeeded"] = yield data.value();
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: JSON.stringify(this.vehicleJSON)
-            }).then(res => res.json()).then(res => {
+                body: JSON.stringify({ vehicle: this.vehicleJSON })
+            }).then(res => {
+                if (res.status >= 300) {
+                    throw new Error("There was an error with the request: " + res.status);
+                }
+                res.json();
+            }).then(res => {
                 console.log(res);
             }).catch(err => {
                 console.log(err);
@@ -150,13 +158,18 @@ class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["nextServiceDistance"] = yield data.value();
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: JSON.stringify(this.vehicleJSON)
-            }).then(res => res.json()).then(res => {
+                body: JSON.stringify({ vehicle: this.vehicleJSON })
+            }).then(res => {
+                if (res.status >= 300) {
+                    throw new Error("There was an error with the request: " + res.status);
+                }
+                res.json();
+            }).then(res => {
                 console.log(res);
             }).catch(err => {
                 console.log(err);
@@ -166,13 +179,18 @@ class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["doorStatus"] = yield data.value();
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: JSON.stringify(this.vehicleJSON)
-            }).then(res => res.json()).then(res => {
+                body: JSON.stringify({ vehicle: this.vehicleJSON })
+            }).then(res => {
+                if (res.status >= 300) {
+                    throw new Error("There was an error with the request: " + res.status);
+                }
+                res.json();
+            }).then(res => {
                 console.log(res);
             }).catch(err => {
                 console.log(err);
@@ -183,7 +201,7 @@ class WotConsumedDevice {
         thing.subscribeEvent("eventLowOnOil", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowOnOil:", yield data.value(), "-> Thing-ID: ", this.td.id);
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
@@ -199,7 +217,7 @@ class WotConsumedDevice {
         thing.subscribeEvent("eventLowTyrePressure", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowTyrePressure:", yield data.value(), "-> Thing-ID: ", this.td.id);
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
@@ -215,7 +233,7 @@ class WotConsumedDevice {
         thing.subscribeEvent("eventMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventMaintenanceNeeded:", yield data.value(), "-> Thing-ID: ", this.td.id);
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"

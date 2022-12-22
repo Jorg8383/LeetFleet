@@ -39,7 +39,7 @@ export class WotConsumedDevice {
         console.log("JSON representation is now:");
         console.log(JSON.stringify(this.vehicleJSON));
         // TODO - check what this url is meant to be and start messing with our own ports on WoT
-        fetch("http://localhost:8080/wot", {
+        fetch("http://localhost:8090/wot", {
             method: 'POST',
             headers: {
                 "Content-type" : "application/json"
@@ -110,7 +110,7 @@ export class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["mileage"] = await data.value();
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type" : "application/json"
@@ -132,7 +132,7 @@ export class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["maintenanceNeeded"] = await data.value();
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type" : "application/json"
@@ -154,7 +154,7 @@ export class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["nextServiceDistance"] = await data.value();
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type" : "application/json"
@@ -176,7 +176,7 @@ export class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["doorStatus"] = await data.value();
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type" : "application/json"
@@ -199,7 +199,7 @@ export class WotConsumedDevice {
         thing.subscribeEvent("eventLowOnOil", async (data) => {
             console.log("eventLowOnOil:", await data.value(), "-> Thing-ID: ", this.td.id);
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type" : "application/json"
@@ -215,7 +215,7 @@ export class WotConsumedDevice {
         thing.subscribeEvent("eventLowTyrePressure", async (data) => {
             console.log("eventLowTyrePressure:", await data.value(), "-> Thing-ID: ", this.td.id);
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type" : "application/json"
@@ -231,7 +231,7 @@ export class WotConsumedDevice {
         thing.subscribeEvent("eventMaintenanceNeeded", async (data) => {
             console.log("eventMaintenanceNeeded:", await data.value(), "-> Thing-ID: ", this.td.id);
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8080/wot", {
+            fetch("http://localhost:8081/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type" : "application/json"

@@ -6,10 +6,11 @@ SmartVehicle = require("./dist/smart_vehicle_base.js").WotDevice
 /*
 This project supports the registration of the generated TD to a TD directory
 Fill in the directory URI where the HTTP POST request to send the TD will be made
-If you leave it empty, registration thread will never execute, otherwise it will try to register every 10 seconds 
+If you leave it empty, registration thread will never execute, otherwise it will try to register every 10 seconds
 */
 // const TD_DIRECTORY = "http://0.0.0.0:9000/api/things/"
-const TD_DIRECTORY = "http://triple-store-wothive-1:9000/api/things/"
+//const TD_DIRECTORY = "http://triple-store-wothive-1:9000/api/things/"
+const TD_DIRECTORY = "http://wothive:9000/api/things/"
 
 Servient = require("@node-wot/core").Servient
 //Importing the required bindings
@@ -25,7 +26,7 @@ var servient = new Servient();
 servient.addServer(httpServer);
 
 servient.start().then((WoT) => {
-    console.log("Starting new device on port " + process.env.ENV_PORT + 
+    console.log("Starting new device on port " + process.env.ENV_PORT +
             " with vehicle number " + process.env.ENV_VEHICLE_NUMBER);
     SmartVehicle = new SmartVehicle(WoT, TD_DIRECTORY, process.env.ENV_VEHICLE_NUMBER);
     // SmartVehicle1 = new SmartVehicle1(WoT);
@@ -43,7 +44,7 @@ servient.start().then((WoT) => {
 // /*
 // This project supports the registration of the generated TD to a TD directory
 // Fill in the directory URI where the HTTP POST request to send the TD will be made
-// If you leave it empty, registration thread will never execute, otherwise it will try to register every 10 seconds 
+// If you leave it empty, registration thread will never execute, otherwise it will try to register every 10 seconds
 // */
 // const TD_DIRECTORY = "http://0.0.0.0:9000/api/things/"
 
@@ -66,7 +67,7 @@ servient.start().then((WoT) => {
 //     let vehicleNumber = "1";
 //     SmartVehicle1 = new SmartVehicle(WoT, TD_DIRECTORY, vehicleNumber);
 //     // SmartVehicle1 = new SmartVehicle1(WoT);
-//     SmartVehicle1.vehicleNumber = 1; 
+//     SmartVehicle1.vehicleNumber = 1;
 //     SmartVehicle1.startDevice();
 //     SmartVehicle1.emulateDevice();
 // });
@@ -74,8 +75,8 @@ servient.start().then((WoT) => {
 // servient2.start().then((WoT) => {
 //     let vehicleNumber = "2";
 //     SmartVehicle2 = new SmartVehicle(WoT, TD_DIRECTORY, vehicleNumber);
-//     // SmartVehicle1 = new SmartVehicle1(WoT); 
-//     SmartVehicle2.vehicleNumber = 2; 
+//     // SmartVehicle1 = new SmartVehicle1(WoT);
+//     SmartVehicle2.vehicleNumber = 2;
 //     SmartVehicle2.startDevice();
 //     SmartVehicle2.emulateDevice();
 // });

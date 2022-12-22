@@ -42,19 +42,23 @@ services:
     depends_on:
       - "redis"
       - "registry"
+      - "webportal"
   fastidious:
     image: "fastidious:latest"
     depends_on:
       - "redis"
       - "registry"
+      - "webportal"
   fleetless:
     image: "fleetless:latest"
     depends_on:
       - "redis"
       - "registry"
+      - "webportal"
   paranoid:
     image: "paranoid:latest"
     depends_on:
       - "redis"
       - "registry"
+      - "webportal"
 

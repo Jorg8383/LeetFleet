@@ -47,11 +47,6 @@ async function getVehicles(id){
 
 async function getFleets(){
     var url = "http://localhost:8080/web/list_fleets"
-    // $.getJSON(url,
-    // function(data){
-    //     setUpDropDown(data);
-    //    return false;
-    // });
     $.support.cors = true;
 
     
@@ -93,6 +88,38 @@ getFleets()
 
 let dummy_json = [
 
+{ "vehicleId" : "WoT-ID-Mfr-VIN-1",
+"fleetManager" : "fleetless",
+"tdURL" : "http://localhost:8080/smart-vehicle/",
+"oilLevel" : 50,
+"tyrePressure" : 30,
+"mileage" : 10000,
+"nextServiceDistance" : 10000,
+"doorStatus" : "LOCKED",
+"maintenanceNeeded" : false
+},
+
+{ "vehicleId" : "WoT-ID-Mfr-VIN-2",
+"fleetManager" : "fleetless",
+"tdURL" : "http://localhost:8080/smart-vehicle/",
+"oilLevel" : 50,
+"tyrePressure" : 30,
+"mileage" : 10000,
+"nextServiceDistance" : 10000,
+"doorStatus" : "UNLOCKED",
+"maintenanceNeeded" : false
+},
+
+{ "vehicleId" : "WoT-ID-Mfr-VIN-3",
+"fleetManager" : "fleetless",
+"tdURL" : "http://localhost:8080/smart-vehicle/",
+"oilLevel" : 50,
+"tyrePressure" : 30,
+"mileage" : 10000,
+"nextServiceDistance" : 10000,
+"doorStatus" : "LOCKED",
+"maintenanceNeeded" : false
+},
 { "vehicleId" : "WoT-ID-Mfr-VIN-1",
 "fleetManager" : "fleetless",
 "tdURL" : "http://localhost:8080/smart-vehicle/",
@@ -188,7 +215,7 @@ function showFleetVehicles(fleet){
     let InnerHtml = "";
     console.log(fleet)
     //change dummy json to fleet
-    fleet.forEach(vehicleJson => {
+    dummy_json.forEach(vehicleJson => {
 
         InnerHtml += showVehicle(vehicleJson)
     })

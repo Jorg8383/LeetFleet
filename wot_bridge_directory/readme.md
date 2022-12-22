@@ -39,3 +39,28 @@ To realise this, the functionality of the bridge can be summarised as follows:
 
 For more information about the WoT-Hive directory, check out:
 https://github.com/oeg-upm/wot-hive
+
+# Docker
+
+### Creating a Docker network
+
+Unless already created, this is an example on how to create a Docker network, where the name of the network is "leetnetwork".
+
+* docker network create leetnetwork
+### Listing all Docker networks
+
+* docker network ls
+
+### Building a Docker image of the WoT-Bridge
+
+In this example, we create a Docker image where "leetfleet" is the namespace, "wot_bridge" the image name, and as a tag "latest" will be automatically defined unless specified otherwise.
+
+* docker build . -t leetfleet/wot_bridge
+
+### Creating and running the WoT-Bridge container
+
+In this example, we define the name "wot_bridge" as the container name. We could also pass the "--build-arg ARG_FIRST_SERVER_PORT=8888" argument, where 8888 stands for an 
+arbitrary port number of the first HTTP-Server being created for each consumed-thing.
+This port number is incremented by one for each consumed-thing that's being created.
+
+* docker run --rm --name wot_bridge --network-alias wot_bridge --network="leetnetwork" leetfleet/wot_bridge:latest

@@ -5,7 +5,8 @@ export class WotConsumedDevice {
     public deviceWoT: typeof WoT;
     public td: WoT.ThingDescription;
     private tdUri: string;
-    private wotHiveUri = "http://localhost:9000/api/things/";
+    // private wotHiveUri = "http://localhost:9000/api/things/";
+    private wotHiveUri = "http://triple-store-wothive-1:9000/api/things/";
 
     private vehicleJSON = {"vehicleID" : "WoT-ID-Mfr-VIN",
                             "fleetManager" : "N/A",
@@ -33,9 +34,9 @@ export class WotConsumedDevice {
         console.log("Thing is now consumed with ID: " + this.td.id);
 
         this.thing = consumedThing;
+        await this.initialiseJSON(this.vehicleJSON);
         console.log("JSON representation is currently:");
         console.log(JSON.stringify(this.vehicleJSON));
-        await this.initialiseJSON(this.vehicleJSON);
         console.log("JSON representation is now:");
         console.log(JSON.stringify(this.vehicleJSON));
         // TODO - check what this url is meant to be and start messing with our own ports on WoT

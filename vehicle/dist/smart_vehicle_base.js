@@ -215,7 +215,7 @@ class WotDevice {
     // ------------------------------------------------------------------------
     startDevice() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log(`Producing Thing: ${this.thingModel.title}`);
+            console.log(`Producing Thing: ${this.thingModel.title} with vehicle number ${this.vehicleNumber}`);
             const exposedThing = yield this.deviceWoT.produce(this.thingModel);
             console.log("Thing produced");
             this.thing = exposedThing;
@@ -314,7 +314,7 @@ class WotDevice {
             }
         }));
         // Property Vehicle ID
-        this.propVehicleId = "XAKALAGLG1395940";
+        this.propVehicleId = "WoT-ID-Mfr-VIN" + this.vehicleNumber;
         this.thing.setPropertyReadHandler("propVehicleId", () => __awaiter(this, void 0, void 0, function* () { return this.propVehicleId; }));
         // Property Oil Level
         this.thing.setPropertyReadHandler("propOilLevel", () => __awaiter(this, void 0, void 0, function* () { return this.propOilLevel = this.varOilLevel; }));

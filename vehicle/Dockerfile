@@ -6,7 +6,6 @@ ARG ARG_VEHICLE_NUMBER=1
 ENV ENV_PORT=${ARG_PORT}
 ENV ENV_VEHICLE_NUMBER=${ARG_VEHICLE_NUMBER}
 
-
 # Create app work directory
 WORKDIR /usr/src/app
 

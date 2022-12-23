@@ -1,23 +1,38 @@
 version: "3.9"
-name: lf-services
+name: leetfleet
 services:
   #
   #-----------------------------------------------------------------------------
-  # The firstnext service we spin up is the directory service used for WoT discovery
+  # The first service we spin up is the directory service used for WoT discovery
   # Ideally - this will have completely started before any vehicles try to register.
   #
   triplestore:
+    # TODO // CAN WE DISABLE TRIPLESTORE CONSOLE LOGS???
     image: acimmino/auroral-fuseky:latest
     environment:
       ADMIN_PASSWORD: pw123
-    ports:
-      - '3030:3030'
   wothive:
+    # TODO // CAN WE DISABLE wothive CONSOLE LOGS???
     image: acimmino/wot-hive:latest
     # volumes:
     # - ./configuration.json:/usr/src/wothive/configuration.json
     ports:
       - '9000:9000'
+  #
+  #-----------------------------------------------------------------------------
+  # The next service we spin up is the (ad-hoc) bridge service used transfer messages
+  # from the WoT infrastrucutre to the akka system.
+  # Ideally - this will have completely started before any vehicles try to register.
+  #
+  wot_bridge_directory:
+    # TODO // CAN WE DISABLE wothive CONSOLE LOGS???
+    image: wot_bridge_directory:latest
+    depends_on:
+      - "triplestore"
+      - "wothive"
+    environment:
+      - ENV_FIRST_SERVER_PORT=8200
+      - HOST_WOT_DIR_SERVICE=wothive
   #
   #-----------------------------------------------------------------------------
   # The next service we spin up is REDIS in-memory data store
@@ -27,8 +42,6 @@ services:
     container_name: leet_fleet_redis
     image: redis/redis-stack:latest
     ports:
-      # Redis
-      - 6379:6379
       # Redis Insight
       - 8001:8001
     volumes:
@@ -59,6 +72,7 @@ services:
       depends_on:
         - "redis"
         - "registry"
+      # JSON from the akka system is sourced directly by the client pages (using JS)
       ports:
         - 8080:8080
   #
@@ -98,70 +112,97 @@ services:
     environment:
       - ENV_PORT=8100
       - ENV_VEHICLE_NUMBER=0001
+      - VEHICLE_SIM_INTERVAL=180000
+      - HOST_WOT_DIR_SERVICE=wothive
     depends_on:
       - "triplestore"
       - "wothive"
+      - "wot_bridge_directory"
   careless-vehicle-2:
     image: vehicle:latest
     environment:
       - ENV_PORT=8101
       - ENV_VEHICLE_NUMBER=0002
+      - VEHICLE_SIM_INTERVAL=180000
+      - HOST_WOT_DIR_SERVICE=wothive
     depends_on:
       - "triplestore"
       - "wothive"
+      - "wot_bridge_directory"
   fastidious-vehicle-1:
     image: vehicle:latest
     environment:
       - ENV_PORT=8110
       - ENV_VEHICLE_NUMBER=2500
+      - VEHICLE_SIM_INTERVAL=180000
+      - HOST_WOT_DIR_SERVICE=wothive
     depends_on:
       - "triplestore"
       - "wothive"
+      - "wot_bridge_directory"
   fastidious-vehicle-2:
     image: vehicle:latest
     environment:
       - ENV_PORT=8111
       - ENV_VEHICLE_NUMBER=2501
+      - VEHICLE_SIM_INTERVAL=180000
+      - HOST_WOT_DIR_SERVICE=wothive
     depends_on:
       - "triplestore"
       - "wothive"
+      - "wot_bridge_directory"
   fleetless-vehicle-1:
     image: vehicle:latest
     environment:
       - ENV_PORT=8120
       - ENV_VEHICLE_NUMBER=5000
+      - VEHICLE_SIM_INTERVAL=180000
+      - HOST_WOT_DIR_SERVICE=wothive
     depends_on:
       - "triplestore"
       - "wothive"
+      - "wot_bridge_directory"
   fleetless-vehicle-2:
     image: vehicle:latest
     environment:
       - ENV_PORT=8121
       - ENV_VEHICLE_NUMBER=5001
+      - VEHICLE_SIM_INTERVAL=180000
+      - HOST_WOT_DIR_SERVICE=wothive
     depends_on:
       - "triplestore"
       - "wothive"
+      - "wot_bridge_directory"
   fleetless-vehicle-3:
     image: vehicle:latest
     environment:
       - ENV_PORT=8122
       - ENV_VEHICLE_NUMBER=5002
+      - VEHICLE_SIM_INTERVAL=180000
+      - HOST_WOT_DIR_SERVICE=wothive
     depends_on:
       - "triplestore"
       - "wothive"
+      - "wot_bridge_directory"
   paranoid-vehicle-1:
     image: vehicle:latest
     environment:
       - ENV_PORT=8130
       - ENV_VEHICLE_NUMBER=7500
+      - VEHICLE_SIM_INTERVAL=180000
+      - HOST_WOT_DIR_SERVICE=wothive
     depends_on:
       - "triplestore"
       - "wothive"
+      - "wot_bridge_directory"
   paranoid-vehicle-2:
     image: vehicle:latest
     environment:
       - ENV_PORT=8131
       - ENV_VEHICLE_NUMBER=7501
+      - VEHICLE_SIM_INTERVAL=180000
+      - HOST_WOT_DIR_SERVICE=wothive
     depends_on:
-    - "triplestore"
-    - "wothive"
+      - "triplestore"
+      - "wothive"
+      - "wot_bridge_directory"

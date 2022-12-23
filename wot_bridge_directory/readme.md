@@ -4,7 +4,7 @@ Authors: Jörg Striebel & Ian Foster
 
 ## Code structure:
 
--	**index.js:**  The index.js contains the bridge logic which is responsible for retrieving Thing-Descriptons (TD) of all registered Exposed-Things and spinning up so-called "Consumed-Things" for each of them. 
+-	**index.js:**  The index.js contains the bridge logic which is responsible for retrieving Thing-Descriptons (TD) of all registered Exposed-Things and spinning up so-called "Consumed-Things" for each of them.
 -	**src:** This directory contains the logic of the Consumed-Thing in TypeScript. The Consumed-Thing communicates with the Web-Portal via HTTP.
 -	**dist:** This directory contains the trans-compiled logic of the Consumed-Thing in JavaScript source format, which is then invoked by the index.js.
 -	**Package.json:** Contains all dependencies for the npm project.
@@ -19,7 +19,7 @@ However, in practise it turned out that the SSE API had not been fully functiona
 
 ## The workaround
 
-Consequently, we had to come up with a workaround. Instead of having the bridge notified through Server-Sent-Events every time a new Exposed-Thing is registered, the bridge is now sending requests to the server at regular intervals (polling) for retrieving the entire list of registered TDs. In theory it would be possible to define an expiry date for registered TDs. However, since we are polling the directory now actively, we need to ensure that only currently Exposed-Things are registered with the directory as only those can be consumed by its counterpart called “Consumed-Thing”. 
+Consequently, we had to come up with a workaround. Instead of having the bridge notified through Server-Sent-Events every time a new Exposed-Thing is registered, the bridge is now sending requests to the server at regular intervals (polling) for retrieving the entire list of registered TDs. In theory it would be possible to define an expiry date for registered TDs. However, since we are polling the directory now actively, we need to ensure that only currently Exposed-Things are registered with the directory as only those can be consumed by its counterpart called “Consumed-Thing”.
 
 ## The current bridge implementation
 
@@ -35,7 +35,7 @@ To realise this, the functionality of the bridge can be summarised as follows:
     * For each TD to be consumed a HTTP server with its individual port is being created
     * A client-factory and the HTTP server is than added to the servient
 * Finally, the servient spins up a Consumed-Thing for each TD
- 
+
 
 For more information about the WoT-Hive directory, check out:
 https://github.com/oeg-upm/wot-hive
@@ -59,8 +59,16 @@ In this example, we create a Docker image where "leetfleet" is the namespace, "w
 
 ### Creating and running the WoT-Bridge container
 
-In this example, we define the name "wot_bridge" as the container name. We could also pass the "--build-arg ARG_FIRST_SERVER_PORT=8888" argument, where 8888 stands for an 
+In this example, we define the name "wot_bridge" as the container name. We could also pass the "--build-arg ARG_FIRST_SERVER_PORT=8888" argument, where 8888 stands for an
 arbitrary port number of the first HTTP-Server being created for each consumed-thing.
 This port number is incremented by one for each consumed-thing that's being created.
 
 * docker run --rm --name wot_bridge --network-alias wot_bridge --network="leetnetwork" leetfleet/wot_bridge:latest
+
+
+
+
+
+
+Building docker image lc
+docker build . -t  wot_bridge_directory

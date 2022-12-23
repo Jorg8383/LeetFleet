@@ -10,7 +10,7 @@ If you leave it empty, registration thread will never execute, otherwise it will
 */
 // const TD_DIRECTORY = "http://0.0.0.0:9000/api/things/"
 //const TD_DIRECTORY = "http://triple-store-wothive-1:9000/api/things/"
-const TD_DIRECTORY = "http://wothive:9000/api/things/"
+const TD_DIRECTORY = "http://" + process.env.HOST_WOT_DIR_SERVICE + ":9000/api/things/"
 
 Servient = require("@node-wot/core").Servient
 //Importing the required bindings
@@ -31,7 +31,7 @@ servient.start().then((WoT) => {
     SmartVehicle = new SmartVehicle(WoT, TD_DIRECTORY, process.env.ENV_VEHICLE_NUMBER);
     // SmartVehicle1 = new SmartVehicle1(WoT);
     SmartVehicle.startDevice();
-    SmartVehicle.emulateDevice();
+    SmartVehicle.emulateDevice(process.env.VEHICLE_SIM_INTERVAL);
 });
 
 

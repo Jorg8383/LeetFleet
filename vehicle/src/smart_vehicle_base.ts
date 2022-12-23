@@ -4,11 +4,11 @@
 Author: Jörg Striebel
 
 This TypeScript code implements the base of our smart vehicle thing,
-containing the logic of the so-called Exposed-Thing. 
+containing the logic of the so-called Exposed-Thing.
 Unlike in our first attempt (see directory “old_scripts”) where we implemented
 an Exposed-Thing and a Consumed-Thing directly in JavaScript, the approach of
-using TypeScript provides not only type safety but more importantly allows 
-the separation of source code and build directories. Moreover, by using node-wot 
+using TypeScript provides not only type safety but more importantly allows
+the separation of source code and build directories. Moreover, by using node-wot
 merely as a npm dependency enables us to only install the dependencies required
 for this specific use case. For instance, in our case we have only installed the
 HTTP binding while omitting all other dependencies such as CoAP, MQTT, etc.
@@ -34,17 +34,17 @@ Events:
 -	eventMaintenanceNeeded
 
 All these affordances are defined in the Thing Description (TD) which is embedded
-in this vehicle. To maintain reusability, certain properties can be injected via 
-the constructor from the starting point (index.js) which can be seen as the 
+in this vehicle. To maintain reusability, certain properties can be injected via
+the constructor from the starting point (index.js) which can be seen as the
 index.html of websites. Depending on the property, they may possess all or only a
-subset of the following attributes [readable, writable, observable]. 
+subset of the following attributes [readable, writable, observable].
 
-For demonstration purposes, the smart-vehicle Exposed-Thing implementation also 
+For demonstration purposes, the smart-vehicle Exposed-Thing implementation also
 contains an emulation which emulates the mileage increase, the oil consumption,
 and the tyre pressure loss over time. Whenever a critical threshold is reached,
 the emulation then triggers the events accordingly.
 
-The vehicle number, which is a number uniquely defined in the docker-compose.yml for 
+The vehicle number, which is a number uniquely defined in the docker-compose.yml for
 each vehicle, is injected via constructor for each vehicle instance (exposed-thing).
 ********************************************************************************/
 
@@ -337,7 +337,7 @@ export class WotDevice {
         // Property Vehicle ID
         this.propVehicleId = "WoT-ID-Mfr-VIN" + this.vehicleNumber;
         this.thing.setPropertyReadHandler("propVehicleId", async () => this.propVehicleId);
-        
+
         // Property Oil Level
         this.thing.setPropertyReadHandler("propOilLevel", async () => this.propOilLevel = this.varOilLevel);
 
@@ -346,7 +346,7 @@ export class WotDevice {
 
         // Property Maintenance Needed
         this.propMaintenanceNeeded = false;
-        this.thing.setPropertyReadHandler("propMaintenanceNeeded",  async () => this.propMaintenanceNeeded);        
+        this.thing.setPropertyReadHandler("propMaintenanceNeeded",  async () => this.propMaintenanceNeeded);
         this.thing.setPropertyWriteHandler("propMaintenanceNeeded", async (inputData: WoT.InteractionOutput, options?: WoT.InteractionOptions) => {
             let dataValue = await inputData.value();
             if (!ajv.validate(this.td.properties.propMaintenanceNeeded, dataValue)) {
@@ -462,8 +462,7 @@ export class WotDevice {
     // ------------------------------------------------------------------------
     // Emulation - This method is invoked externally
     // ------------------------------------------------------------------------
-    public async emulateDevice() {
-
+    public async emulateDevice(simInterval) {
         // Delay the emulation for two second to allow completing the registration
         // proccess (TD) with the WoTHive directory before starting to emulate the device.
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -482,15 +481,15 @@ export class WotDevice {
                     this.notify(
                             "admin@leetfleet.com",
                             `propMaintenanceNeeded property has changed, new value is: ${this.propMaintenanceNeeded}`
-                        );    
+                        );
                         if (this.varMaintenanceNeddedHistory != this.propMaintenanceNeeded) {
                             this.varMaintenanceNeddedHistory  = this.propMaintenanceNeeded;
                             this.thing.emitPropertyChange("propMaintenanceNeeded");
                         }
-                        this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - oil level is low.`);        
+                        this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - oil level is low.`);
                 }
             }
-        }, 15000);
+        }, simInterval);
 
         // Emulation: decrease tyre pressure every ten seconds
         setInterval(() => {
@@ -506,21 +505,21 @@ export class WotDevice {
                     this.notify(
                             "admin@leetfleet.com",
                             `propMaintenanceNeeded property has changed, new value is: ${this.propMaintenanceNeeded}`
-                        );    
+                        );
                         if (this.varMaintenanceNeddedHistory != this.propMaintenanceNeeded) {
                             this.varMaintenanceNeddedHistory  = this.propMaintenanceNeeded;
                             this.thing.emitPropertyChange("propMaintenanceNeeded");
                         }
-                        this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - tyre pressure is low.`);        
+                        this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - tyre pressure is low.`);
                 }
             }
-        }, 15000);
+        }, simInterval);
 
         // Emulation: increase milometer every second
         setInterval(() => {
             this.emulateOdometer();
             this.thing.emitPropertyChange("propTotalMileage");
-            this.thing.emitPropertyChange("propServiceDistance");        
+            this.thing.emitPropertyChange("propServiceDistance");
             // If counter for next service mileage is less than 500, set maintenance needed
             if (this.varServiceDistance < 500) {
                 if (!this.varServiceIsDue) {
@@ -532,14 +531,14 @@ export class WotDevice {
                     this.notify(
                             "admin@leetfleet.com",
                             `propMaintenanceNeeded property has changed, new value is: ${this.propMaintenanceNeeded}`
-                        );    
+                        );
                         if (this.varMaintenanceNeddedHistory != this.propMaintenanceNeeded) {
                             this.varMaintenanceNeddedHistory  = this.propMaintenanceNeeded;
                             this.thing.emitPropertyChange("propMaintenanceNeeded");
                         }
-                    this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);        
+                    this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);
                 }
             }
-        }, 10000);
+        }, simInterval * .66);
     }
 }

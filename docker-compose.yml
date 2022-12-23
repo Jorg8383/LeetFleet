@@ -11,8 +11,6 @@ services:
     image: acimmino/auroral-fuseky:latest
     environment:
       ADMIN_PASSWORD: pw123
-    ports:
-      - '3030:3030'
   wothive:
     # TODO // CAN WE DISABLE wothive CONSOLE LOGS???
     image: acimmino/wot-hive:latest
@@ -44,8 +42,6 @@ services:
     container_name: leet_fleet_redis
     image: redis/redis-stack:latest
     ports:
-      # Redis
-      - 6379:6379
       # Redis Insight
       - 8001:8001
     volumes:
@@ -76,6 +72,7 @@ services:
       depends_on:
         - "redis"
         - "registry"
+      # JSON from the akka system is sourced directly by the client pages (using JS)
       ports:
         - 8080:8080
   #

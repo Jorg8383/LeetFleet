@@ -206,3 +206,15 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+  #
+  #-----------------------------------------------------------------------------
+  # The final service we spin up is the web server that hosts the client page
+  #
+  client:
+    image: "client:latest"
+    depends_on:
+      - "redis"
+      - "registry"
+      - "webportal"
+    ports:
+      - '8000:8000'

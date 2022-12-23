@@ -215,7 +215,7 @@ function showFleetVehicles(fleet){
     let InnerHtml = "";
     console.log(fleet)
     //change dummy json to fleet
-    dummy_json.forEach(vehicleJson => {
+    fleet.forEach(vehicleJson => {
 
         InnerHtml += showVehicle(vehicleJson)
     })

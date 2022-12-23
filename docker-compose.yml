@@ -11,6 +11,8 @@ services:
     image: acimmino/auroral-fuseky:latest
     environment:
       ADMIN_PASSWORD: pw123
+    networks:
+      - leetnetwork
   wothive:
     # TODO // CAN WE DISABLE wothive CONSOLE LOGS???
     image: acimmino/wot-hive:latest
@@ -18,6 +20,8 @@ services:
     # - ./configuration.json:/usr/src/wothive/configuration.json
     ports:
       - '9000:9000'
+    networks:
+      - leetnetwork
   #
   #-----------------------------------------------------------------------------
   # The next service we spin up is the (ad-hoc) bridge service used transfer messages
@@ -33,6 +37,8 @@ services:
     environment:
       - ENV_FIRST_SERVER_PORT=8200
       - HOST_WOT_DIR_SERVICE=wothive
+    networks:
+      - leetnetwork
   #
   #-----------------------------------------------------------------------------
   # The next service we spin up is REDIS in-memory data store
@@ -59,6 +65,8 @@ services:
       # You can set these explicitly:
       #  -> save 3600 1 300 100 60 10000
       - REDIS_ARGS=--logfile /logs/redis-stack.log --dbfilename leetfleet.rdb --dir /leetfleet
+    networks:
+      - leetnetwork
   #
   #-----------------------------------------------------------------------------
   # The next services we spin up are the AKKA Seed nodes (registry is #1, webportal is #2)
@@ -67,6 +75,8 @@ services:
     image: "registry:latest"
     depends_on:
       - "redis"
+    networks:
+      - leetnetwork
   webportal:
       image: "webportal:latest"
       depends_on:
@@ -75,6 +85,8 @@ services:
       # JSON from the akka system is sourced directly by the client pages (using JS)
       ports:
         - 8080:8080
+      networks:
+        - leetnetwork
   #
   #-----------------------------------------------------------------------------
   # The next we spin up the Fleet Managers
@@ -85,24 +97,32 @@ services:
       - "redis"
       - "registry"
       - "webportal"
+    networks:
+      - leetnetwork
   fastidious:
     image: "fastidious:latest"
     depends_on:
       - "redis"
       - "registry"
       - "webportal"
+    networks:
+      - leetnetwork
   fleetless:
     image: "fleetless:latest"
     depends_on:
       - "redis"
       - "registry"
       - "webportal"
+    networks:
+      - leetnetwork
   paranoid:
     image: "paranoid:latest"
     depends_on:
       - "redis"
       - "registry"
       - "webportal"
+    networks:
+      - leetnetwork
   #
   #-----------------------------------------------------------------------------
   # And finally...  We spin up a couple of vehicles per fleet...
@@ -118,6 +138,8 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    networks:
+      - leetnetwork
   careless-vehicle-2:
     image: vehicle:latest
     environment:
@@ -129,6 +151,8 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    networks:
+      - leetnetwork
   fastidious-vehicle-1:
     image: vehicle:latest
     environment:
@@ -140,6 +164,8 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    networks:
+      - leetnetwork
   fastidious-vehicle-2:
     image: vehicle:latest
     environment:
@@ -151,6 +177,8 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    networks:
+      - leetnetwork
   fleetless-vehicle-1:
     image: vehicle:latest
     environment:
@@ -162,6 +190,8 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    networks:
+      - leetnetwork
   fleetless-vehicle-2:
     image: vehicle:latest
     environment:
@@ -173,6 +203,8 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    networks:
+      - leetnetwork
   fleetless-vehicle-3:
     image: vehicle:latest
     environment:
@@ -184,6 +216,8 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    networks:
+      - leetnetwork
   paranoid-vehicle-1:
     image: vehicle:latest
     environment:
@@ -195,6 +229,8 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    networks:
+      - leetnetwork
   paranoid-vehicle-2:
     image: vehicle:latest
     environment:
@@ -206,6 +242,8 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    networks:
+      - leetnetwork
   #
   #-----------------------------------------------------------------------------
   # The final service we spin up is the web server that hosts the client page
@@ -218,3 +256,12 @@ services:
       - "webportal"
     ports:
       - '8000:8000'
+    networks:
+      - leetnetwork
+  #
+  #-----------------------------------------------------------------------------
+  # Now we just create a named network for debugging purposes in Docker
+  #
+networks:
+  leetnetwork:
+    name: leetnetwork

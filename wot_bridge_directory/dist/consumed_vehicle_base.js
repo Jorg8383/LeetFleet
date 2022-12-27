@@ -12,7 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.WotConsumedDevice = void 0;
 class WotConsumedDevice {
     constructor(deviceWoT, tdId) {
-        this.wotHiveUri = "http://localhost:9000/api/things/";
+        // private wotHiveUri = "http://localhost:9000/api/things/";
+        this.wotHiveUri = "http://leetfleet-wothive-1:9000/api/things/";
         this.vehicleJSON = { "vehicleID": "WoT-ID-Mfr-VIN",
             "fleetManager": "N/A",
             "tdURL": "http://localhost:8081/",
@@ -36,13 +37,13 @@ class WotConsumedDevice {
             const consumedThing = yield this.deviceWoT.consume(this.td);
             console.log("Thing is now consumed with ID: " + this.td.id);
             this.thing = consumedThing;
+            yield this.initialiseJSON(this.vehicleJSON);
             console.log("JSON representation is currently:");
             console.log(JSON.stringify(this.vehicleJSON));
-            yield this.initialiseJSON(this.vehicleJSON);
             console.log("JSON representation is now:");
             console.log(JSON.stringify(this.vehicleJSON));
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8090/wot", {
+            fetch("http://leetfleet-webportal-1:8080/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
@@ -116,7 +117,7 @@ class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["mileage"] = yield data.value();
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8081/wot", {
+            fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
@@ -137,7 +138,7 @@ class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["maintenanceNeeded"] = yield data.value();
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8081/wot", {
+            fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
@@ -158,7 +159,7 @@ class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["nextServiceDistance"] = yield data.value();
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8081/wot", {
+            fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
@@ -179,7 +180,7 @@ class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["doorStatus"] = yield data.value();
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8081/wot", {
+            fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
@@ -201,7 +202,7 @@ class WotConsumedDevice {
         thing.subscribeEvent("eventLowOnOil", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowOnOil:", yield data.value(), "-> Thing-ID: ", this.td.id);
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8081/wot", {
+            fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
@@ -217,7 +218,7 @@ class WotConsumedDevice {
         thing.subscribeEvent("eventLowTyrePressure", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowTyrePressure:", yield data.value(), "-> Thing-ID: ", this.td.id);
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8081/wot", {
+            fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
@@ -233,7 +234,7 @@ class WotConsumedDevice {
         thing.subscribeEvent("eventMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventMaintenanceNeeded:", yield data.value(), "-> Thing-ID: ", this.td.id);
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://localhost:8081/wot", {
+            fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"

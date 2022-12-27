@@ -1,4 +1,12 @@
 "use strict";
+// This consumed thing program is essentially the representation of
+// an exposed thing digitally. Given the example use case of this
+// system to manage smart vehicles, the exposed thing would technically
+// be an actual vehicle (but in this case is a containerised piece of
+// software). The consumed thing is then the digital representation of
+// that physical exposed thing. This digital representation that is here
+// then communicates over the web to our Akka system to update Akka with the
+// current representation of the vehicle with the accompanying JSON
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -10,11 +18,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WotConsumedDevice = void 0;
+// Overall class description for consumed things for this project
 class WotConsumedDevice {
     constructor(deviceWoT, tdId) {
-        // private wotHiveUri = "http://localhost:9000/api/things/";
         this.wotHiveUri = "http://leetfleet-wothive-1:9000/api/things/";
-        // private hostname = process.env
+        // Default JSON representation of a vehicle
         this.vehicleJSON = { "vehicleId": "WoT-ID-Mfr-VIN-0000",
             "fleetManager": "N/A",
             "tdURL": "http://localhost:8081/",
@@ -30,57 +38,27 @@ class WotConsumedDevice {
             this.tdUri = this.wotHiveUri + tdId;
         }
     }
+    // Start up method that consumes an exposed thing and has the
+    // consumed thing observe properties and events
     startDevice() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("Consuming thing..." + this.tdUri);
             this.td = yield this.retrieveTD();
-            // console.log(this.td);
             const consumedThing = yield this.deviceWoT.consume(this.td);
-            console.log("Thing is now consumed with ID: " + this.td.id);
             this.thing = consumedThing;
             yield this.initialiseJSON(this.vehicleJSON);
-            console.log("JSON representation is currently:");
-            console.log(JSON.stringify(this.vehicleJSON));
-            console.log("JSON representation is now:");
-            console.log(JSON.stringify(this.vehicleJSON));
-            // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://webportal:8080/wot", {
-                method: 'POST',
-                headers: {
-                    "Content-type": "application/json"
-                },
-                body: JSON.stringify({
-                    "vehicleId": this.vehicleJSON.vehicleId,
-                    "fleetManager": this.vehicleJSON.fleetManager,
-                    "tdURL": this.vehicleJSON.tdURL,
-                    "oilLevel": this.vehicleJSON.oilLevel,
-                    "tyrePressure": this.vehicleJSON.tyrePressure,
-                    "mileage": this.vehicleJSON.mileage,
-                    "nextServiceDistance": this.vehicleJSON.nextServiceDistance,
-                    "doorStatus": this.vehicleJSON.doorStatus,
-                    "maintenanceNeeded": this.vehicleJSON.maintenanceNeeded
-                })
-            }).then(res => {
-                if (res.status >= 300) {
-                    throw new Error("There was an error with the request: " + res.status);
-                }
-                res.json();
-            }).then(res => {
-                console.log(res);
-            }).catch(err => {
-                console.log(err);
-            });
+            this.updateAkka();
             this.observeProperties(this.thing);
             this.subscribe(this.thing);
             return true;
         });
     }
+    // Method to retrieve the thing description for the exposed thing
+    // that has been consumed
     retrieveTD() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const response = yield fetch(this.tdUri);
                 const body = yield response.json();
-                // console.log(body);
                 return body;
             }
             catch (error) {
@@ -88,6 +66,8 @@ class WotConsumedDevice {
             }
         });
     }
+    // Method that handles the first update of the JSON representation
+    // of the vehicle being passed to Akka
     initialiseJSON(json) {
         return __awaiter(this, void 0, void 0, function* () {
             const allData = yield this.thing.readAllProperties();
@@ -101,159 +81,35 @@ class WotConsumedDevice {
             json["maintenanceNeeded"] = yield allData.get('propMaintenanceNeeded').value();
         });
     }
-    updateVehicleID(vehicleID) {
-        let randomNum = this.randomInt(1, 9999);
-        let randomNumString = "";
-        if (randomNum / 10 < 1) {
-            randomNumString = "000" + randomNum;
-        }
-        else if (randomNum / 10 < 10) {
-            randomNumString = "00" + randomNum;
-        }
-        else if (randomNum / 10 < 100) {
-            randomNumString = "0" + randomNum;
-        }
-        else {
-            randomNumString = randomNum;
-        }
-        return vehicleID + "-" + randomNumString;
-    }
-    randomInt(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
+    // Method that handles observing changes in each property in the
+    // exposed thing, update the JSON representation of that vehicle
+    // and then communicate this to Akka
     observeProperties(thing) {
         thing.observeProperty("propTotalMileage", (data) => __awaiter(this, void 0, void 0, function* () {
             // @ts-ignore
             this.vehicleJSON["mileage"] = yield data.value();
-            console.log("VehicleJSON is now: \n" + this.vehicleJSON);
-            // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://webportal:8080/wot", {
-                method: 'POST',
-                headers: {
-                    "Content-type": "application/json"
-                },
-                body: JSON.stringify({
-                    "vehicleId": this.vehicleJSON.vehicleId,
-                    "fleetManager": this.vehicleJSON.fleetManager,
-                    "tdURL": this.vehicleJSON.tdURL,
-                    "oilLevel": this.vehicleJSON.oilLevel,
-                    "tyrePressure": this.vehicleJSON.tyrePressure,
-                    "mileage": this.vehicleJSON.mileage,
-                    "nextServiceDistance": this.vehicleJSON.nextServiceDistance,
-                    "doorStatus": this.vehicleJSON.doorStatus,
-                    "maintenanceNeeded": this.vehicleJSON.maintenanceNeeded
-                })
-            }).then(res => {
-                if (res.status >= 300) {
-                    throw new Error("There was an error with the request: " + res.status);
-                }
-                res.json();
-            }).then(res => {
-                console.log(res);
-            }).catch(err => {
-                console.log(err);
-            });
+            this.updateAkka();
         }));
         thing.observeProperty("propMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
             // @ts-ignore
             this.vehicleJSON["maintenanceNeeded"] = yield data.value();
-            // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://webportal:8080/wot", {
-                method: 'POST',
-                headers: {
-                    "Content-type": "application/json"
-                },
-                body: JSON.stringify({
-                    "vehicleId": this.vehicleJSON.vehicleId,
-                    "fleetManager": this.vehicleJSON.fleetManager,
-                    "tdURL": this.vehicleJSON.tdURL,
-                    "oilLevel": this.vehicleJSON.oilLevel,
-                    "tyrePressure": this.vehicleJSON.tyrePressure,
-                    "mileage": this.vehicleJSON.mileage,
-                    "nextServiceDistance": this.vehicleJSON.nextServiceDistance,
-                    "doorStatus": this.vehicleJSON.doorStatus,
-                    "maintenanceNeeded": this.vehicleJSON.maintenanceNeeded
-                })
-            }).then(res => {
-                if (res.status >= 300) {
-                    throw new Error("There was an error with the request: " + res.status);
-                }
-                res.json();
-            }).then(res => {
-                console.log(res);
-            }).catch(err => {
-                console.log(err);
-            });
+            this.updateAkka();
         }));
         thing.observeProperty("propServiceDistance", (data) => __awaiter(this, void 0, void 0, function* () {
             // @ts-ignore
             this.vehicleJSON["nextServiceDistance"] = yield data.value();
-            // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://webportal:8080/wot", {
-                method: 'POST',
-                headers: {
-                    "Content-type": "application/json"
-                },
-                body: JSON.stringify({
-                    "vehicleId": this.vehicleJSON.vehicleId,
-                    "fleetManager": this.vehicleJSON.fleetManager,
-                    "tdURL": this.vehicleJSON.tdURL,
-                    "oilLevel": this.vehicleJSON.oilLevel,
-                    "tyrePressure": this.vehicleJSON.tyrePressure,
-                    "mileage": this.vehicleJSON.mileage,
-                    "nextServiceDistance": this.vehicleJSON.nextServiceDistance,
-                    "doorStatus": this.vehicleJSON.doorStatus,
-                    "maintenanceNeeded": this.vehicleJSON.maintenanceNeeded
-                })
-            }).then(res => {
-                if (res.status >= 300) {
-                    throw new Error("There was an error with the request: " + res.status);
-                }
-                res.json();
-            }).then(res => {
-                console.log(res);
-            }).catch(err => {
-                console.log(err);
-            });
+            this.updateAkka();
         }));
         thing.observeProperty("propDoorStatus", (data) => __awaiter(this, void 0, void 0, function* () {
             // @ts-ignore
             this.vehicleJSON["doorStatus"] = yield data.value();
-            // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://webportal:8080/wot", {
-                method: 'POST',
-                headers: {
-                    "Content-type": "application/json"
-                },
-                body: JSON.stringify({
-                    "vehicleId": this.vehicleJSON.vehicleId,
-                    "fleetManager": this.vehicleJSON.fleetManager,
-                    "tdURL": this.vehicleJSON.tdURL,
-                    "oilLevel": this.vehicleJSON.oilLevel,
-                    "tyrePressure": this.vehicleJSON.tyrePressure,
-                    "mileage": this.vehicleJSON.mileage,
-                    "nextServiceDistance": this.vehicleJSON.nextServiceDistance,
-                    "doorStatus": this.vehicleJSON.doorStatus,
-                    "maintenanceNeeded": this.vehicleJSON.maintenanceNeeded
-                })
-            }).then(res => {
-                if (res.status >= 300) {
-                    throw new Error("There was an error with the request: " + res.status);
-                }
-                res.json();
-            }).then(res => {
-                console.log(res);
-            }).catch(err => {
-                console.log(err);
-            });
+            this.updateAkka();
         }));
     }
+    // Method to subscribe to the events of the consumed thing
     subscribe(thing) {
         thing.subscribeEvent("eventLowOnOil", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowOnOil:", yield data.value(), "-> Thing-ID: ", this.td.id);
-            // TODO - check what this url is meant to be and start messing with our own ports on WoT
             fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
@@ -269,7 +125,6 @@ class WotConsumedDevice {
         }));
         thing.subscribeEvent("eventLowTyrePressure", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventLowTyrePressure:", yield data.value(), "-> Thing-ID: ", this.td.id);
-            // TODO - check what this url is meant to be and start messing with our own ports on WoT
             fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
@@ -285,7 +140,6 @@ class WotConsumedDevice {
         }));
         thing.subscribeEvent("eventMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
             console.log("eventMaintenanceNeeded:", yield data.value(), "-> Thing-ID: ", this.td.id);
-            // TODO - check what this url is meant to be and start messing with our own ports on WoT
             fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
@@ -300,6 +154,8 @@ class WotConsumedDevice {
             });
         }));
     }
+    // Extracted method to handle sending JSON representation of vehicle
+    // to Actor system
     updateAkka() {
         fetch("http://webportal:8080/wot", {
             method: 'POST',

@@ -14,7 +14,8 @@ class WotConsumedDevice {
     constructor(deviceWoT, tdId) {
         // private wotHiveUri = "http://localhost:9000/api/things/";
         this.wotHiveUri = "http://leetfleet-wothive-1:9000/api/things/";
-        this.vehicleJSON = { "vehicleID": "WoT-ID-Mfr-VIN",
+        // private hostname = process.env
+        this.vehicleJSON = { "vehicleId": "WoT-ID-Mfr-VIN-0000",
             "fleetManager": "N/A",
             "tdURL": "http://localhost:8081/",
             "oilLevel": 50,
@@ -43,12 +44,22 @@ class WotConsumedDevice {
             console.log("JSON representation is now:");
             console.log(JSON.stringify(this.vehicleJSON));
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
-            fetch("http://leetfleet-webportal-1:8080/wot", {
+            fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: JSON.stringify({ vehicle: this.vehicleJSON })
+                body: JSON.stringify({
+                    "vehicleId": this.vehicleJSON.vehicleId,
+                    "fleetManager": this.vehicleJSON.fleetManager,
+                    "tdURL": this.vehicleJSON.tdURL,
+                    "oilLevel": this.vehicleJSON.oilLevel,
+                    "tyrePressure": this.vehicleJSON.tyrePressure,
+                    "mileage": this.vehicleJSON.mileage,
+                    "nextServiceDistance": this.vehicleJSON.nextServiceDistance,
+                    "doorStatus": this.vehicleJSON.doorStatus,
+                    "maintenanceNeeded": this.vehicleJSON.maintenanceNeeded
+                })
             }).then(res => {
                 if (res.status >= 300) {
                     throw new Error("There was an error with the request: " + res.status);
@@ -80,8 +91,8 @@ class WotConsumedDevice {
     initialiseJSON(json) {
         return __awaiter(this, void 0, void 0, function* () {
             const allData = yield this.thing.readAllProperties();
-            json["vehicleID"] = this.updateVehicleID(json.vehicleID);
-            json["tdURL"] = json.tdURL + this.thing.getThingDescription().title;
+            json["vehicleId"] = this.td.title;
+            json["tdURL"] = this.vehicleJSON.tdURL;
             json["oilLevel"] = yield allData.get('propOilLevel').value();
             json["tyrePressure"] = yield allData.get('propTyrePressure').value();
             json["mileage"] = yield allData.get('propTotalMileage').value();
@@ -116,13 +127,24 @@ class WotConsumedDevice {
         thing.observeProperty("propTotalMileage", (data) => __awaiter(this, void 0, void 0, function* () {
             // @ts-ignore
             this.vehicleJSON["mileage"] = yield data.value();
+            console.log("VehicleJSON is now: \n" + this.vehicleJSON);
             // TODO - check what this url is meant to be and start messing with our own ports on WoT
             fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: JSON.stringify({ vehicle: this.vehicleJSON })
+                body: JSON.stringify({
+                    "vehicleId": this.vehicleJSON.vehicleId,
+                    "fleetManager": this.vehicleJSON.fleetManager,
+                    "tdURL": this.vehicleJSON.tdURL,
+                    "oilLevel": this.vehicleJSON.oilLevel,
+                    "tyrePressure": this.vehicleJSON.tyrePressure,
+                    "mileage": this.vehicleJSON.mileage,
+                    "nextServiceDistance": this.vehicleJSON.nextServiceDistance,
+                    "doorStatus": this.vehicleJSON.doorStatus,
+                    "maintenanceNeeded": this.vehicleJSON.maintenanceNeeded
+                })
             }).then(res => {
                 if (res.status >= 300) {
                     throw new Error("There was an error with the request: " + res.status);
@@ -143,7 +165,17 @@ class WotConsumedDevice {
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: JSON.stringify({ vehicle: this.vehicleJSON })
+                body: JSON.stringify({
+                    "vehicleId": this.vehicleJSON.vehicleId,
+                    "fleetManager": this.vehicleJSON.fleetManager,
+                    "tdURL": this.vehicleJSON.tdURL,
+                    "oilLevel": this.vehicleJSON.oilLevel,
+                    "tyrePressure": this.vehicleJSON.tyrePressure,
+                    "mileage": this.vehicleJSON.mileage,
+                    "nextServiceDistance": this.vehicleJSON.nextServiceDistance,
+                    "doorStatus": this.vehicleJSON.doorStatus,
+                    "maintenanceNeeded": this.vehicleJSON.maintenanceNeeded
+                })
             }).then(res => {
                 if (res.status >= 300) {
                     throw new Error("There was an error with the request: " + res.status);
@@ -164,7 +196,17 @@ class WotConsumedDevice {
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: JSON.stringify({ vehicle: this.vehicleJSON })
+                body: JSON.stringify({
+                    "vehicleId": this.vehicleJSON.vehicleId,
+                    "fleetManager": this.vehicleJSON.fleetManager,
+                    "tdURL": this.vehicleJSON.tdURL,
+                    "oilLevel": this.vehicleJSON.oilLevel,
+                    "tyrePressure": this.vehicleJSON.tyrePressure,
+                    "mileage": this.vehicleJSON.mileage,
+                    "nextServiceDistance": this.vehicleJSON.nextServiceDistance,
+                    "doorStatus": this.vehicleJSON.doorStatus,
+                    "maintenanceNeeded": this.vehicleJSON.maintenanceNeeded
+                })
             }).then(res => {
                 if (res.status >= 300) {
                     throw new Error("There was an error with the request: " + res.status);
@@ -185,7 +227,17 @@ class WotConsumedDevice {
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: JSON.stringify({ vehicle: this.vehicleJSON })
+                body: JSON.stringify({
+                    "vehicleId": this.vehicleJSON.vehicleId,
+                    "fleetManager": this.vehicleJSON.fleetManager,
+                    "tdURL": this.vehicleJSON.tdURL,
+                    "oilLevel": this.vehicleJSON.oilLevel,
+                    "tyrePressure": this.vehicleJSON.tyrePressure,
+                    "mileage": this.vehicleJSON.mileage,
+                    "nextServiceDistance": this.vehicleJSON.nextServiceDistance,
+                    "doorStatus": this.vehicleJSON.doorStatus,
+                    "maintenanceNeeded": this.vehicleJSON.maintenanceNeeded
+                })
             }).then(res => {
                 if (res.status >= 300) {
                     throw new Error("There was an error with the request: " + res.status);
@@ -207,7 +259,7 @@ class WotConsumedDevice {
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: "Event message - vehicle " + this.vehicleJSON.vehicleID
+                body: "Event message - vehicle " + this.vehicleJSON.vehicleId
                     + " is low on oil"
             }).then(res => res.json()).then(res => {
                 console.log(res);
@@ -223,7 +275,7 @@ class WotConsumedDevice {
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: "Event message - vehicle " + this.vehicleJSON.vehicleID
+                body: "Event message - vehicle " + this.vehicleJSON.vehicleId
                     + " has low tyre pressure"
             }).then(res => res.json()).then(res => {
                 console.log(res);
@@ -239,7 +291,7 @@ class WotConsumedDevice {
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: "Event message - vehicle " + this.vehicleJSON.vehicleID
+                body: "Event message - vehicle " + this.vehicleJSON.vehicleId
                     + " requires maintenance"
             }).then(res => res.json()).then(res => {
                 console.log(res);
@@ -247,6 +299,34 @@ class WotConsumedDevice {
                 console.log(err);
             });
         }));
+    }
+    updateAkka() {
+        fetch("http://webportal:8080/wot", {
+            method: 'POST',
+            headers: {
+                "Content-type": "application/json"
+            },
+            body: JSON.stringify({
+                "vehicleId": this.vehicleJSON.vehicleId,
+                "fleetManager": this.vehicleJSON.fleetManager,
+                "tdURL": this.vehicleJSON.tdURL,
+                "oilLevel": this.vehicleJSON.oilLevel,
+                "tyrePressure": this.vehicleJSON.tyrePressure,
+                "mileage": this.vehicleJSON.mileage,
+                "nextServiceDistance": this.vehicleJSON.nextServiceDistance,
+                "doorStatus": this.vehicleJSON.doorStatus,
+                "maintenanceNeeded": this.vehicleJSON.maintenanceNeeded
+            })
+        }).then(res => {
+            if (res.status >= 300) {
+                throw new Error("There was an error with the request: " + res.status);
+            }
+            res.json();
+        }).then(res => {
+            console.log(res);
+        }).catch(err => {
+            console.log(err);
+        });
     }
 }
 exports.WotConsumedDevice = WotConsumedDevice;

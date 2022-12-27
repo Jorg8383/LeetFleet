@@ -28,7 +28,8 @@ servient.addServer(httpServer);
 servient.start().then((WoT) => {
     console.log("Starting new device on port " + process.env.ENV_PORT +
             " with vehicle number " + process.env.ENV_VEHICLE_NUMBER);
-    SmartVehicle = new SmartVehicle(WoT, TD_DIRECTORY, process.env.ENV_VEHICLE_NUMBER);
+    SmartVehicle = new SmartVehicle(WoT, TD_DIRECTORY,
+        process.env.ENV_VEHICLE_NUMBER, process.env.HOSTNAME);
     // SmartVehicle1 = new SmartVehicle1(WoT);
     SmartVehicle.startDevice();
     SmartVehicle.emulateDevice(process.env.VEHICLE_SIM_INTERVAL);

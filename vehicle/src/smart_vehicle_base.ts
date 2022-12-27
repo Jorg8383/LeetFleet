@@ -60,6 +60,7 @@ export class WotDevice {
     public deviceWoT: typeof WoT;
     public td: WoT.ExposedThingInit;
     public vehicleNumber = "1";
+    public hostname = "localhost";
 
     // Status variables which are needed for emulation purposes
     private varTyrePressure = 35; // PSI
@@ -77,7 +78,7 @@ export class WotDevice {
     private thingModel: WoT.ExposedThingInit = {
         "@context": ["https://www.w3.org/2019/wot/td/v1", { "@language": "en" }],
         "@type": "",
-        title: `smart-vehicle-${this.vehicleNumber}`,
+        title: `WoT-ID-Mfr-VIN-${this.vehicleNumber}`,
         description: "Smart Vehicle",
         securityDefinitions: {
             "": {
@@ -219,10 +220,14 @@ export class WotDevice {
     // ------------------------------------------------------------------------
     // Constructor
     // ------------------------------------------------------------------------
-    constructor(deviceWoT: typeof WoT, tdDirectory?: string, vehicleNumber?: string) {
+    constructor(deviceWoT: typeof WoT,
+                tdDirectory?: string,
+                vehicleNumber?: string,
+                hostname?: string) {
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         this.vehicleNumber = vehicleNumber;
+        this.hostname = hostname;
         // console.log("Vehicle number being injected: " + this.vehicleNumber);
         if (tdDirectory) this.tdDirectory = tdDirectory;
     }
@@ -235,7 +240,7 @@ export class WotDevice {
         // title via constructor and string-inline-variable. As so often, a workaround will do the trick.
         // That's why we're redefining the title now while starting the device and
         // before producing the actual WoT-device.
-        this.thingModel.title = "smart-vehicle-" + this.vehicleNumber;
+        this.thingModel.title = "WoT-ID-Mfr-VIN-" + this.vehicleNumber;
         console.log(`Producing Thing: ${this.thingModel.title} with vehicle number ${this.vehicleNumber}`);
         const exposedThing = await this.deviceWoT.produce(this.thingModel);
         console.log("Thing produced");

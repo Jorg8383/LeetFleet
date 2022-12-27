@@ -6,7 +6,7 @@ Author: Jörg Striebel
 
 This TypeScript code implements the base of our smart vehicle thing,
 containing the logic of the so-called Exposed-Thing.
-Unlike in our first attempt (see directory “old_scripts”) were we implemented
+Unlike in our first attempt (see directory “old_scripts”) where we implemented
 an Exposed-Thing and a Consumed-Thing directly in JavaScript, the approach of
 using TypeScript provides not only type safety but more importantly allows
 the separation of source code and build directories. Moreover, by using node-wot
@@ -44,6 +44,9 @@ For demonstration purposes, the smart-vehicle Exposed-Thing implementation also
 contains an emulation which emulates the mileage increase, the oil consumption,
 and the tyre pressure loss over time. Whenever a critical threshold is reached,
 the emulation then triggers the events accordingly.
+
+The vehicle number, which is a number uniquely defined in the docker-compose.yml for
+each vehicle, is injected via constructor for each vehicle instance (exposed-thing).
 ********************************************************************************/
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -63,8 +66,9 @@ class WotDevice {
     // ------------------------------------------------------------------------
     // Constructor
     // ------------------------------------------------------------------------
-    constructor(deviceWoT, tdDirectory, vehicleNumber) {
+    constructor(deviceWoT, tdDirectory, vehicleNumber, hostname) {
         this.vehicleNumber = "1";
+        this.hostname = "localhost";
         // Status variables which are needed for emulation purposes
         this.varTyrePressure = 35; // PSI
         this.varOilLevel = 100; // Percent
@@ -79,7 +83,7 @@ class WotDevice {
         this.thingModel = {
             "@context": ["https://www.w3.org/2019/wot/td/v1", { "@language": "en" }],
             "@type": "",
-            title: `smart-vehicle-${this.vehicleNumber}`,
+            title: `WoT-ID-Mfr-VIN-${this.vehicleNumber}`,
             description: "Smart Vehicle",
             securityDefinitions: {
                 "": {
@@ -207,6 +211,8 @@ class WotDevice {
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         this.vehicleNumber = vehicleNumber;
+        this.hostname = hostname;
+        // console.log("Vehicle number being injected: " + this.vehicleNumber);
         if (tdDirectory)
             this.tdDirectory = tdDirectory;
     }
@@ -215,6 +221,11 @@ class WotDevice {
     // ------------------------------------------------------------------------
     startDevice() {
         return __awaiter(this, void 0, void 0, function* () {
+            // For some reason the vehicle number couldn't be injected into the thing-model-
+            // title via constructor and string-inline-variable. As so often, a workaround will do the trick.
+            // That's why we're redefining the title now while starting the device and
+            // before producing the actual WoT-device.
+            this.thingModel.title = "WoT-ID-Mfr-VIN-" + this.vehicleNumber;
             console.log(`Producing Thing: ${this.thingModel.title} with vehicle number ${this.vehicleNumber}`);
             const exposedThing = yield this.deviceWoT.produce(this.thingModel);
             console.log("Thing produced");
@@ -428,7 +439,7 @@ class WotDevice {
     // ------------------------------------------------------------------------
     // Emulation - This method is invoked externally
     // ------------------------------------------------------------------------
-    emulateDevice() {
+    emulateDevice(simInterval) {
         return __awaiter(this, void 0, void 0, function* () {
             // Delay the emulation for two second to allow completing the registration
             // proccess (TD) with the WoTHive directory before starting to emulate the device.
@@ -452,7 +463,7 @@ class WotDevice {
                         this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - oil level is low.`);
                     }
                 }
-            }, 15000);
+            }, simInterval);
             // Emulation: decrease tyre pressure every ten seconds
             setInterval(() => {
                 this.propTyrePressure = this.emulateAndReadSensor("tyrePressure");
@@ -472,7 +483,7 @@ class WotDevice {
                         this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - tyre pressure is low.`);
                     }
                 }
-            }, 15000);
+            }, simInterval);
             // Emulation: increase milometer every second
             setInterval(() => {
                 this.emulateOdometer();
@@ -494,7 +505,7 @@ class WotDevice {
                         this.thing.emitEvent("eventMaintenanceNeeded", `Maintenance needed! - next scheduled service is due.`);
                     }
                 }
-            }, 10000);
+            }, simInterval * .66);
         });
     }
 }

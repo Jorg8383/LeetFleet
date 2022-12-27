@@ -134,6 +134,7 @@ services:
       - ENV_VEHICLE_NUMBER=0001
       - VEHICLE_SIM_INTERVAL=180000
       - HOST_WOT_DIR_SERVICE=wothive
+      - HOST=careless-vehicle-1
     depends_on:
       - "triplestore"
       - "wothive"
@@ -147,6 +148,7 @@ services:
       - ENV_VEHICLE_NUMBER=0002
       - VEHICLE_SIM_INTERVAL=180000
       - HOST_WOT_DIR_SERVICE=wothive
+      - HOST=careless-vehicle-2
     depends_on:
       - "triplestore"
       - "wothive"
@@ -160,6 +162,7 @@ services:
       - ENV_VEHICLE_NUMBER=2500
       - VEHICLE_SIM_INTERVAL=180000
       - HOST_WOT_DIR_SERVICE=wothive
+      - HOST=fastidious-vehicle-1
     depends_on:
       - "triplestore"
       - "wothive"
@@ -173,6 +176,7 @@ services:
       - ENV_VEHICLE_NUMBER=2501
       - VEHICLE_SIM_INTERVAL=180000
       - HOST_WOT_DIR_SERVICE=wothive
+      - HOST=fastidious-vehicle-2
     depends_on:
       - "triplestore"
       - "wothive"
@@ -186,6 +190,7 @@ services:
       - ENV_VEHICLE_NUMBER=5000
       - VEHICLE_SIM_INTERVAL=180000
       - HOST_WOT_DIR_SERVICE=wothive
+      - HOST=fleetless-vehicle-1
     depends_on:
       - "triplestore"
       - "wothive"
@@ -199,6 +204,7 @@ services:
       - ENV_VEHICLE_NUMBER=5001
       - VEHICLE_SIM_INTERVAL=180000
       - HOST_WOT_DIR_SERVICE=wothive
+      - HOST=fleetless-vehicle-2
     depends_on:
       - "triplestore"
       - "wothive"
@@ -212,6 +218,7 @@ services:
       - ENV_VEHICLE_NUMBER=5002
       - VEHICLE_SIM_INTERVAL=180000
       - HOST_WOT_DIR_SERVICE=wothive
+      - HOST=fleetless-vehicle-3
     depends_on:
       - "triplestore"
       - "wothive"
@@ -225,6 +232,7 @@ services:
       - ENV_VEHICLE_NUMBER=7500
       - VEHICLE_SIM_INTERVAL=180000
       - HOST_WOT_DIR_SERVICE=wothive
+      - HOST=paranoid-vehicle-1
     depends_on:
       - "triplestore"
       - "wothive"
@@ -238,6 +246,7 @@ services:
       - ENV_VEHICLE_NUMBER=7501
       - VEHICLE_SIM_INTERVAL=180000
       - HOST_WOT_DIR_SERVICE=wothive
+      - HOST=paranoid-vehicle-2
     depends_on:
       - "triplestore"
       - "wothive"

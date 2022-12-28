@@ -4,10 +4,10 @@ Authors: Jörg Striebel & Ian Foster
 
 ## Code structure:
 
--	**index.js:**  The index.js contains the bridge logic which is responsible for retrieving Thing-Descriptons (TD) of all registered Exposed-Things and spinning up so-called "Consumed-Things" for each of them.
--	**src:** This directory contains the logic of the Consumed-Thing in TypeScript. The Consumed-Thing communicates with the Web-Portal via HTTP.
--	**dist:** This directory contains the trans-compiled logic of the Consumed-Thing in JavaScript source format, which is then invoked by the index.js.
--	**Package.json:** Contains all dependencies for the npm project.
+- **index.js:**  The index.js contains the bridge logic which is responsible for retrieving Thing-Descriptons (TD) of all registered Exposed-Things and spinning up so-called "Consumed-Things" for each of them.
+- **src:** This directory contains the logic of the Consumed-Thing in TypeScript. The Consumed-Thing communicates with the Web-Portal via HTTP.
+- **dist:** This directory contains the trans-compiled logic of the Consumed-Thing in JavaScript source format, which is then invoked by the index.js.
+- **Package.json:** Contains all dependencies for the npm project.
 
 ## The WoT-Hive directory & the ideal design solution
 
@@ -24,17 +24,17 @@ Consequently, we had to come up with a workaround. Instead of having the bridge 
 ## The current bridge implementation
 
 To realise this, the functionality of the bridge can be summarised as follows:
-* Fetching a list of TDs from the WoT-Hive directory at regular intervals (currently every 10 sec)
-* Checking the fetched cache for relevant TD entries
+* Fetching a list of TDs from the WoT-Hive directory at regular intervals. This interval is set as an environment variable in the docker compose file that includes the vehicle emulations, which can be modified based on testing/demonstration needs
+* Checking the fetched cache for relevant TD entries. A TD entry is considered relevant if the directory service was started before that vehicle registered with the directory.
     * Keeping track of outdated TDs to be deleted
     * Keeping track of current TDs to be consumed
     * Keeping track of TDs that have already be consumed
 * Cleaning up the WoT-Hive directory by deleting outdated TDs. Therefore, keeping the amount of data that must be exchanged to a minimum
 * Creating a so-called “Consumed-Thing”
-    * For each TD to be consumed a so-called “Servient” is instantiated
+    * For each TD to be consumed a so-called “Servient” is instantiated (a servient is like a server that also functions as a client simultaneously)
     * For each TD to be consumed a HTTP server with its individual port is being created
     * A client-factory and the HTTP server is than added to the servient
-* Finally, the servient spins up a Consumed-Thing for each TD
+* Each consumed thing is technically given its own servient by the bridge, as can be seen in the individual ports assigned to each consumed thing
 
 
 For more information about the WoT-Hive directory, check out:
@@ -42,14 +42,11 @@ https://github.com/oeg-upm/wot-hive
 
 # Docker
 
-### Creating a Docker network
+### Docker network
 
-Unless already created, this is an example on how to create a Docker network, where the name of the network is "leetnetwork".
+The Akka service, bridge, vehicles and client are all contained on the same Docker network in this example. This network is specified as "leetnetwork" in the docker compose file, which was created as a named network for use in debugging the communications inside the Docker network. 
 
-* docker network create leetnetwork
-### Listing all Docker networks
-
-* docker network ls
+All vehicles are given a network alias in the Docker network that docker compose defaults to the service name i.e. the "dummy-vehicle" service would be given the network alias "dummy-vehicle-1". Given the predictability of this behaviour, the hostnames of the different containers inside the Docker network were hard-coded to ease communication between the elements.
 
 ### Building a Docker image of the WoT-Bridge
 
@@ -59,16 +56,20 @@ In this example, we create a Docker image where "leetfleet" is the namespace, "w
 
 ### Creating and running the WoT-Bridge container
 
-In this example, we define the name "wot_bridge" as the container name. We could also pass the "--build-arg ARG_FIRST_SERVER_PORT=8888" argument, where 8888 stands for an
+In this example, we define the name "wot_bridge" as the container name. We could also pass the "--build-arg ARG_FIRST_SERVER_PORT=8200" argument, where 8200 stands for an
 arbitrary port number of the first HTTP-Server being created for each consumed-thing.
 This port number is incremented by one for each consumed-thing that's being created.
 
 * docker run --rm --name wot_bridge --network-alias wot_bridge --network="leetnetwork" leetfleet/wot_bridge:latest
 
 
+Note that if the bridge is run without the directory service being able, the bridge will fail with an error based on the failed request to the directory.
 
 
+### Building the Docker image independently
 
+If the bridge is being built independently of other services, please use the following command:
 
-Building docker image lc
-docker build . -t  wot_bridge_directory
+* docker build -t 'wot_bridge_directory:latest' .
+
+This syntax, particularly the tag name, are important as the docker-compose file is expecting an image labelled "wot_bridge_directory:latest", so labelling the image with a different name could lead to issues when running the bridge service concurrently with the other services within the docker compose file.

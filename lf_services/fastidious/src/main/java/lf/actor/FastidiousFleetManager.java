@@ -47,7 +47,7 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
     // "consumed thing" that was ALSO an akka actor. That... would have been sweet.
     private static HashMap<Long, ActorRef<VehicleTwin.Message>> vehicles = new HashMap<Long, ActorRef<VehicleTwin.Message>>();
 
-    public long SEED_QUERY_ID; // The FleetManager assigns an ID on messages 'in play'
+    public long SEED_QUERY_ID = 1; // The FleetManager assigns an ID on messages 'in play'
     private Duration timeout;
 
     // Track the vehicle queries from the web client.

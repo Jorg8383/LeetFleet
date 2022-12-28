@@ -52,7 +52,9 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         public final ActorRef<FleetManagerMsg.Message> replyTo;
         public RequestVehicleModel(
             @JsonProperty("query_id") long query_id,
-            @JsonProperty("replyTo") ActorRef<FleetManagerMsg.Message> replyTo) {
+            @JsonProperty("replyTo") ActorRef<FleetManagerMsg.Message> replyTo)
+        {
+            this.query_id = query_id;
             this.replyTo = replyTo;
         }
     }
@@ -173,9 +175,16 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
             // Update the WoT Exposed Thing
             // We are not proud. We planned to do this on a java WoT object.
             // But this approach will suffice for the toy system:
-            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
             try {
-                URL url = new URL(vehicle.getTdURL() + "/LOCK_THE_DOORS_BIT_WHAT_SHOULD_THIS_BE");
+                URL url;
+                if (vehicle.getDoorStatus().equalsIgnoreCase("LOCKED") ) {
+                    // New door status is locked...
+                    url = new URL(vehicle.getTdURL() + "/actions/actionLockDoor");
+                }
+                else {
+                    // New door status is Unlocked...
+                    url = new URL(vehicle.getTdURL() + "/actions/actionUnlockDoor");
+                }
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
                 int responseCode = con.getResponseCode();
@@ -247,6 +256,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
      * @return
      */
     private Behavior<Message> onRequestVehicleModel(RequestVehicleModel message) {
+        getContext().getLog().info("Vehicle responding to a query, the query ID is: " + message.query_id);
         message.replyTo.tell(new FleetManagerMsg.VehicleModelResponse(message.query_id, this.vehicle));
         return this;
     }

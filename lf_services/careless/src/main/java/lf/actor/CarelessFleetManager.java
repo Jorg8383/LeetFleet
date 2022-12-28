@@ -50,7 +50,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
     // "consumed thing" that was ALSO an akka actor. That... would have been sweet.
     private static HashMap<Long, ActorRef<VehicleTwin.Message>> vehicles = new HashMap<Long, ActorRef<VehicleTwin.Message>>();
 
-    public long SEED_QUERY_ID; // The FleetManager assigns an ID on messages 'in play'
+    public long SEED_QUERY_ID = 1; // The FleetManager assigns an ID on messages 'in play'
     private Duration timeout;
 
     // Track the vehicle queries from the web client.
@@ -239,6 +239,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
      */
     private Behavior<Message> onListVehiclesJson(ListVehiclesJson message) {
         long query_id = SEED_QUERY_ID++;
+        getContext().getLog().info("For this new query, the query ID is: " + query_id);
 
         Collection<ActorRef<VehicleTwin.Message>> vehicleTwinRefs = vehicles.values();
 
@@ -256,6 +257,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
         try {
           for (ActorRef<VehicleTwin.Message> vehicleTwinRef : vehicleTwinRefs)
           {
+            getContext().getLog().info("Sending query to vehicle, the query ID is: " + query_id);
             vehicleTwinRef.tell(
                 new VehicleTwin.RequestVehicleModel(query_id, getContext().getSelf())
                 );
@@ -280,11 +282,15 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
      * @return
      */
     private Behavior<Message> onVehicleModelResponse(VehicleModelResponse message) {
+        getContext().getLog().info("got a vehicle model response, the query ID is: " + message.query_id);
         VehicleQuery thisQuery = queries.get(message.query_id);
 
+        getContext().getLog().info("\tlooked up the 'queries list' and found: " + thisQuery);
         thisQuery.vehicles.add(message.vehicle);
 
         // Is the query complete?
+        getContext().getLog().info("\tFor this query we're looking for a total number of vehicles: " + thisQuery.expected_query_size);
+        getContext().getLog().info("\tso far we have found: " + thisQuery.vehicles.size());
         if (thisQuery.expected_query_size == thisQuery.vehicles.size()) {
             thisQuery.portalRef.tell(new WebPortalMsg.VehicleListToWebP(thisQuery.vehicles));
 

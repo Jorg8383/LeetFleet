@@ -15,9 +15,11 @@ Properties:
 -	propServiceDistance
 -	propDoorStatus
 -	propMaintenanceNeeded
+
 Actions:
 -	actionLockDoor
 -	actionUnlockDoor
+
 Events:
 -	eventLowOnOil
 -	eventLowTyrePressure
@@ -44,90 +46,50 @@ For demonstration purposes, the smart-vehicle Exposed-Thing implementation also 
 - npm run start
 
 ## Retrieving the Thing Description
-GET http://localhost:8080/smart-vehicle
+
+GET http://\<hostname\>:\<PORT\>/\<title\>
  
 It returns the Thing Description (TD) in JSON, describing all Affordances Interactions, metadata, etc. of the Thing.
 Note that the endpoint "smart-vehicle" is defined in the TD as the title.
 
-## Properties
 
-### Property: allAvailableResources
-GET http://localhost:8080/smart-vehicle/properties/allAvailableResources
+## Reading a Property Value
 
-This property can be used to retrieve all availabe resources. For now, we have only two sensor values: "oilLevel" and "tyrePressure".
+GET http://\<hostname\>:\<PORT\>/\<title\>/properties/\<property-name\>
+
+For example, if we want to read the property 'propOilLevel' we would have an URI that looks like this:
+
+GET http://\<hostname\>:\<PORT\>/\<title\>/properties/propOilLevel
+
 It returns a JSON object containing all available resources. 
 
-### Property: availableResourceLevel
-The "availableResourceLevel" property enables to read and write an indivudal resource. For example, reading/writing the "tyrePressure" property.
 
+## Writing a Property Value
 
-**Example - writing the a new value for "tyrePressure":**
+For example, if we want to reset the "propMaintenanceNeeded" property to false then the URI looks like this:
 
-PUT http://localhost:8080/smart-vehicle/properties/availableResourceLevel?id=tyrePressure
+PUT http://\<hostname\>:\<PORT\>/\<title\>/properties/propMaintenanceNeeded?=false
 
 Payload format: JSON, datatype: Integer
 
 After updating the values successfully, the exposed thing responds with "204 No Content".
 
 
-**Example - reading the value for "tyrePressure":**
+## Executing an Action
 
-GET http://localhost:8080/smart-vehicle/properties/availableResourceLevel?id=tyrePressure
-
-
-### Property: totalMileage
-
-The property "totalMileage" is read-only, and is internally increased using a random function every time the property is being read.
-
-GET http://localhost:8080/smart-vehicle/properties/totalMileage
-
-
-### Property: nextServiceMileage
-
-The "nextServiceMileage" property is by default set to 30,000 km. This property is read-/writeable. 
-Currently it is decreased by the same amount the "totalMileage" is increased.
-However, this emulation might be improved and enhanced in the future...
-
-GET http://localhost:8080/smart-vehicle/properties/nextServiceMileage
-
-PUT http://localhost:8080/smart-vehicle/properties/nextServiceMileage
-
-The payload is JSON and the value is an integer. It also responds with "204 No Content" on success.
-
-
-### Property: doorStatus
-
-The "doorStatus" property indicates whether the door is "LOCKED" or "UNLOCKED" and returns the status as a string.
-
-GET http://localhost:8080/smart-vehicle/properties/doorStatus
-
-
-### Property: maintenanceNeeded
-
-The "maintencanceNedded" property is set TRUE when the property "nextServiceMileage" is lower than 500 km.
-This property is read-/writeable and observable.
-
-GET http://localhost:8080/smart-vehicle/properties/maintenanceNeeded
-
-PUT http://localhost:8080/smart-vehicle/properties/maintenanceNeeded
-
-The payload is JSON and the value is an boolean. It also responds with "204 No Content" on success.
-
-
-## Actions
-
-### Action: lockDoor
+### Action: actionLockDoor
 
 The action "lockDoor" locks the vehicle door and returns the status "LOCKED" along with "200 OK" on success.
 
-POST http://localhost:8080/smart-vehicle/actions/lockDoor
+POST http://\<hostname\>:\<PORT\>/\<title\>/actions/actionLockDoor
 
 
-### Action: unLockDoor
+### Action: actionUnlockDoor
 
 The action "unlockDoor" unlocks the vehicle door and returns the status "UNLOCKED" along with "200 OK" on success.
 
-POST http://localhost:8080/smart-vehicle/actions/unLockDoor
+POST http://\<hostname\>:\<PORT\>/\<title\>/actions/actionUnlockDoor
+
 
 # Docker
 
@@ -144,13 +106,13 @@ In this example, we create a Docker network, where the name of the network is "l
 
 In this example, we create a Docker image where "leetfleet" is the namespace, "vehicle" the image name, and as a tag "latest" will be automatically defined unless specified otherwise.
 
-* docker build . -t leetfleet/vehicle
+* docker build . -t vehicle
 
 ### Creating and running a vehicle container
 
 In this example, we define the name "vehicle1" as the container name.
 
-* docker run --rm --name vehicle1 --network-alias vehicle1 --network="leetnetwork" leetfleet/vehicle:latest
+* docker run --rm --name vehicle1 --network-alias vehicle1 --network="leetnetwork" vehicle:latest
 
 ### Inspecting on which network a container is on
 

@@ -11,7 +11,7 @@
 //     xhttp.open("GET", "http://localhost:8080/web/list_fleets", true);
 //     xhttp.send();
 // }
-
+let current_vehicle_for_lock;
 async function getVehicles(id){
     var url = "http://localhost:8080/web/list_vehicles?fleetManager=" + id
     // $.getJSON(url,
@@ -43,6 +43,27 @@ async function getVehicles(id){
         }
     })
 
+}
+
+async function editVehicle(vehicleJson){
+    var url = "http://localhost:8080/web/"
+     $.ajax({
+        
+        url: url,
+        type: "POST",
+        data:vehicleJson,
+        contentType: "application/json; charset=utf-8",
+        headers: {
+            'Access-Control-Allow-Origin': '*'
+        },
+        success: function(){
+            console.log("Vehicle change success!")
+            
+        },
+        error: function(jqXhr, textStatus, errorMessage){
+            console.log("error message: " + textStatus + jqXhr)
+        }
+    })
 }
 
 async function getFleets(){
@@ -155,9 +176,7 @@ let dummy_json = [
 
 ]
 
-
-//curreent vehicle
-var activeJson = {};
+ 
 
 function showVehicle(vehicleJson){
         var newInnerHtml = ""
@@ -289,7 +308,18 @@ function addEventListenertoButtons(){
             }
 
 
-            individualDiv.innerHTML += "<button class='btn btn-primary'>" + doorStatusCompliment +"</button>"
+            individualDiv.innerHTML += "<button class='btn btn-primary lock-btn'>" + doorStatusCompliment +"</button>"
+            var lockBtn = document.querySelector(".lock-btn");
+            lockBtn.addEventListener("click", () => {
+                if (doorStatusCompliment === "LOCK"){
+                    activeJson.doorStatus = "doorStatus: UNLOCKED"
+                    doorStatusElement.InnerHtml = "LOCK"
+                } else if (doorStatusCompliment === "UNLOCK"){
+                    activeJson.doorStatus = "doorStatus: LOCK"
+                    doorStatusElement.InnerHtml = "UNLOCK"
+                }
+                editVehicle(activeJson)
+            })
             
 
         })

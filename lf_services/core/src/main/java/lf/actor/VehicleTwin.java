@@ -109,13 +109,11 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         if (jedis.exists(key)) {
             // key exists, retrieve the object
             //
-            getContext().getLog().info("JEDIS KJEY EXISTS BLOCK ################################################");
             try {
                 String vehicleAsJSON = jedis.get(key);
-                getContext().getLog().info("\t value returned from redis -> " + vehicleAsJSON);
+                getContext().getLog().debug("\t value returned from redis -> " + vehicleAsJSON);
                 // Unmarshall the JSON into a Vehicle object using the Jackson object mapper
                 vehicle = new ObjectMapper().readValue(vehicleAsJSON, Vehicle.class);
-                getContext().getLog().info("\t Test Attribute -> " + vehicle.getVehicleId());
             }
             catch (Exception e) {
                 getContext().getLog().error("Vehicle returned from Store could not be unmarshalled");
@@ -238,7 +236,6 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         String key = "vehicle:" + vehicleIdLong;
         // Check if the key exists in jedis...
         if (jedis.exists(key)) {
-            getContext().getLog().info("UPDATE METHOD ENTRY  #################");
             try {
                 // Marshall the object using a Jackson object mapper
                 String vehicleAsJSON = new ObjectMapper().writeValueAsString(vehicle);
@@ -256,7 +253,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
      * @return
      */
     private Behavior<Message> onRequestVehicleModel(RequestVehicleModel message) {
-        getContext().getLog().info("Vehicle responding to a query, the query ID is: " + message.query_id);
+        getContext().getLog().debug("Vehicle response to state query (query ID: " + message.query_id + ")");
         message.replyTo.tell(new FleetManagerMsg.VehicleModelResponse(message.query_id, this.vehicle));
         return this;
     }

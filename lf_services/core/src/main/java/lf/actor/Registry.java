@@ -248,7 +248,6 @@ public class Registry extends AbstractBehavior<Registry.Message> {
       for (Map.Entry<Long, String> man : fleetManagerNames.entrySet()) {
 
         fleets.add(new Fleet(man.getValue(), Long.toString(man.getKey())));
-        getContext().getLog().info(man.getValue() + " will be sent to the client.");
       }
     } catch (Exception e) {
       getContext().getLog().error("Error in onListFleetMgrsJson", e);
@@ -268,7 +267,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
    * @return
    */
   private Behavior<Message> onListing(ListingResponse msg) {
-    getContext().getLog().info("Receptionist Notification (Fleet Manager List Update):");
+    getContext().getLog().debug("Receptionist Notification (Fleet Manager List Update):");
 
     Set<ActorRef<FleetManagerMsg.Message>> fleetManagerServiceInstances = msg.listing
         .getServiceInstances(FleetManagerMsg.fleetManagerServiceKey);
@@ -284,7 +283,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
             long newId = SEED_ID++;
             registry.put(newId, fleetManagerRef);
             fleetManagerNames.put(newId, "New");
-            getContext().getLog().info("\t(fleet manager ref added to registry cache)");
+            getContext().getLog().debug("\t(fleet manager ref added to registry cache)");
 
             // We inform the FleetManager that registration was successful
             fleetManagerRef.tell(new FleetManagerMsg.RegistrationSuccess(newId, getContext().getSelf()));
@@ -306,7 +305,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     for (Long key : deadFleetManagerKeys) {
       registry.remove(key);
       fleetManagerNames.remove(key);
-      getContext().getLog().info("\t(fleet manager ref removed from registry cache)");
+      getContext().getLog().debug("\t(fleet manager ref removed from registry cache)");
       // The is no actor to inform that "FleetManager Has been De-registered"
       // as the actor is already gone.
     }

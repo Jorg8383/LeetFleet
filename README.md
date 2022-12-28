@@ -158,3 +158,11 @@ Messages should be immutable, since they are shared between different threads.
 It is a good practice to put an actor’s associated messages as static classes in the AbstractBehavior’s class. This makes it easier to understand what type of messages the actor expects and handles.
 
 It is a good practice obtain an actor’s initial behavior via a static factory method
+
+
+docker compose up
+
+-OR-
+
+docker compose -f docker-compose-wot-dir-service.yml up
+docker compose -f docker-compose-wot-akka.yml up

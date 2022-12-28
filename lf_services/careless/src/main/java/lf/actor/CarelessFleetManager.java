@@ -113,7 +113,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
         // we want to 'DeRegister' on shutdown...
         MANAGER_ID = message.mgrId;
         REGISTRY_REF = message.registryRef;
-        getContext().getLog().info("FleetManager Registration Confirmed.");
+        getContext().getLog().debug("FleetManager Registration Confirmed.");
 
         // Send manager name to registry
         REGISTRY_REF.tell(new Registry.SetFleetManagerName(MANAGER_ID, "Careless"));
@@ -134,8 +134,6 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
 
         if (vehicleIdLong != 0) {
             if (carelessFleetIdRange.contains(vehicleIdLong)) {
-                getContext().getLog().info("Vehicle Web Event for CareleesFleet received.");
-
                 // This should NOT be the first communication for this vehicle.
                 // But... why assume anything. Just stamp it with this fleetId
                 // every time.
@@ -167,9 +165,8 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
                 message.vehicleWotEventRef.tell(new VehicleEventMsg.EventComplete(vehicle));
 
             } else {
-                getContext().getLog().info(
-                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong)
-                                + "). Ignoring.");
+                getContext().getLog().info("Vehicle Event for non-fleet vehicle received ("
+                    + String.valueOf(vehicleIdLong) + "). Ignoring.");
             }
         }
 
@@ -190,7 +187,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
 
         if (vehicleIdLong != 0) {
             if (carelessFleetIdRange.contains(vehicleIdLong)) {
-                getContext().getLog().info("Vehicle Event for CareleesFleet received.");
+                getContext().getLog().debug("Vehicle Event for CareleesFleet received.");
 
                 // This might be the first communication for this vehicle. It
                 // might not. Just stamp it with this fleetId every time.
@@ -223,9 +220,8 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
                 message.vehicleWebEventRef.tell(new VehicleEventMsg.EventComplete(vehicle));
 
             } else {
-                getContext().getLog().info(
-                        "Vehicle Event for non-fleet vehicle received (" + String.valueOf(vehicleIdLong)
-                                + "). Ignoring.");
+                getContext().getLog().info("Vehicle Event for non-fleet vehicle received ("
+                            + String.valueOf(vehicleIdLong) + "). Ignoring.");
             }
         }
 
@@ -239,7 +235,6 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
      */
     private Behavior<Message> onListVehiclesJson(ListVehiclesJson message) {
         long query_id = SEED_QUERY_ID++;
-        getContext().getLog().info("For this new query, the query ID is: " + query_id);
 
         Collection<ActorRef<VehicleTwin.Message>> vehicleTwinRefs = vehicles.values();
 
@@ -257,7 +252,6 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
         try {
           for (ActorRef<VehicleTwin.Message> vehicleTwinRef : vehicleTwinRefs)
           {
-            getContext().getLog().info("Sending query to vehicle, the query ID is: " + query_id);
             vehicleTwinRef.tell(
                 new VehicleTwin.RequestVehicleModel(query_id, getContext().getSelf())
                 );
@@ -282,15 +276,11 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
      * @return
      */
     private Behavior<Message> onVehicleModelResponse(VehicleModelResponse message) {
-        getContext().getLog().info("got a vehicle model response, the query ID is: " + message.query_id);
         VehicleQuery thisQuery = queries.get(message.query_id);
 
-        getContext().getLog().info("\tlooked up the 'queries list' and found: " + thisQuery);
         thisQuery.vehicles.add(message.vehicle);
 
         // Is the query complete?
-        getContext().getLog().info("\tFor this query we're looking for a total number of vehicles: " + thisQuery.expected_query_size);
-        getContext().getLog().info("\tso far we have found: " + thisQuery.vehicles.size());
         if (thisQuery.expected_query_size == thisQuery.vehicles.size()) {
             thisQuery.portalRef.tell(new WebPortalMsg.VehicleListToWebP(thisQuery.vehicles));
 

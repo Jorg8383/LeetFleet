@@ -162,12 +162,12 @@ public class VehicleWebQuery extends AbstractBehavior<VehicleWebQuery.Message> {
   // From Receptionist
 
   private Behavior<Message> onListing(ListingResponse msg) {
-    getContext().getLog().info("Receptionist Notification (Registry List Update)");
+    // The receptionist has messaged us, telling us the 'REGISTRY' list has changed.
+    getContext().getLog().debug("Receptionist Notification (Registry List Update)");
     msg.listing.getServiceInstances(Registry.registrySK)
         .forEach(
             registryRef -> {
               REGISTRY_REF = registryRef;
-              getContext().getLog().info("\tREGISTRY_REF updated.");
             });
 
     // When we know the REGISTRY_REF (or it is updated) we subscribe to the
@@ -181,7 +181,7 @@ public class VehicleWebQuery extends AbstractBehavior<VehicleWebQuery.Message> {
   }
 
   private Behavior<Message> onUpdatedFleetManagerList(UpdatedFleetManagerList msg) {
-    getContext().getLog().info("Registry Notification (Registry FleetMgr List Update)");
+    getContext().getLog().debug("Registry Notification (Registry FleetMgr List Update)");
 
     // Nothing smart... just update our copy of the 'id to ref' mapping.
     this.registryMirror = msg.registry;

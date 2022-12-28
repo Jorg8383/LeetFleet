@@ -101,7 +101,7 @@ public class FleetlessFleetManager extends AbstractBehavior<Message> {
         // we want to 'DeRegister' on shutdown...
         MANAGER_ID = message.mgrId;
         REGISTRY_REF = message.registryRef;
-        getContext().getLog().info("FleetManager Registration Confirmed.");
+        getContext().getLog().debug("FleetManager Registration Confirmed.");
 
         // Send manager name to registry
         REGISTRY_REF.tell(new Registry.SetFleetManagerName(MANAGER_ID, "Fleetless"));
@@ -122,7 +122,7 @@ public class FleetlessFleetManager extends AbstractBehavior<Message> {
 
         if (vehicleIdLong != 0) {
             if (fleetlessFleetIdRange.contains(vehicleIdLong)) {
-                getContext().getLog().info("Vehicle Event for CareleesFleet received.");
+                getContext().getLog().debug("Vehicle Event for CareleesFleet received.");
 
                 // This might be the first communication for this vehicle. It
                 // might not. Just stamp it with this fleetId every time.
@@ -176,7 +176,7 @@ public class FleetlessFleetManager extends AbstractBehavior<Message> {
 
         if (vehicleIdLong != 0) {
             if (fleetlessFleetIdRange.contains(vehicleIdLong)) {
-                getContext().getLog().info("Vehicle Event for FleetleesFleet received.");
+                getContext().getLog().debug("Vehicle Event for FleetleesFleet received.");
 
                 // This might be the first communication for this vehicle. It
                 // might not. Just stamp it with this fleetId every time.

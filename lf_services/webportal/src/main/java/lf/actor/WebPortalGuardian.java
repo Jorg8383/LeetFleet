@@ -225,7 +225,6 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         // Pass the message details (from the HttpServer, via the WebGuardian) to the VehicleEvent actor
         // NOTE: We're forwarding the 'replyTo' reference of AKKA HTTP. The response to this message
         //       will be handled there (and not locally in this Guardian).
-        //getContext().getLog().info("The message type is!{}!", message.getClass());
         vehicleEventRef.tell(new VehicleEventMsg.EventFromWebP(message.vehicle, message.replyTo, REGISTRY_REF));
         return this;
     }
@@ -240,7 +239,6 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         // Pass the message details (from the HttpServer, via the WebGuardian) to the VehicleEvent actor
         // NOTE: We're forwarding the 'replyTo' reference of AKKA HTTP. The response to this message
         //       will be handled there (and not locally in this Guardian).
-        //getContext().getLog().info("The message type is!{}!", message.getClass());
         vehicleEventRef.tell(new VehicleEventMsg.EventFromWebP(message.vehicle, message.replyTo, REGISTRY_REF));
         return this;
     }
@@ -272,12 +270,11 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
                 = msg.listing.getServiceInstances(Registry.registrySK);
             registryInstances.forEach(
                 registryRef -> {
-                    getContext().getLog().info("Success. \"Registry\" Reference from Receptionist complete.");
                     REGISTRY_REF = registryRef;
                 });
         }
         catch (IllegalArgumentException iae) {
-            getContext().getLog().info("Receptionist Listing Processed: Not a Registry reference update.");
+            getContext().getLog().error("Receptionist Listing Processed: Not a Registry reference update.");
         }
 
         // Now check for VehicleWebQuery service instances.
@@ -286,26 +283,14 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
                 = msg.listing.getServiceInstances(VehicleWebQuery.vehicleWebQuerySK);
             vwqInstances.forEach(
                     vwqRef -> {
-                        getContext().getLog().info("Success. \"Vehicle Web Query\" Reference from Receptionist complete.");
                         VEHICLE_WEB_QUERY_REF = vwqRef;
                     });
         }
         catch (IllegalArgumentException iae) {
-            getContext().getLog().info("Receptionist Listing Processed: Not a VehicleWebQuery reference update.");
+            getContext().getLog().error("Receptionist Listing Processed: Not a VehicleWebQuery reference update.");
         }
 
         return Behaviors.same();
     }
-
-    // private Behavior<Message> onVehicleWebQueryListing(VehicleWebQueryListingResponse msg) {
-    //     // There will only every be one registry in the list in our toy akka system.
-    //     msg.listing.getServiceInstances(VehicleWebQuery.vehicleWebQuerySK)
-    //             .forEach(
-    //                 vehicleWebQueryRef -> {
-    //                     getContext().getLog().info("Success. \"VehicleWebQuery\" Reference from Receptionist complete.");
-    //                     VEHICLE_WEB_QUERY_REF = vehicleWebQueryRef;
-    //                 });
-    //     return Behaviors.same();
-    // }
 
 }

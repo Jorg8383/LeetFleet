@@ -6,7 +6,7 @@
 2. `docker build . -t client`
 
 The main docker-compose file in the project directory will run the image, But if you'd like to run it on it's own you can run
-`docker run -p 8000:8000 client`
+`docker run -p 80:8000 client`
 
 ## Running locally
 

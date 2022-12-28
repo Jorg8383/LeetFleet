@@ -47,11 +47,12 @@ async function getVehicles(id){
 
 async function editVehicle(vehicleJson){
     var url = "http://localhost:8080/web"
-     $.ajax({
+    console.log("vehicle json just before transmit: " + JSON.stringify(vehicleJson));
+    $.ajax({
 
         url: url,
         type: "POST",
-        data:vehicleJson,
+        data: JSON.stringify(vehicleJson),
         contentType: "application/json; charset=utf-8",
         headers: {
             'Access-Control-Allow-Origin': '*'
@@ -312,14 +313,24 @@ function addEventListenertoButtons(fleet){
             individualDiv.innerHTML += "<button class='btn btn-primary lock-btn'>" + doorStatusCompliment +"</button>"
             var lockBtn = document.querySelector(".lock-btn");
             lockBtn.addEventListener("click", () => {
-                if (doorStatusCompliment === "LOCK"){
-                    activeJson.doorStatus = "doorStatus: UNLOCKED"
-                    doorStatusElement.InnerHtml = "LOCK"
+                console.log("Current value of doorStatusCompliment is " + doorStatusCompliment);
+                console.log("Current value of doorStatusCompliment is " + doorStatusCompliment);
+                if (doorStatusCompliment === "LOCK") {
+                    // Action was 'Lock' the doors
+                    activeJson.doorStatus = "doorStatus: LOCKED";
+                    console.log("In the LOCK block " + doorStatusElement.innerHTML );
+                    doorStatusElement.innerHTML = "doorStatus: LOCKED";
+                    // New action is 'Unlock' the doors.
+                    doorStatusCompliment  = "UNLOCK";
                 } else if (doorStatusCompliment === "UNLOCK"){
-                    activeJson.doorStatus = "doorStatus: LOCK"
-                    doorStatusElement.InnerHtml = "UNLOCK"
+                    // Action was 'Unlock' the doors
+                    activeJson.doorStatus = "doorStatus: UNLOCKED";
+                    console.log("In the UNLOCK block " + doorStatusElement.innerHTML );
+                    doorStatusElement.innerHTML = "doorStatus: UNLOCKED";
+                    // New action is 'Unlock' the doors.
+                    doorStatusCompliment  = "LOCK";
                 }
-                editVehicle(activeJson)
+                editVehicle(activeJson);
             })
 
 

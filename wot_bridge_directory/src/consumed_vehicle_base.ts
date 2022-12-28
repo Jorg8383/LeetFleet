@@ -69,15 +69,22 @@ export class WotConsumedDevice {
     // Method that handles the first update of the JSON representation
     // of the vehicle being passed to Akka
     private async initialiseJSON(json) {
+        console.log("InitialiseJSON called:\n\n");
+        const url = this.td.forms[0].href;
+        console.log("URL constant is: " + url);
         const allData = await this.thing.readAllProperties();
         json["vehicleId"] = this.td.title;
-        json["tdURL"] = this.vehicleJSON.tdURL;
+        json["tdURL"] = url.replace("properties", "");
+        console.log("Updated URL is now: " + this.vehicleJSON.tdURL);
         json["oilLevel"] = await allData.get('propOilLevel').value();
         json["tyrePressure"] = await allData.get('propTyrePressure').value();
         json["mileage"] = await allData.get('propTotalMileage').value();
         json["nextServiceDistance"] = await allData.get('propServiceDistance').value();
         json["doorStatus"] = await allData.get('propDoorStatus').value();
         json["maintenanceNeeded"] = await allData.get('propMaintenanceNeeded').value();
+        console.log("JSON representation is:");
+        console.log(this.vehicleJSON);
+        console.log("\n\n");
     }
 
     // Method that handles observing changes in each property in the

@@ -66,9 +66,8 @@ class WotDevice {
     // ------------------------------------------------------------------------
     // Constructor
     // ------------------------------------------------------------------------
-    constructor(deviceWoT, tdDirectory, vehicleNumber, hostname) {
+    constructor(deviceWoT, tdDirectory, vehicleNumber) {
         this.vehicleNumber = "1";
-        this.hostname = "localhost";
         // Status variables which are needed for emulation purposes
         this.varTyrePressure = 35; // PSI
         this.varOilLevel = 100; // Percent
@@ -211,7 +210,6 @@ class WotDevice {
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         this.vehicleNumber = vehicleNumber;
-        this.hostname = hostname;
         // console.log("Vehicle number being injected: " + this.vehicleNumber);
         if (tdDirectory)
             this.tdDirectory = tdDirectory;

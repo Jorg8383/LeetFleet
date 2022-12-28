@@ -60,7 +60,6 @@ export class WotDevice {
     public deviceWoT: typeof WoT;
     public td: WoT.ExposedThingInit;
     public vehicleNumber = "1";
-    public hostname = "localhost";
 
     // Status variables which are needed for emulation purposes
     private varTyrePressure = 35; // PSI
@@ -222,12 +221,10 @@ export class WotDevice {
     // ------------------------------------------------------------------------
     constructor(deviceWoT: typeof WoT,
                 tdDirectory?: string,
-                vehicleNumber?: string,
-                hostname?: string) {
+                vehicleNumber?: string) {
         // initialze WotDevice parameters
         this.deviceWoT = deviceWoT;
         this.vehicleNumber = vehicleNumber;
-        this.hostname = hostname;
         // console.log("Vehicle number being injected: " + this.vehicleNumber);
         if (tdDirectory) this.tdDirectory = tdDirectory;
     }

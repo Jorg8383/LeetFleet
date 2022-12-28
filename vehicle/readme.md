@@ -79,14 +79,14 @@ After updating the values successfully, the exposed thing responds with "204 No 
 
 ### Action: actionLockDoor
 
-The action "lockDoor" locks the vehicle door and returns the status "LOCKED" along with "200 OK" on success.
+The action "actionLockDoor" locks the vehicle door and returns the status "LOCKED" along with "200 OK" on success.
 
 POST http://\<hostname\>:\<PORT\>/\<title\>/actions/actionLockDoor
 
 
 ### Action: actionUnlockDoor
 
-The action "unlockDoor" unlocks the vehicle door and returns the status "UNLOCKED" along with "200 OK" on success.
+The action "actionUnlockDoor" unlocks the vehicle door and returns the status "UNLOCKED" along with "200 OK" on success.
 
 POST http://\<hostname\>:\<PORT\>/\<title\>/actions/actionUnlockDoor
 

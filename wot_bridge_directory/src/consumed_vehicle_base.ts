@@ -69,22 +69,18 @@ export class WotConsumedDevice {
     // Method that handles the first update of the JSON representation
     // of the vehicle being passed to Akka
     private async initialiseJSON(json) {
-        console.log("InitialiseJSON called:\n\n");
         const url = this.td.forms[0].href;
-        console.log("URL constant is: " + url);
         const allData = await this.thing.readAllProperties();
         json["vehicleId"] = this.td.title;
         json["tdURL"] = url.replace("properties", "");
-        console.log("Updated URL is now: " + this.vehicleJSON.tdURL);
         json["oilLevel"] = await allData.get('propOilLevel').value();
         json["tyrePressure"] = await allData.get('propTyrePressure').value();
         json["mileage"] = await allData.get('propTotalMileage').value();
         json["nextServiceDistance"] = await allData.get('propServiceDistance').value();
         json["doorStatus"] = await allData.get('propDoorStatus').value();
         json["maintenanceNeeded"] = await allData.get('propMaintenanceNeeded').value();
-        console.log("JSON representation is:");
+        console.log("JSON representation for " + this.td.id + " is:");
         console.log(this.vehicleJSON);
-        console.log("\n\n");
     }
 
     // Method that handles observing changes in each property in the
@@ -119,7 +115,6 @@ export class WotConsumedDevice {
     // Method to subscribe to the events of the consumed thing
     private subscribe(thing: WoT.ConsumedThing) {
         thing.subscribeEvent("eventLowOnOil", async (data) => {
-            console.log("eventLowOnOil:", await data.value(), "-> Thing-ID: ", this.td.id);
             fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
@@ -134,7 +129,6 @@ export class WotConsumedDevice {
             })
         });
         thing.subscribeEvent("eventLowTyrePressure", async (data) => {
-            console.log("eventLowTyrePressure:", await data.value(), "-> Thing-ID: ", this.td.id);
             fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
@@ -149,7 +143,6 @@ export class WotConsumedDevice {
             })
         });
         thing.subscribeEvent("eventMaintenanceNeeded", async (data) => {
-            console.log("eventMaintenanceNeeded:", await data.value(), "-> Thing-ID: ", this.td.id);
             fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {

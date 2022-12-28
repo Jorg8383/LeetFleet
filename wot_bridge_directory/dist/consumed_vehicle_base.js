@@ -70,22 +70,18 @@ class WotConsumedDevice {
     // of the vehicle being passed to Akka
     initialiseJSON(json) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("InitialiseJSON called:\n\n");
             const url = this.td.forms[0].href;
-            console.log("URL constant is: " + url);
             const allData = yield this.thing.readAllProperties();
             json["vehicleId"] = this.td.title;
             json["tdURL"] = url.replace("properties", "");
-            console.log("Updated URL is now: " + this.vehicleJSON.tdURL);
             json["oilLevel"] = yield allData.get('propOilLevel').value();
             json["tyrePressure"] = yield allData.get('propTyrePressure').value();
             json["mileage"] = yield allData.get('propTotalMileage').value();
             json["nextServiceDistance"] = yield allData.get('propServiceDistance').value();
             json["doorStatus"] = yield allData.get('propDoorStatus').value();
             json["maintenanceNeeded"] = yield allData.get('propMaintenanceNeeded').value();
-            console.log("JSON representation is:");
+            console.log("JSON representation for " + this.td.id + " is:");
             console.log(this.vehicleJSON);
-            console.log("\n\n");
         });
     }
     // Method that handles observing changes in each property in the
@@ -116,7 +112,6 @@ class WotConsumedDevice {
     // Method to subscribe to the events of the consumed thing
     subscribe(thing) {
         thing.subscribeEvent("eventLowOnOil", (data) => __awaiter(this, void 0, void 0, function* () {
-            console.log("eventLowOnOil:", yield data.value(), "-> Thing-ID: ", this.td.id);
             fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
@@ -131,7 +126,6 @@ class WotConsumedDevice {
             });
         }));
         thing.subscribeEvent("eventLowTyrePressure", (data) => __awaiter(this, void 0, void 0, function* () {
-            console.log("eventLowTyrePressure:", yield data.value(), "-> Thing-ID: ", this.td.id);
             fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {
@@ -146,7 +140,6 @@ class WotConsumedDevice {
             });
         }));
         thing.subscribeEvent("eventMaintenanceNeeded", (data) => __awaiter(this, void 0, void 0, function* () {
-            console.log("eventMaintenanceNeeded:", yield data.value(), "-> Thing-ID: ", this.td.id);
             fetch("http://webportal:8080/wot", {
                 method: 'POST',
                 headers: {

@@ -1,7 +1,7 @@
 /********************************************************************************************
                                     The WoT-Bridge
 ********************************************************************************************
-Author: Jörg Striebel
+Author: Jörg Striebel & Ian Foster
 
 The WoT-Hive, which is an implementation of a W3C Web of Things directory, forms the backbone
 of our bridge between the Web of Things world and the backend AKKA part. It allows for
@@ -50,8 +50,6 @@ For more information about the WoT-Hive directory, check out:
 https://github.com/oeg-upm/wot-hive
 ********************************************************************************************/
 
-//const URI_API_THINGS = "http://localhost:9000/api/things";
-//const URI_API_THINGS = "http://triple-store-wothive-1:9000/api/things";
 const URI_API_THINGS = "http://" + process.env.HOST_WOT_DIR_SERVICE + ":9000/api/things";
 const FIRST_HTTP_SERVER_PORT = process.env.ENV_FIRST_SERVER_PORT;
 const wotBridgeTimeStarted = Date.now();
@@ -72,13 +70,14 @@ async function fetchWotHiveTdCache() {
         // Check if response status is ok (200 < status < 300)
         if (!response.ok) {
             const message = `An error has occured while fetching: ${response.status}`;
+            console.log(message);
             throw new Error(message);
         }
         // Resolve response by converting the received data into JSON
         const tdCache = await response.json();
         return tdCache;
     } catch (error) {
-        console.error(error);
+        console.warn(error);
     }
 }
 
@@ -86,8 +85,8 @@ async function fetchWotHiveTdCache() {
 // It stores the "id" of all current and outdated TDs from the WoT-Hive dictionary
 // in the dictionaries "wotToBeConsumedThingDict" and "wotToBeDeletedThingDict" respectively.
 function checkCacheForRelevantEntries(cache) {
-    console.log("The WoT-Hive cache contains " + cache.length + " TD entries.");
     if (cache.length != 0) {
+        console.log("The WoT-Hive cache contains " + cache.length + " TD entries.");
         let deleteIdKey = 0;
         for (let i=0; i < cache.length; i++) {
             // Get one single TD and convert "created" time into a UTC timestamp
@@ -131,6 +130,8 @@ function checkCacheForRelevantEntries(cache) {
                 // console.log(JSON.stringify(key) + ": " + JSON.stringify(value));
             }
         }
+    } else {
+        console.log("The WoT-Hive cache has yet to be created.");
     }
 }
 

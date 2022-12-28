@@ -22,21 +22,21 @@ async function getVehicles(id){
     console.log(url)
     $.support.cors = true;
 
-    
+
     $.ajax({
-        
+
         url: url,
         type: "POST",
-        
+
         dataType: 'json',
-        
+
         headers: {
             'Access-Control-Allow-Origin': '*'
         },
         success: function(data){
             showFleetVehicles(data)
-            
-            
+
+
         },
         error: function(jqXhr, textStatus, errorMessage){
             console.log("error message: " + textStatus + jqXhr)
@@ -46,9 +46,9 @@ async function getVehicles(id){
 }
 
 async function editVehicle(vehicleJson){
-    var url = "http://localhost:8080/web/"
+    var url = "http://localhost:8080/web"
      $.ajax({
-        
+
         url: url,
         type: "POST",
         data:vehicleJson,
@@ -58,7 +58,7 @@ async function editVehicle(vehicleJson){
         },
         success: function(){
             console.log("Vehicle change success!")
-            
+
         },
         error: function(jqXhr, textStatus, errorMessage){
             console.log("error message: " + textStatus + jqXhr)
@@ -70,26 +70,26 @@ async function getFleets(){
     var url = "http://localhost:8080/web/list_fleets"
     $.support.cors = true;
 
-    
+
     $.ajax({
-        
+
         url: "http://localhost:8080/web/list_fleets",
         type: "GET",
-        
+
         dataType: 'json',
-        
+
         headers: {
             'Access-Control-Allow-Origin': '*'
         },
         success: function(data){
-            
+
             setUpDropDown(data)
         },
         error: function(jqXhr, textStatus, errorMessage){
             console.log("error message: " + textStatus + jqXhr)
         }
     })
-    
+
 
     // console.log("gothere")
     // var xhttp = new XMLHttpRequest();
@@ -176,7 +176,7 @@ let dummy_json = [
 
 ]
 
- 
+
 
 function showVehicle(vehicleJson){
         var newInnerHtml = ""
@@ -191,7 +191,7 @@ function showVehicle(vehicleJson){
         newInnerHtml += "<p> Maintanence needed: " + vehicleJson.maintenanceNeeded + "</p>";
         newInnerHtml += "<button class='btn btn-warning vehicle-btn' value='" + vehicleJson.vehicleId + "'>" + vehicleJson.vehicleId + "</button>";
 
-        
+
         newInnerHtml += "</div>"
 
         return newInnerHtml
@@ -202,7 +202,7 @@ function setUpDropDown(fleetMgrs) {
         let insideDropdown = "";
         fleetMgrs.forEach(element => {
         insideDropdown += "<a class='dropdown-item' id='" + element.managerId + "'>" + element.name +" Manager</a>";
-        
+
 
         document.getElementsByClassName("dropdown-menu")[0].innerHTML = insideDropdown;
         })
@@ -210,7 +210,7 @@ function setUpDropDown(fleetMgrs) {
 
         dropdownItems.forEach(element => {
             element.addEventListener("click", () => {
-                
+
                 // console.log(element.classList)
                 getVehicles(element.id)
                 // var indiVehicle = showFleetVehicles(element.innerHTML);
@@ -230,7 +230,7 @@ function setUpDropDown(fleetMgrs) {
 function showFleetVehicles(fleet){
     let vehicleDiv = document.getElementById("vehicles")
     // make api call to get vehicles from akka
-    
+
     let InnerHtml = "";
     console.log(fleet)
     //change dummy json to fleet
@@ -242,10 +242,10 @@ function showFleetVehicles(fleet){
     vehicleDiv.style.display = "grid";
     vehicleDiv.style.gridTemplateColumns = "30% 30% 30%";
     vehicleDiv.style.justifyContent = "center";
-    
+
     home.style.display = "none";
     vehicleDiv.innerHTML = InnerHtml;
-    addEventListenertoButtons();
+    addEventListenertoButtons(fleet);
 
     document.querySelector(".back").classList.remove("back-hidden")
     document.querySelector(".back").classList.add("back-shown")
@@ -256,7 +256,7 @@ document.querySelector(".back").addEventListener("click", () => {
     let vehicleDiv = document.getElementById("vehicles")
     vehicleDiv.style.display = "none";
     home.style.display = "inline-block";
-    
+
     document.querySelector(".back").classList.add("back-hidden")
     document.querySelector(".back").classList.remove("back-shown")
 })
@@ -272,7 +272,7 @@ let dropdownItems = document.querySelectorAll(".dropdown-item")
 // })
 
 
-function addEventListenertoButtons(){
+function addEventListenertoButtons(fleet){
     let btn = document.querySelectorAll(".vehicle-btn");
 
     btn.forEach(button => {
@@ -280,14 +280,15 @@ function addEventListenertoButtons(){
             let individualDiv = document.querySelector("#div-" + button.innerHTML);
             individualDiv.style.display = "inline";
             let vehicleDiv = document.getElementById("vehicles")
-            
-            dummy_json.forEach(json => {
+
+            //dummy_json.forEach(json => {
+            fleet.forEach(json => {
                 if (json.vehicleId === button.innerHTML){
                     activeJson = json;
                 }
             })
             console.log("Current json = " + activeJson);
-            
+
             let allVDivs = document.querySelectorAll(".vehicle-div")
 
             allVDivs.forEach(div => {
@@ -320,7 +321,7 @@ function addEventListenertoButtons(){
                 }
                 editVehicle(activeJson)
             })
-            
+
 
         })
     })

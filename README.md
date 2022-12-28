@@ -164,5 +164,5 @@ docker compose up
 
 -OR-
 
-docker compose -f docker-compose-wot-dir-service.yml up
-docker compose -f docker-compose-wot-akka.yml up
+docker compose -f dkr-comp1-wot-dir-service.yml up
+docker compose -f dkr-comp2-wot-akka.yml up

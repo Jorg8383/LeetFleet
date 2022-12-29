@@ -122,8 +122,8 @@ export class WotConsumedDevice {
                 },
                 body: "Event message - vehicle " + this.vehicleJSON.vehicleId
                     + " is low on oil"
-            }).then(res => res.json()).then(res => {
-                console.log(res);
+            }).then(res => {
+                console.log("Vehicle " + this.vehicleJSON.vehicleId + " is low on oil");
             }).catch(err => {
                 console.log(err);
             })
@@ -136,8 +136,8 @@ export class WotConsumedDevice {
                 },
                 body: "Event message - vehicle " + this.vehicleJSON.vehicleId
                     + " has low tyre pressure"
-            }).then(res => res.json()).then(res => {
-                console.log(res);
+            }).then(res => {
+                console.log("Vehicle " + this.vehicleJSON.vehicleId + " has low tyre pressure");
             }).catch(err => {
                 console.log(err);
             })
@@ -150,8 +150,8 @@ export class WotConsumedDevice {
                 },
                 body: "Event message - vehicle " + this.vehicleJSON.vehicleId
                     + " requires maintenance"
-            }).then(res => res.json()).then(res => {
-                console.log(res);
+            }).then(res => {
+                console.log("Vehicle " + this.vehicleJSON.vehicleId + " requires maintenance");
             }).catch(err => {
                 console.log(err);
             })
@@ -180,9 +180,6 @@ export class WotConsumedDevice {
             if (res.status >= 300) {
                 throw new Error("There was an error with the request: " + res.status)
             }
-            res.json()
-        }).then(res => {
-            console.log(res);
         }).catch(err => {
             console.log(err);
         })

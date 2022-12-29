@@ -193,6 +193,10 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
                 // might not. Just stamp it with this fleetId every time.
                 vehicle.setFleetManager(Long.toString(MANAGER_ID));
 
+                // TODO TODO TODO TODO FIX FIX FIX - SET THE FLEET-MANAGER-ID on the Exposed Thing!?!?!?!?
+                // OR DO WE READ THE DB TO CHECK IF THE FLEET MANAGER HAS BEEN SET WHEN A MESSAGE ARRIVES????????
+                //  WHAT IF THE MANAGER ID IS WRONG!?!?! WOULD REQUIRE A RE-TRANSMIT ON TIMEOUT - PERHAPS JUST DOCUMENT THIS!?
+
                 ActorRef<VehicleTwin.Message> vehicleTwinRef;
 
                 // First - if the VehicleTwin for this vehicle doesn't exist, then

@@ -155,7 +155,8 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         ActorRef<Receptionist.Listing> receptionistListingResponseAdapter
             = context.messageAdapter(Receptionist.Listing.class, ReceptionistListingResponse::new);
 
-        // Subscribe for Registry list updates (returns current set of entries upon subscription)
+        // We subscribe to the Receptionist for **TWO** service updates:
+        // 1) Subscribe for Registry (list) updates
         context
             .getSystem()
             .receptionist()
@@ -169,7 +170,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
         VEHICLE_WEB_QUERY_REF = context.spawn(VehicleWebQuery.create(), "vehicleWebQuery");
         //#create-actors
 
-        // Subscribe for VehicleWebQuery list updates (returns current set of entries upon subscription)
+        // 2) Subscribe for VehicleWebQuery (list) updates
         context
             .getSystem()
             .receptionist()
@@ -261,33 +262,48 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
     // From Receptionist
 
+    /**
+     * Read a subscription listing from the receptionist
+     * @param msg
+     * @return
+     */
     private Behavior<Message> onReceptionistListing(ReceptionistListingResponse msg)
     {
+        // We subscribe to multiple receptionist listings in this behaviour.
+        // But AKKA allows only a single message adapter
+        // We test the received listing to find out what 'type of update' it is.
+        boolean listingProcessed = false;
+
         // First check for registry service instances
         // There will only every be one registry in the list in our toy akka system.
         try {
+            getContext().getLog().debug("Receptionist Listing Received: Check if is a Registry update...");
             Set<ActorRef<Registry.Message>> registryInstances
                 = msg.listing.getServiceInstances(Registry.registrySK);
             registryInstances.forEach(
                 registryRef -> {
                     REGISTRY_REF = registryRef;
                 });
+            listingProcessed = true;
         }
         catch (IllegalArgumentException iae) {
-            getContext().getLog().error("Receptionist Listing Processed: Not a Registry reference update.");
+            getContext().getLog().debug("    -> NOT a Registry update.");
         }
 
-        // Now check for VehicleWebQuery service instances.
-        try {
-            Set<ActorRef<VehicleWebQuery.Message>> vwqInstances
-                = msg.listing.getServiceInstances(VehicleWebQuery.vehicleWebQuerySK);
-            vwqInstances.forEach(
-                    vwqRef -> {
-                        VEHICLE_WEB_QUERY_REF = vwqRef;
-                    });
-        }
-        catch (IllegalArgumentException iae) {
-            getContext().getLog().error("Receptionist Listing Processed: Not a VehicleWebQuery reference update.");
+        // Now - if not already finished - check for VehicleWebQuery service instances.
+        if (!listingProcessed) {
+            try {
+                getContext().getLog().debug("Receptionist Listing Received: Check if is a VehicleWebQuery update...");
+                Set<ActorRef<VehicleWebQuery.Message>> vwqInstances
+                    = msg.listing.getServiceInstances(VehicleWebQuery.vehicleWebQuerySK);
+                vwqInstances.forEach(
+                        vwqRef -> {
+                            VEHICLE_WEB_QUERY_REF = vwqRef;
+                        });
+            }
+            catch (IllegalArgumentException iae) {
+                getContext().getLog().debug("    -> NOT a VehicleWebQuery update.");
+            }
         }
 
         return Behaviors.same();

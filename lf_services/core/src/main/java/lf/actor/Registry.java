@@ -210,6 +210,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
       fleetId = Long.parseLong(message.fleetId);
       validFleetId = true;
     } catch (NumberFormatException nfe) {
+      getContext().getLog().error("Invalid FleetId Received - possibly initial:", nfe.getMessage());
     }
 
     if (validFleetId) {
@@ -246,11 +247,10 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     // list..
     try {
       for (Map.Entry<Long, String> man : fleetManagerNames.entrySet()) {
-
         fleets.add(new Fleet(man.getValue(), Long.toString(man.getKey())));
       }
     } catch (Exception e) {
-      getContext().getLog().error("Error in onListFleetMgrsJson", e);
+      getContext().getLog().error("", e);
     }
 
     // fleets.add(new Fleet("ParanoidFleet", "4"));

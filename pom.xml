@@ -10,6 +10,8 @@
     <modules>
         <module>client</module>
         <module>lf_services</module>
+        <module>vehicle</module>
+        <module>wot_bridge_directory</module>
     </modules>
 
     <properties>

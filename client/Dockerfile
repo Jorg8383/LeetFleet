@@ -12,8 +12,8 @@ RUN pip install django-cors-headers
 
 CMD ["python", "manage.py", "runserver","0.0.0.0:8000"]
 
-# To run:
+# To build:
 #  docker build . -t client
-# docker run -p 8000:8000 client
-
-# From this directory
+#
+# To run (from this directory)
+#  docker run -p 80:8000 client

@@ -210,7 +210,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
       fleetId = Long.parseLong(message.fleetId);
       validFleetId = true;
     } catch (NumberFormatException nfe) {
-      getContext().getLog().error("Invalid FleetId Received - possibly initial:", nfe.getMessage());
+      getContext().getLog().info("Empty/Invalid FleetId Received - possible first connection?", nfe.getMessage());
     }
 
     if (validFleetId) {

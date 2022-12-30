@@ -234,7 +234,7 @@ public class WebPortalGuardian extends AbstractBehavior<WebPortalGuardian.Messag
 
     private Behavior<Message> onForwardToWebHandler(ForwardToWebHandler message) {
         // Create an (anonymous, disposable) VehicleEvent actor to handle this request.
-        ActorRef<VehicleEventMsg.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleWotEvent.create());  // 'anonymous' actor
+        ActorRef<VehicleEventMsg.Message> vehicleEventRef = getContext().spawnAnonymous(VehicleWebEvent.create());  // 'anonymous' actor
         // ActorRef<VehicleEvent.Message> vehicleEventRef = getContext().spawn(VehicleEvent.create(), "Fred");  // 'normal' named actor
 
         // Pass the message details (from the HttpServer, via the WebGuardian) to the VehicleEvent actor

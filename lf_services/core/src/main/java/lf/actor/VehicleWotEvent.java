@@ -77,12 +77,13 @@ public class VehicleWotEvent extends AbstractBehavior<VehicleEventMsg.Message> {
     portalRef   = message.replyTo;
     registryRef = message.registryRef;
     vehicle     = message.vehicle;
+    getContext().getLog().info("In event, just unmarshalled,  Fleet Manager ID is -> " + vehicle.getFleetId());
 
     // "vehicle.fleetId" might be null or empty or blank...
     // We don't care! We send off the fleetId 'as is' to the registry. If the
     // fleetId is valid we get back a list of 'one fleet manager'. If it's invalid
     // we should get back a list of all of them.
-    registryRef.tell(new ListFleetMgrRefs(vehicle.getFleetManager(), this.getContext().getSelf()));
+    registryRef.tell(new ListFleetMgrRefs(vehicle.getFleetId(), this.getContext().getSelf()));
 
     return this;
   }
@@ -118,7 +119,7 @@ public class VehicleWotEvent extends AbstractBehavior<VehicleEventMsg.Message> {
     // Time to complete the promise this actor was created for...
     portalRef.tell(new WebPortalMsg.VehicleToWebP(vehicle));
 
-    // ...  and then shutdown.
+    // ... and then shutdown.
     return Behaviors.stopped();
   }
 

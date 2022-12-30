@@ -126,7 +126,7 @@ public class ParanoidFleetManager extends AbstractBehavior<Message> {
 
                 // This might be the first communication for this vehicle. It
                 // might not. Just stamp it with this fleetId every time.
-                vehicle.setFleetManager(Long.toString(MANAGER_ID));
+                vehicle.setFleetId(Long.toString(MANAGER_ID));
 
                 ActorRef<VehicleTwin.Message> vehicleTwinRef;
 
@@ -180,7 +180,7 @@ public class ParanoidFleetManager extends AbstractBehavior<Message> {
 
                 // This might be the first communication for this vehicle. It
                 // might not. Just stamp it with this fleetId every time.
-                vehicle.setFleetManager(Long.toString(MANAGER_ID));
+                vehicle.setFleetId(Long.toString(MANAGER_ID));
 
                 ActorRef<VehicleTwin.Message> vehicleTwinRef;
 

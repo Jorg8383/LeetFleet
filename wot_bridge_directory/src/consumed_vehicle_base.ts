@@ -169,6 +169,8 @@ export class WotConsumedDevice {
     // Extracted method to handle sending JSON representation of vehicle
     // to Actor system
     private updateAkka() {
+        console.log("updateAkka: JSON representation for " + this.td.id + " is:");
+        console.log(this.vehicleJSON);
         fetch("http://webportal:8080/wot", {
             method: 'POST',
             headers: {

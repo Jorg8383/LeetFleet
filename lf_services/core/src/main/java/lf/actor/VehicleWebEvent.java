@@ -47,27 +47,26 @@ public class VehicleWebEvent extends AbstractBehavior<VehicleEventMsg.Message> {
     return newReceiveBuilder()
       .onMessage(VehicleEventMsg.EventFromWebP.class, this::onWebEventFromWebP)
       .onMessage(VehicleEventMsg.FleetMgrRefList.class, this::onFleetManagerList)
-      .onMessage(VehicleEventMsg.EventComplete.class, this::onEventComplete).build();
+      .onMessage(VehicleEventMsg.EventComplete.class, this::onEventComplete)
+      .build();
   }
 
   // From WebPortal
 
-  /**
+   /**
    * This first message, from the web-portal, is what we expect to receive just
-   * after this actor has spawned. We are a 'use once, then throw away' actor that
-   * lives just long enough to handle a single request/response from the outside
-   * world (well... from a WoT vehicle in the outside world). We expect this
-   * message to contain:
+   * after this actor has spawned.  We are a 'use once, then throw away' actor
+   * that lives just long enough to handle a single request/response from the
+   * outside world (well... from a WoT vehicle in the outside world). We expect
+   * this message to contain:
    * <ul>
-   * <li>A Vehicle
-   * <ul>
-   * <li>This vehicle may or may not include a FleetManager Id</li>
+   *  <li>A Vehicle
+   *    <ul>
+   *      <li>This vehicle may or may not include a FleetManager Id</li>
+   *    </ul>
+   *  </li>
+   *  <li>An actor ref for the web portal so we can respond once any work is done</li>
    * </ul>
-   * </li>
-   * <li>An actor ref for the web portal so we can respond once any work is
-   * done</li>
-   * </ul>
-   *
    * @param message
    * @return
    */
@@ -75,15 +74,15 @@ public class VehicleWebEvent extends AbstractBehavior<VehicleEventMsg.Message> {
     // this thing gets in a message which contains a vehicle
 
     // First, store the various Event attributes in this actor (for it's life)
-    portalRef = message.replyTo;
+    portalRef   = message.replyTo;
     registryRef = message.registryRef;
-    vehicle = message.vehicle;
+    vehicle     = message.vehicle;
 
     // "vehicle.fleetId" might be null or empty or blank...
     // We don't care! We send off the fleetId 'as is' to the registry. If the
     // fleetId is valid we get back a list of 'one fleet manager'. If it's invalid
     // we should get back a list of all of them.
-    registryRef.tell(new ListFleetMgrRefs(vehicle.getFleetManager(), this.getContext().getSelf()));
+    registryRef.tell(new ListFleetMgrRefs(vehicle.getFleetId(), this.getContext().getSelf()));
 
     return this;
   }
@@ -92,9 +91,9 @@ public class VehicleWebEvent extends AbstractBehavior<VehicleEventMsg.Message> {
 
   /**
    * This second message, from the registry, we expect to receive so we can send
-   * this event on to the correct fleet manager. If we don't know the fleet
-   * manager id then the registry will have returned a list of 'all fleet
-   * managers' and we spam the lot of them with this event.
+   * this event on to the correct fleet manager.  If we don't know the fleet manager
+   * id then the registry will have returned a list of 'all fleet managers' and
+   * we spam the lot of them with this event.
    *
    * @param message
    * @return
@@ -114,7 +113,7 @@ public class VehicleWebEvent extends AbstractBehavior<VehicleEventMsg.Message> {
 
   private Behavior<Message> onEventComplete(VehicleEventMsg.EventComplete message) {
     // Everything is done!
-    vehicle = message.vehicle; // pedantry. keep state updated so future mods don't break.
+    vehicle = message.vehicle;  // pedantry. keep state updated so future mods don't break.
 
     // Time to complete the promise this actor was created for...
     portalRef.tell(new WebPortalMsg.VehicleToWebP(vehicle));

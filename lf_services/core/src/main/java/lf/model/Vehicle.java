@@ -13,7 +13,8 @@ public class Vehicle {
     @JsonIgnore
     private long vehicleIdLong;  // LeetFleet VehicleId (long i.e. just an 'id number', e.g. nnnn)
 
-    private String fleetManager;
+    private String fleetId;
+    private boolean wotFltIdUpdateRqd = false;
 
     // The unique URL to access the exposed thing for this vehicle : "http://localhost:1234/WoT-ID-Mfr-VIN-1234"
     private String tdURL;
@@ -27,14 +28,14 @@ public class Vehicle {
 
     // Constructors:
     public Vehicle(
-            String vehicleId, String fleetManager, String tdURL,
+            String vehicleId, String fleetId, String tdURL,
             Float tyrePressure, Float mileage, Float oilLevel,
             Long nextServiceDistance, String doorStatus, String maintenanceNeeded)
     {
         this.vehicleId = vehicleId;
         this.vehicleIdLong = wotIdToLongId(vehicleId);  // Convert formatted WoT Id to Long
         //
-        this.fleetManager = fleetManager;
+        this.fleetId = fleetId;
         //
         this.tdURL = tdURL;
         //
@@ -65,7 +66,7 @@ public class Vehicle {
 
     public Vehicle(String vehicleId, String fleetId) {
         this.vehicleId = vehicleId;
-        this.fleetManager = fleetId;
+        this.fleetId = fleetId;
         // this.isOn = isOn;
     }
     //------------------------------------------------------------
@@ -107,11 +108,17 @@ public class Vehicle {
 
     //------------------------------------------------------------
 
-    public String getFleetManager() {
-        return this.fleetManager;
+    public String getFleetId() {
+        return this.fleetId;
     }
-    public void setFleetManager(String fleetManager) {
-        this.fleetManager = fleetManager;
+    public void setFleetId(String fleetId) {
+        this.fleetId = fleetId;
+    }
+    public boolean isWotFltIdUpdateRqd() {
+        return wotFltIdUpdateRqd;
+    }
+    public void setWotFltIdUpdateRqd(boolean wotFltMgrUpdateRqd) {
+        this.wotFltIdUpdateRqd = wotFltMgrUpdateRqd;
     }
 
     //------------------------------------------------------------

@@ -134,10 +134,15 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
 
         if (vehicleIdLong != 0) {
             if (carelessFleetIdRange.contains(vehicleIdLong)) {
-                // This should NOT be the first communication for this vehicle.
-                // But... why assume anything. Just stamp it with this fleetId
-                // every time.
-                vehicle.setFleetManager(Long.toString(MANAGER_ID));
+                getContext().getLog().debug("Vehicle Event for CareleesFleet received.");
+                getContext().getLog().info("** in Fleet Manager onProcessVehicleWotUpdate");
+                getContext().getLog().info("   FleetMgr Old: " + vehicle.getFleetId());
+                // Is this the first communication for this vehicle?
+                if (vehicle.getFleetId().equalsIgnoreCase("not_defined")) {
+                    vehicle.setWotFltIdUpdateRqd(true);
+                }
+                // Why assume anything. Just stamp it with this fleetId every time.
+                vehicle.setFleetId(Long.toString(MANAGER_ID));
 
                 ActorRef<VehicleTwin.Message> vehicleTwinRef;
 
@@ -188,14 +193,14 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
         if (vehicleIdLong != 0) {
             if (carelessFleetIdRange.contains(vehicleIdLong)) {
                 getContext().getLog().debug("Vehicle Event for CareleesFleet received.");
-
-                // This might be the first communication for this vehicle. It
-                // might not. Just stamp it with this fleetId every time.
-                vehicle.setFleetManager(Long.toString(MANAGER_ID));
-
-                // TODO TODO TODO TODO FIX FIX FIX - SET THE FLEET-MANAGER-ID on the Exposed Thing!?!?!?!?
-                // OR DO WE READ THE DB TO CHECK IF THE FLEET MANAGER HAS BEEN SET WHEN A MESSAGE ARRIVES????????
-                //  WHAT IF THE MANAGER ID IS WRONG!?!?! WOULD REQUIRE A RE-TRANSMIT ON TIMEOUT - PERHAPS JUST DOCUMENT THIS!?
+                getContext().getLog().info("** in Fleet Manager onProcessVehicleWebUpdate");
+                getContext().getLog().info("   FleetMgr Old: " + vehicle.getFleetId());
+                // Is this the first communication for this vehicle?
+                if (vehicle.getFleetId().equalsIgnoreCase("not_defined")) {
+                    vehicle.setWotFltIdUpdateRqd(true);
+                }
+                // Why assume anything. Just stamp it with this fleetId every time.
+                vehicle.setFleetId(Long.toString(MANAGER_ID));
 
                 ActorRef<VehicleTwin.Message> vehicleTwinRef;
 

@@ -238,9 +238,9 @@ export class WotDevice {
         // That's why we're redefining the title now while starting the device and
         // before producing the actual WoT-device.
         this.thingModel.title = "WoT-ID-Mfr-VIN-" + this.vehicleNumber;
-        console.log(`Producing Thing: ${this.thingModel.title} with vehicle number ${this.vehicleNumber}`);
+        console.log(`    -> Producing Thing: ${this.thingModel.title} with vehicle number ${this.vehicleNumber}`);
         const exposedThing = await this.deviceWoT.produce(this.thingModel);
-        console.log("Thing produced");
+        //console.log("Thing produced");
 
         this.thing = exposedThing;
         this.td = exposedThing.getThingDescription();
@@ -248,9 +248,9 @@ export class WotDevice {
         this.initialiseActions(); // Initialize actions and add their handlers
         // Events do not need to be initialzed, can be emited from anywhere
 
-        console.log(`Exposing Thing: ${this.thingModel.title}`);
+        console.log(`    -> Exposing Thing: ${this.thingModel.title}`);
         await this.thing.expose(); // Expose thing
-        console.log("Exposed Thing");
+        //console.log("Exposed Thing");
 
         if (this.tdDirectory) {
             this.register(this.tdDirectory);
@@ -262,10 +262,10 @@ export class WotDevice {
     // Register Thing Description with directory
     // ------------------------------------------------------------------------
     public register(directory: string) {
-        console.log("Registering TD in directory: " + directory);
+        console.log("    -> Registering TD in directory: " + directory);
         // request.post(directory, { json: this.thing.getThingDescription() }, (error: any, response: { statusCode: number; }, body: any) => {
         request.put(directory + this.td.id, { json: this.thing.getThingDescription() }, (error: any, response: { statusCode: number; }, body: any) => {
-                if (!error && response.statusCode < 300) {
+            if (!error && response.statusCode < 300) {
                 console.log("TD has been registered with the ID: " + this.td.id);
             } else {
                 console.debug(error);

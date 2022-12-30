@@ -290,14 +290,14 @@ function addEventListenertoButtons(fleet) {
         )[0];
         if (doorStatusCompliment === "LOCK") {
           // Action was 'Lock' the doors
-          activeJson.doorStatus = "doorStatus: LOCKED";
+          activeJson.doorStatus = "LOCKED";
           // console.log("In the LOCK block " + doorStatusElement.innerHTML );
           doorElement.innerHTML = "doorStatus: LOCKED";
           // New action is 'Unlock' the doors.
           doorStatusCompliment = "UNLOCK";
         } else if (doorStatusCompliment === "UNLOCK") {
           // Action was 'Unlock' the doors
-          activeJson.doorStatus = "doorStatus: UNLOCKED";
+          activeJson.doorStatus = "UNLOCKED";
           // console.log("In the UNLOCK block " + doorStatusElement.innerHTML );
           doorElement.innerHTML = "doorStatus: UNLOCKED";
           // New action is 'Unlock' the doors.

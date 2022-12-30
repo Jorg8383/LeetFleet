@@ -10,9 +10,7 @@ import akka.actor.typed.receptionist.Receptionist;
 import akka.actor.typed.receptionist.ServiceKey;
 import lf.message.FleetManagerMsg;
 import lf.message.LFSerialisable;
-import lf.message.VehicleEventMsg;
 import lf.message.WebPortalMsg;
-import lf.model.Fleet;
 
 import java.util.*;
 
@@ -93,9 +91,9 @@ public class VehicleWebQuery extends AbstractBehavior<VehicleWebQuery.Message> {
 
   public ActorRef<Registry.Message> REGISTRY_REF = null;
 
-    // We need an 'adaptor' - to convert the Receptionist Listing to one we
-    // understand!!
-    private final ActorRef<Receptionist.Listing> listingResponseAdapter;
+  // We need an 'adaptor' - to convert the Receptionist Listing to one we
+  // understand!!
+  private final ActorRef<Receptionist.Listing> listingResponseAdapter;
 
   // CREATE THIS ACTOR
   public static Behavior<Message> create() {
@@ -200,10 +198,12 @@ public class VehicleWebQuery extends AbstractBehavior<VehicleWebQuery.Message> {
     ActorRef<FleetManagerMsg.Message> managerRef = registryMirror.get(msg.fleetManagerId);
     // Do a null check just in case an invalidId was received.
     if (managerRef != null) {
+      getContext().getLog().debug("In onListVehiclesJson : Valid managerRef retrieved");
       managerRef.tell(new FleetManagerMsg.ListVehiclesJson(msg.portalRef));
     }
     else {
       // Should we send an empty list with a message here!
+      getContext().getLog().error("In onListVehiclesJson : No managerRef retrieved");
     }
 
     return Behaviors.same();

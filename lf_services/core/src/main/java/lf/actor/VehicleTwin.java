@@ -8,7 +8,6 @@ import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -119,7 +118,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
             //
             try {
                 String vehicleAsJSON = jedis.get(key);
-                getContext().getLog().info("\t value returned from redis -> " + vehicleAsJSON);
+                getContext().getLog().debug("\t value returned from redis -> " + vehicleAsJSON);
                 // Unmarshall the JSON into a Vehicle object using the Jackson object mapper
                 vehicle = new ObjectMapper().readValue(vehicleAsJSON, Vehicle.class);
             }
@@ -157,6 +156,9 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
 
     private Behavior<Message> onWotUpdate(WotUpdate message) {
         Vehicle newState = message.vehicle;
+
+if (vehicle != null) { getContext().getLog().info("on WoT update current door status" + vehicle.getDoorStatus()); }
+getContext().getLog().info("on WoT update new door status" + newState.getDoorStatus());
 
         // If this is a brand new actor... then this.vehicle will be null at this point
         newState = updateExposedThing(newState);
@@ -202,11 +204,6 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
      * @param newState
      */
     private Vehicle updateExposedThing(Vehicle newState) {
-        getContext().getLog().info("** in updateExposedThing");
-        if (vehicle != null) { getContext().getLog().info("   FleetMgr Old: " + vehicle.getFleetId()); }
-        getContext().getLog().info("   FleetMgr New: " + newState.getFleetId());
-        getContext().getLog().info("   isWotFltIdUpdateRqd New: " + newState.isWotFltIdUpdateRqd());
-
         // Supported Actions:
         // UPDATE FLEET MANAGER ID:
         if (newState.isWotFltIdUpdateRqd()) {
@@ -218,11 +215,15 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
             // But this approach will suffice for the toy system:
             try {
                 String urlAsString = newState.getTdURL() + "properties/propFleetId";
-                getContext().getLog().info("URL to update Fleet Manager ID is -> " + urlAsString);
+                getContext().getLog().debug("URL to update Fleet Manager ID is -> " + urlAsString);
                 URL url = new URL(urlAsString);
                 String method = "PUT";
                 String requestBody = WDQ + newState.getFleetId() + WDQ;  // JSON value must be quote delimited
                 setWoTPropertyDirectly(url, method, requestBody);
+
+                getContext().getLog().info(
+                    "LeetFleet has remotely set the FleetId to " + newState.getFleetId()
+                    + " for vehicle " + newState.getVehicleId());
             }
             catch (IOException ioe) {
                 getContext().getLog().error("Fleet ID Update failure: " + ioe.getLocalizedMessage());
@@ -235,7 +236,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
             // But this approach will suffice for the toy system:
             try {
                 String urlAsString;
-                if (vehicle.getDoorStatus().equalsIgnoreCase("LOCKED") ) {
+                if (newState.getDoorStatus().equalsIgnoreCase("LOCKED") ) {
                     // New door status is locked...
                     urlAsString = newState.getTdURL() + "actions/actionLockDoor";
                 }
@@ -243,10 +244,14 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
                     // New door status is Unlocked...
                     urlAsString = newState.getTdURL() + "actions/actionUnlockDoor";
                 }
-                getContext().getLog().info("URL to update Feet Manager ID is -> " + urlAsString);
+                getContext().getLog().debug("URL to for Door State Toggle is -> " + urlAsString);
                 URL url = new URL(urlAsString);
                 String method = "POST";
                 setWoTPropertyDirectly(url, method, null);
+
+                getContext().getLog().info(
+                    "LeetFleet has remotely " + newState.getDoorStatus()
+                    + " the doors for vehicle " + newState.getVehicleId());
             }
             catch (IOException ioe) {
                 getContext().getLog().error("Door Lock Toggle failure: " + ioe.getLocalizedMessage());
@@ -266,8 +271,6 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     private void setWoTPropertyDirectly(URL url, String method, String requestBody)
     throws IOException, ProtocolException
     {
-        getContext().getLog().info("** in setWoTPropertyDirectly");
-
         // Create a HttpURLConnection with the URL object - a new connection is
         // opened every time by calling the openConnection method of the protocol
         // handler for this URL *** this is where the connection is opened ***
@@ -276,7 +279,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         // We send using method="POST" for actions, method="PUT" for setting properties.
         con.setRequestMethod(method);
         if (requestBody != null) {
-            getContext().getLog().info("** requestBody for transmission is:" + requestBody);
+            getContext().getLog().debug("** requestBody for transmission is:" + requestBody);
 
             // Enable output on the connection so we can write the JSON payload.
             con.setDoOutput(true);
@@ -298,7 +301,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
         }
 
         int responseCode = con.getResponseCode();
-        getContext().getLog().info("Response Code from Exposed Thing was: " + responseCode);
+        getContext().getLog().debug("Response Code from Exposed Thing was: " + responseCode);
 
         String line;
         StringBuffer response = new StringBuffer();
@@ -330,7 +333,7 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
             }
             errStrm.close();
         }
-        getContext().getLog().info("Response Body: " + response.toString());
+        getContext().getLog().debug("Response Body: " + response.toString());
     }
 
     // Graceful shutdown:

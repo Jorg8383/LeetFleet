@@ -170,7 +170,7 @@ export class WotConsumedDevice {
     // to Actor system
     private updateAkka() {
         console.log("updateAkka: JSON representation for " + this.td.id + " is:");
-        console.log(this.vehicleJSON);
+        console.log(JSON.stringify(this.vehicleJSON));
         fetch("http://webportal:8080/wot", {
             method: 'POST',
             headers: {

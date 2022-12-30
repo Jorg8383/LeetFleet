@@ -227,13 +227,18 @@ public class Registry extends AbstractBehavior<Registry.Message> {
 
   /**
    * Subscribe to updates to the registry itself (List of FleetManager ids and references)
+   *
    * @param message
    * @return
    */
   private Behavior<Message> onSubToFleetMgrList(SubToFleetMgrList message) {
-      // Send an initial response with the current state of the registry on subscription
-      message.vehicleWebQueryRef
-          .tell(new VehicleWebQuery.UpdatedFleetManagerList(registry));
+    // Send an initial response with the current state of the registry on subscription
+    message.vehicleWebQueryRef
+        .tell(new VehicleWebQuery.UpdatedFleetManagerList(registry));
+
+    if (VEHICLE_WEB_QUERY_REF == null) {
+      VEHICLE_WEB_QUERY_REF = message.vehicleWebQueryRef;
+    }
 
     return this;
   }
@@ -305,7 +310,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     for (Long key : deadFleetManagerKeys) {
       registry.remove(key);
       fleetManagerNames.remove(key);
-      getContext().getLog().debug("\t(fleet manager ref removed from registry cache)");
+      getContext().getLog().debug("(fleet manager ref removed from registry cache)");
       // The is no actor to inform that "FleetManager Has been De-registered"
       // as the actor is already gone.
     }
@@ -313,6 +318,9 @@ public class Registry extends AbstractBehavior<Registry.Message> {
     // Finally - notify our subscriber of the updated list (we just send a complete
     // refresh every time, just like the receptionist)
     if (VEHICLE_WEB_QUERY_REF != null) {
+      getContext().getLog().info(
+        "Registry received Fleet Manager List update - sending to subcriber (Vehicle_Web_Query Actor)"
+        );
       VEHICLE_WEB_QUERY_REF.tell(new VehicleWebQuery.UpdatedFleetManagerList(registry));
     }
 

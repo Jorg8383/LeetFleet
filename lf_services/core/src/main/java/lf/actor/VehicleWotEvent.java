@@ -77,7 +77,6 @@ public class VehicleWotEvent extends AbstractBehavior<VehicleEventMsg.Message> {
     portalRef   = message.replyTo;
     registryRef = message.registryRef;
     vehicle     = message.vehicle;
-    getContext().getLog().info("In event, just unmarshalled,  Fleet Manager ID is -> " + vehicle.getFleetId());
 
     // "vehicle.fleetId" might be null or empty or blank...
     // We don't care! We send off the fleetId 'as is' to the registry. If the

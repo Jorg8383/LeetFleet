@@ -88,7 +88,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
         Config config = context.getSystem().settings().config().getConfig("akka.fleet-manager");
         // The fleetmanager can at times gather information from its fleet. When
         // it does so in response to a web request it must - of needs - timeout
-        // if some expected responses do not arrive.  This is configured in the
+        // if some expected responses do not arrive. This is configured in the
         // application config so that it can be updated without altering code.
         this.timeout = config.getDuration("query-timeout");  // config string specifies the Duration units.
     }
@@ -135,8 +135,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
         if (vehicleIdLong != 0) {
             if (carelessFleetIdRange.contains(vehicleIdLong)) {
                 getContext().getLog().debug("Vehicle Event for CareleesFleet received.");
-                getContext().getLog().info("** in Fleet Manager onProcessVehicleWotUpdate");
-                getContext().getLog().info("   FleetMgr Old: " + vehicle.getFleetId());
+
                 // Is this the first communication for this vehicle?
                 if (vehicle.getFleetId().equalsIgnoreCase("not_defined")) {
                     vehicle.setWotFltIdUpdateRqd(true);
@@ -193,8 +192,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
         if (vehicleIdLong != 0) {
             if (carelessFleetIdRange.contains(vehicleIdLong)) {
                 getContext().getLog().debug("Vehicle Event for CareleesFleet received.");
-                getContext().getLog().info("** in Fleet Manager onProcessVehicleWebUpdate");
-                getContext().getLog().info("   FleetMgr Old: " + vehicle.getFleetId());
+
                 // Is this the first communication for this vehicle?
                 if (vehicle.getFleetId().equalsIgnoreCase("not_defined")) {
                     vehicle.setWotFltIdUpdateRqd(true);
@@ -239,6 +237,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
 
     /**
      * Return a list of active registered vehicles in JSON format
+     *
      * @param message
      * @return
      */
@@ -281,6 +280,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
     /**
      * Accept a Vehicle model from one of the vehicle twins. Store it in the
      * relevant query. If the query is complete - return it.
+     *
      * @param message
      * @return
      */
@@ -306,6 +306,7 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
      * Query timeout. We take the view we have gathered all the information we
      * can and return the query as it.  It is possible one of the queried vehicles
      * has gone offline while the query was in progress.
+     *
      * @param message
      * @return
      */
@@ -318,7 +319,5 @@ public class CarelessFleetManager extends AbstractBehavior<Message> {
 
         return this;
     }
-
-    // DO WE DEAL WITH THE SINGLE VEHICLE QUERY????????
 
 }

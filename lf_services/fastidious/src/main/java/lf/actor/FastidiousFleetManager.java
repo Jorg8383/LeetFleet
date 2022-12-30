@@ -57,12 +57,15 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
 
     // CREATE THIS ACTOR
     public static Behavior<Message> create() {
-        return Behaviors.withTimers(timers -> {
+        return Behaviors.withTimers(
+            timers -> {
             return Behaviors.setup(
                     // Register this actor with the receptionist
                     context -> {
-                        context.getSystem().receptionist()
-                                .tell(Receptionist.register(FleetManagerMsg.fleetManagerServiceKey, context.getSelf()));
+                        context
+                            .getSystem()
+                            .receptionist()
+                            .tell(Receptionist.register(FleetManagerMsg.fleetManagerServiceKey, context.getSelf()));
 
                         return new FastidiousFleetManager(timers, context);
                     });
@@ -80,7 +83,7 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
         // it does so in response to a web request it must - of needs - timeout
         // if some expected responses do not arrive. This is configured in the
         // application config so that it can be updated without altering code.
-        this.timeout = config.getDuration("query-timeout"); // config string specifies the Duration units.
+        this.timeout = config.getDuration("query-timeout");  // config string specifies the Duration units.
     }
 
     // =========================================================================
@@ -88,12 +91,14 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
     // MESSAGE HANDLING:
     @Override
     public Receive<Message> createReceive() {
-        return newReceiveBuilder().onMessage(RegistrationSuccess.class, this::onRegistrationSuccess)
+        return newReceiveBuilder()
+                .onMessage(RegistrationSuccess.class, this::onRegistrationSuccess)
                 .onMessage(ProcessVehicleWotUpdate.class, this::onProcessVehicleWotUpdate)
                 .onMessage(ProcessVehicleWebUpdate.class, this::onProcessVehicleWebUpdate)
                 .onMessage(ListVehiclesJson.class, this::onListVehiclesJson)
                 .onMessage(VehicleModelResponse.class, this::onVehicleModelResponse)
-                .onMessage(QueryTimeout.class, this::onQueryTimeout).build();
+                .onMessage(QueryTimeout.class, this::onQueryTimeout)
+                .build();
     }
 
     private Behavior<Message> onRegistrationSuccess(RegistrationSuccess message) {
@@ -102,6 +107,7 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
         MANAGER_ID = message.mgrId;
         REGISTRY_REF = message.registryRef;
         getContext().getLog().debug("FleetManager Registration Confirmed.");
+
         // Send manager name to registry
         REGISTRY_REF.tell(new Registry.SetFleetManagerName(MANAGER_ID, "Fastidious"));
         return this;
@@ -123,8 +129,11 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
             if (fastidiousFleetIdRange.contains(vehicleIdLong)) {
                 getContext().getLog().debug("Vehicle Event for FastidiousFleet received.");
 
-                // This might be the first communication for this vehicle. It
-                // might not. Just stamp it with this fleetId every time.
+                // Is this the first communication for this vehicle?
+                if (vehicle.getFleetId().equalsIgnoreCase("not_defined")) {
+                    vehicle.setWotFltIdUpdateRqd(true);
+                }
+                // Why assume anything. Just stamp it with this fleetId every time.
                 vehicle.setFleetId(Long.toString(MANAGER_ID));
 
                 ActorRef<VehicleTwin.Message> vehicleTwinRef;
@@ -134,8 +143,8 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
                 if (!vehicles.keySet().contains(vehicleIdLong)) {
                     // Create an (anonymous) VehicleTwin actor to represent this vehicle on the
                     // actor system
-                    vehicleTwinRef = getContext().spawnAnonymous(VehicleTwin.create(vehicle.getVehicleId())); // 'anonymous'
-                                                                                                              // actor
+                    vehicleTwinRef = getContext()
+                            .spawnAnonymous(VehicleTwin.create(vehicle.getVehicleId())); // 'anonymous' actor
                     vehicles.put(vehicleIdLong, vehicleTwinRef);
                 } else {
                     vehicleTwinRef = vehicles.get(vehicleIdLong);
@@ -145,7 +154,7 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
                 // sent
                 vehicleTwinRef.tell(new VehicleTwin.WotUpdate(vehicle));
 
-                // We message the VehicleEvent handler immediately to say we're
+                // We message the VehicleWotEvent handler immediately to say we're
                 // done. There's no confirmation etc.. Worst case - we lose one
                 // message and the client reporting is one transaction out of date.
                 // A real system might take a different approach here, depending
@@ -176,9 +185,11 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
         if (vehicleIdLong != 0) {
             if (fastidiousFleetIdRange.contains(vehicleIdLong)) {
                 getContext().getLog().debug("Vehicle Event for FastidiousFleet received.");
-
-                // This might be the first communication for this vehicle. It
-                // might not. Just stamp it with this fleetId every time.
+                // Is this the first communication for this vehicle?
+                if (vehicle.getFleetId().equalsIgnoreCase("not_defined")) {
+                    vehicle.setWotFltIdUpdateRqd(true);
+                }
+                // Why assume anything. Just stamp it with this fleetId every time.
                 vehicle.setFleetId(Long.toString(MANAGER_ID));
 
                 ActorRef<VehicleTwin.Message> vehicleTwinRef;
@@ -227,22 +238,23 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
 
         Collection<ActorRef<VehicleTwin.Message>> vehicleTwinRefs = vehicles.values();
 
-        // Each timer has a key and if a new timer with same key is started the previous
-        // is cancelled
-        // and it’s guaranteed that a message from the previous timer is not received,
-        // even though it
+        // Each timer has a key and if a new timer with same key is started the previous is cancelled
+        // and it’s guaranteed that a message from the previous timer is not received, even though it
         // might already be enqueued in the mailbox when the new timer is started
-        // ** WE NEED THE TIMER_KEY ** so we can cancel it if all the vehicles respond
-        // before the
+        // ** WE NEED THE TIMER_KEY ** so we can cancel it if all the vehicles respond before the
         // timeout.
         Object timer_key = new Object();
 
-        VehicleQuery thisQuery = new VehicleQuery(query_id, message.portalRef, timer_key, vehicleTwinRefs.size());
+        VehicleQuery thisQuery = new VehicleQuery(
+            query_id, message.portalRef, timer_key, vehicleTwinRefs.size());
 
         // Loop over the Vehicle twins. Request the content for the vehicle list..
         try {
-            for (ActorRef<VehicleTwin.Message> vehicleTwinRef : vehicleTwinRefs) {
-                vehicleTwinRef.tell(new VehicleTwin.RequestVehicleModel(query_id, getContext().getSelf()));
+            for (ActorRef<VehicleTwin.Message> vehicleTwinRef : vehicleTwinRefs)
+            {
+                vehicleTwinRef.tell(
+                    new VehicleTwin.RequestVehicleModel(query_id, getContext().getSelf())
+                    );
             }
         } catch (Exception e) {
             getContext().getLog().error("", e);
@@ -283,9 +295,9 @@ public class FastidiousFleetManager extends AbstractBehavior<Message> {
     }
 
     /**
-     * Query timeout. We take the view we have gathered all the information we can
-     * and return the query as it. It is possible one of the queried vehicles has
-     * gone offline while the query was in progress.
+     * Query timeout. We take the view we have gathered all the information we
+     * can and return the query as it.  It is possible one of the queried vehicles
+     * has gone offline while the query was in progress.
      *
      * @param message
      * @return

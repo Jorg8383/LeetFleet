@@ -4,7 +4,7 @@ RUN  mkdir /app
 ENV PYTHONUNBUFFERED 1
 WORKDIR /app
 
-COPY ./client /app/
+COPY . /app/
 
 RUN pip install django
 RUN pip install django-cors-headers

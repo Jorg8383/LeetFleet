@@ -91,6 +91,7 @@ export class WotDevice {
                 description: "Property fleet ID",
                 unit: "",
                 type: "string",
+                observable: true
             },
             propVehicleId: {
                 title: "prop-vehicle-id",

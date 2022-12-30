@@ -115,24 +115,25 @@ function checkCacheForRelevantEntries(cache) {
             }
         }
         // Print the results of TDs to be deleted
-        console.log("Number of TDs to be deleted: " + wotToBeDeletedThingDict.size);
-        if (wotToBeDeletedThingDict.size != 0) {
-            for (const [key, value] of wotToBeDeletedThingDict.entries()) {
-                console.log("TD to be deleted: " + JSON.stringify(key));
-                // console.log(JSON.stringify(key) + ": " + JSON.stringify(value));
-            }
-        }
+        console.log("Directory Startup: Number of Outdated TDs to be deleted: " + wotToBeDeletedThingDict.size);
+        // if (wotToBeDeletedThingDict.size != 0) {
+        //     for (const [key, value] of wotToBeDeletedThingDict.entries()) {
+        //         console.log("TD to be deleted: " + JSON.stringify(key));
+        //         // console.log(JSON.stringify(key) + ": " + JSON.stringify(value));
+        //     }
+        // }
         // Print the results of TDs to be consumed
         console.log("Number of TDs to be consumed: " + wotToBeConsumedThingDict.size);
-        if (wotToBeConsumedThingDict.size != 0) {
-            for (const [key, value] of wotToBeConsumedThingDict.entries()) {
-                console.log("TD to be consumed: " + JSON.stringify(key));
-                // console.log(JSON.stringify(key) + ": " + JSON.stringify(value));
-            }
-        }
-    } else {
-        console.log("The WoT-Hive cache has yet to be created.");
+        // if (wotToBeConsumedThingDict.size != 0) {
+        //     for (const [key, value] of wotToBeConsumedThingDict.entries()) {
+        //         console.log("TD to be consumed: " + JSON.stringify(key));
+        //         // console.log(JSON.stringify(key) + ": " + JSON.stringify(value));
+        //     }
+        // }
     }
+    // else {
+    //     console.log("The WoT-Hive cache has yet to be created.");
+    // }
 }
 
 // This function is to delete outdated TDs from the WoT-Hive dictionary
@@ -193,11 +194,11 @@ async function createConsumedThings() {
         }
         // Print the results of is consumed TDs
         console.log("Number of consumed TDs: " + wotIsConsumedThingDict.size);
-        if (wotIsConsumedThingDict.size != 0) {
-            for (const [key, value] of wotIsConsumedThingDict.entries()) {
-                console.log("TD is now listed as consumed: " + JSON.stringify(key));
-            }
-        }
+        // if (wotIsConsumedThingDict.size != 0) {
+        //     for (const [key, value] of wotIsConsumedThingDict.entries()) {
+        //         console.log("TD is now listed as consumed: " + JSON.stringify(key));
+        //     }
+        // }
     }
 }
 

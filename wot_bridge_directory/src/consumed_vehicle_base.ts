@@ -21,7 +21,7 @@ export class WotConsumedDevice {
 
     // Default JSON representation of a vehicle
     private vehicleJSON = {"vehicleId" : "WoT-ID-Mfr-VIN-0000",
-                            "fleetManager" : "N/A",
+                            "fleetId" : "N/A",
                             "tdURL" : "http://localhost:8081/",
                             "oilLevel" : 50,
                             "tyrePressure" : 30,
@@ -72,6 +72,8 @@ export class WotConsumedDevice {
         const url = this.td.forms[0].href;
         const allData = await this.thing.readAllProperties();
         json["vehicleId"] = this.td.title;
+        // 22/12/29 TK; Added fleetManager...
+        json["fleetId"] = await allData.get('propFleetId').value();
         json["tdURL"] = url.replace("properties", "");
         json["oilLevel"] = await allData.get('propOilLevel').value();
         json["tyrePressure"] = await allData.get('propTyrePressure').value();
@@ -79,8 +81,8 @@ export class WotConsumedDevice {
         json["nextServiceDistance"] = await allData.get('propServiceDistance').value();
         json["doorStatus"] = await allData.get('propDoorStatus').value();
         json["maintenanceNeeded"] = await allData.get('propMaintenanceNeeded').value();
-        console.log("JSON representation for " + this.td.id + " is:");
-        console.log(this.vehicleJSON);
+        // console.log("JSON representation for " + this.td.id + " is:");
+        // console.log(this.vehicleJSON);
     }
 
     // Method that handles observing changes in each property in the
@@ -108,6 +110,12 @@ export class WotConsumedDevice {
         thing.observeProperty("propDoorStatus", async (data) => {
             // @ts-ignore
             this.vehicleJSON["doorStatus"] = await data.value();
+            this.updateAkka();
+        })
+        // 22/12/29 TK; Added fleetId...
+        thing.observeProperty("propFleetId", async (data) => {
+            // @ts-ignore
+            this.vehicleJSON["fleetId"] = await data.value();
             this.updateAkka();
         })
     }
@@ -168,7 +176,7 @@ export class WotConsumedDevice {
             },
             body: JSON.stringify({
                 "vehicleId" : this.vehicleJSON.vehicleId,
-                "fleetManager" : this.vehicleJSON.fleetManager,
+                "fleetId" : this.vehicleJSON.fleetId,
                 "tdURL" : this.vehicleJSON.tdURL,
                 "oilLevel" : this.vehicleJSON.oilLevel,
                 "tyrePressure" : this.vehicleJSON.tyrePressure,

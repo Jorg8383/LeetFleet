@@ -296,10 +296,12 @@ export class WotDevice {
         // resolve that with outputData if available,
         // otherwise resolve action was successful without returning anything
         
-        // DEBUGGING ONLY!!!
-        console.log("DEBUGGING: Door has been locked from externally!");
+        const timestamp = new Date();
+        console.log(`${timestamp.toLocaleTimeString()} Vehicle ID ${this.td.title} - door has been locked remotely!`);
+
         let outputData = "LOCKED";
         this.propDoorStatus = outputData;
+        this.thing.emitPropertyChange("propDoorStatus");
         if (outputData.length != 0) {
             return outputData;
         } else {
@@ -317,11 +319,12 @@ export class WotDevice {
         // resolve that with outputData if available,
         // otherwise resolve action was successful without returning anything
 
-        // DEBUGGING ONLY!!!
-        console.log("DEBUGGING: Door has been unlocked from externally!");
+        const timestamp = new Date();
+        console.log(`${timestamp.toLocaleTimeString()} Vehicle ID ${this.td.title} - door has been unlocked remotely!`);
 
         let outputData = "UNLOCKED";
         this.propDoorStatus = outputData;
+        this.thing.emitPropertyChange("propDoorStatus");
         if (outputData.length != 0) {
             return outputData;
         } else {
@@ -334,8 +337,8 @@ export class WotDevice {
     // ------------------------------------------------------------------------
     private initialiseProperties() {
         // DEBUGGING ONLY!!!
-        this.varDebugInitCounter++;
-        console.log("DEBUGGING ONLY! Initialise properties count:" + this.varDebugInitCounter.toString());
+        // this.varDebugInitCounter++;
+        // console.log("DEBUGGING ONLY! Initialise properties count:" + this.varDebugInitCounter.toString());
 
 
         // Property Fleet ID

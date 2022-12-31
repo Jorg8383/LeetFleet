@@ -93,23 +93,29 @@ export class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["mileage"] = await data.value();
             this.updateAkka();
+            // console.log("DEBUGGING: updateAkka because 'propTotalMileage' has changed!");
         });
 
         thing.observeProperty("propMaintenanceNeeded", async (data) => {
             // @ts-ignore
             this.vehicleJSON["maintenanceNeeded"] = await data.value();
             this.updateAkka();
+            // console.log("DEBUGGING: updateAkka because 'propMaintenanceNeeded' has changed!");
         });
 
         thing.observeProperty("propServiceDistance", async (data) => {
             // @ts-ignore
             this.vehicleJSON["nextServiceDistance"] = await data.value();
             this.updateAkka();
+            // console.log("DEBUGGING: updateAkka because 'propServiceDistance' has changed!");
         });
 
         thing.observeProperty("propDoorStatus", async (data) => {
+            let value = await data.value();
             // @ts-ignore
-            this.vehicleJSON["doorStatus"] = await data.value();
+            this.vehicleJSON["doorStatus"] = value;
+            // console.log("DEBUGGING: updateAkka because await 'propDoorStatus' has changed to value: " + value);
+            // console.log("DEBUGGING: updateAkka because 'propDoorStatus' has changed to value: " + this.vehicleJSON["doorStatus"]);
             this.updateAkka();
         })
         // 22/12/29 TK; Added fleetId...
@@ -117,6 +123,7 @@ export class WotConsumedDevice {
             // @ts-ignore
             this.vehicleJSON["fleetId"] = await data.value();
             this.updateAkka();
+            // console.log("DEBUGGING: updateAkka because 'propFleetId' has changed!");
         })
     }
 
@@ -168,8 +175,10 @@ export class WotConsumedDevice {
 
     // Extracted method to handle sending JSON representation of vehicle
     // to Actor system
-    private updateAkka() {
-        console.log("updateAkka: JSON representation for " + this.td.id + " is:");
+    private async updateAkka() {
+        // await this.initialiseJSON(this.vehicleJSON);
+        const timestamp = new Date();
+        console.log(`${timestamp.toLocaleTimeString()}  updateAkka: JSON representation for " + this.td.id + " is:`);
         console.log(JSON.stringify(this.vehicleJSON));
         fetch("http://webportal:8080/wot", {
             method: 'POST',

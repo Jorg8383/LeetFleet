@@ -157,9 +157,6 @@ public class VehicleTwin extends AbstractBehavior<VehicleTwin.Message> {
     private Behavior<Message> onWotUpdate(WotUpdate message) {
         Vehicle newState = message.vehicle;
 
-if (vehicle != null) { getContext().getLog().info("on WoT update current door status" + vehicle.getDoorStatus()); }
-getContext().getLog().info("on WoT update new door status" + newState.getDoorStatus());
-
         // If this is a brand new actor... then this.vehicle will be null at this point
         newState = updateExposedThing(newState);
 

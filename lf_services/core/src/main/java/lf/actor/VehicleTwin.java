@@ -214,16 +214,16 @@ getContext().getLog().info("on WoT update new door status" + newState.getDoorSta
             // We are not proud. We planned to do this on a java WoT object.
             // But this approach will suffice for the toy system:
             try {
+                getContext().getLog().info(
+                    "LeetFleet: Remotely setting the FleetId for vehicle "
+                    + newState.getVehicleId() + " to " + newState.getFleetId());
+
                 String urlAsString = newState.getTdURL() + "properties/propFleetId";
                 getContext().getLog().debug("URL to update Fleet Manager ID is -> " + urlAsString);
                 URL url = new URL(urlAsString);
                 String method = "PUT";
                 String requestBody = WDQ + newState.getFleetId() + WDQ;  // JSON value must be quote delimited
                 setWoTPropertyDirectly(url, method, requestBody);
-
-                getContext().getLog().info(
-                    "LeetFleet has remotely set the FleetId to " + newState.getFleetId()
-                    + " for vehicle " + newState.getVehicleId());
             }
             catch (IOException ioe) {
                 getContext().getLog().error("Fleet ID Update failure: " + ioe.getLocalizedMessage());
@@ -235,6 +235,10 @@ getContext().getLog().info("on WoT update new door status" + newState.getDoorSta
             // We are not proud. We planned to do this on a java WoT object.
             // But this approach will suffice for the toy system:
             try {
+                getContext().getLog().info(
+                    "LeetFleet: Remotely changing the doors for vehicle "
+                    + newState.getVehicleId() + " to: " + newState.getDoorStatus());
+
                 String urlAsString;
                 if (newState.getDoorStatus().equalsIgnoreCase("LOCKED") ) {
                     // New door status is locked...
@@ -249,9 +253,6 @@ getContext().getLog().info("on WoT update new door status" + newState.getDoorSta
                 String method = "POST";
                 setWoTPropertyDirectly(url, method, null);
 
-                getContext().getLog().info(
-                    "LeetFleet has remotely " + newState.getDoorStatus()
-                    + " the doors for vehicle " + newState.getVehicleId());
             }
             catch (IOException ioe) {
                 getContext().getLog().error("Door Lock Toggle failure: " + ioe.getLocalizedMessage());

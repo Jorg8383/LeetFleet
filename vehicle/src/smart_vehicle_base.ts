@@ -51,6 +51,7 @@ each vehicle, is injected via constructor for each vehicle instance (exposed-thi
 import * as WoT from "wot-typescript-definitions";
 
 import request = require("request");
+import internal = require("stream");
 
 const Ajv = require("ajv");
 const ajv = new Ajv(); // options can be passed, e.g. {allErrors: true}
@@ -70,6 +71,7 @@ export class WotDevice {
     private varOilLevelIsLow = false;
     private varServiceIsDue = false;
     private varMaintenanceNeddedHistory: boolean;
+    private varDebugInitCounter = 0;
 
     // ------------------------------------------------------------------------
     // Thing Model
@@ -239,7 +241,7 @@ export class WotDevice {
         // That's why we're redefining the title now while starting the device and
         // before producing the actual WoT-device.
         this.thingModel.title = "WoT-ID-Mfr-VIN-" + this.vehicleNumber;
-        console.log(`    -> Producing Thing: ${this.thingModel.title} with vehicle number ${this.vehicleNumber}`);
+        console.log(`Producing Thing: ${this.thingModel.title} with vehicle number ${this.vehicleNumber}`);
         const exposedThing = await this.deviceWoT.produce(this.thingModel);
         //console.log("Thing produced");
 
@@ -249,7 +251,7 @@ export class WotDevice {
         this.initialiseActions(); // Initialize actions and add their handlers
         // Events do not need to be initialzed, can be emited from anywhere
 
-        console.log(`    -> Exposing Thing: ${this.thingModel.title}`);
+        console.log(`Exposing Thing: ${this.thingModel.title}`);
         await this.thing.expose(); // Expose thing
         //console.log("Exposed Thing");
 
@@ -263,7 +265,7 @@ export class WotDevice {
     // Register Thing Description with directory
     // ------------------------------------------------------------------------
     public register(directory: string) {
-        console.log("    -> Registering TD in directory: " + directory);
+        console.log("Registering TD in directory: " + directory);
         // request.post(directory, { json: this.thing.getThingDescription() }, (error: any, response: { statusCode: number; }, body: any) => {
         request.put(directory + this.td.id, { json: this.thing.getThingDescription() }, (error: any, response: { statusCode: number; }, body: any) => {
             if (!error && response.statusCode < 300) {
@@ -293,6 +295,9 @@ export class WotDevice {
         // }
         // resolve that with outputData if available,
         // otherwise resolve action was successful without returning anything
+        
+        // DEBUGGING ONLY!!!
+        console.log("DEBUGGING: Door has been locked from externally!");
         let outputData = "LOCKED";
         this.propDoorStatus = outputData;
         if (outputData.length != 0) {
@@ -311,6 +316,10 @@ export class WotDevice {
         // }
         // resolve that with outputData if available,
         // otherwise resolve action was successful without returning anything
+
+        // DEBUGGING ONLY!!!
+        console.log("DEBUGGING: Door has been unlocked from externally!");
+
         let outputData = "UNLOCKED";
         this.propDoorStatus = outputData;
         if (outputData.length != 0) {
@@ -324,6 +333,11 @@ export class WotDevice {
     // Initialise properties
     // ------------------------------------------------------------------------
     private initialiseProperties() {
+        // DEBUGGING ONLY!!!
+        this.varDebugInitCounter++;
+        console.log("DEBUGGING ONLY! Initialise properties count:" + this.varDebugInitCounter.toString());
+
+
         // Property Fleet ID
         this.propFleetId = "not_defined";
         this.thing.setPropertyReadHandler("propFleetId", async () => this.propFleetId);

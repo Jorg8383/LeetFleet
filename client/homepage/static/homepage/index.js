@@ -1,6 +1,3 @@
-// call to get cars
-// let fleets = [{"managerId":"10000","name":"Fastidious"},{"managerId":"10001","name":"Careless"},{"managerId":"10002","name":"Paranoid"},{"managerId":"10003","name":"Fleetless"}]
-
 let current_vehicle_for_lock;
 async function getVehicles(id, manager) {
   var url = "http://localhost:8080/web/list_vehicles?fleetManager=" + id;
@@ -71,81 +68,6 @@ var home = document.querySelector(".home");
 
 getFleets();
 
-// dummy json
-
-// let dummy_json = [
-//   {
-//     vehicleId: "WoT-ID-Mfr-VIN-1",
-//     fleetManager: "fleetless",
-//     tdURL: "http://localhost:8080/smart-vehicle/",
-//     oilLevel: 50,
-//     tyrePressure: 30,
-//     mileage: 10000,
-//     nextServiceDistance: 10000,
-//     doorStatus: "LOCKED",
-//     maintenanceNeeded: false,
-//   },
-
-//   {
-//     vehicleId: "WoT-ID-Mfr-VIN-2",
-//     fleetManager: "fleetless",
-//     tdURL: "http://localhost:8080/smart-vehicle/",
-//     oilLevel: 50,
-//     tyrePressure: 30,
-//     mileage: 10000,
-//     nextServiceDistance: 10000,
-//     doorStatus: "UNLOCKED",
-//     maintenanceNeeded: false,
-//   },
-
-//   {
-//     vehicleId: "WoT-ID-Mfr-VIN-3",
-//     fleetManager: "fleetless",
-//     tdURL: "http://localhost:8080/smart-vehicle/",
-//     oilLevel: 50,
-//     tyrePressure: 30,
-//     mileage: 10000,
-//     nextServiceDistance: 10000,
-//     doorStatus: "LOCKED",
-//     maintenanceNeeded: false,
-//   },
-//   {
-//     vehicleId: "WoT-ID-Mfr-VIN-1",
-//     fleetManager: "fleetless",
-//     tdURL: "http://localhost:8080/smart-vehicle/",
-//     oilLevel: 50,
-//     tyrePressure: 30,
-//     mileage: 10000,
-//     nextServiceDistance: 10000,
-//     doorStatus: "LOCKED",
-//     maintenanceNeeded: false,
-//   },
-
-//   {
-//     vehicleId: "WoT-ID-Mfr-VIN-2",
-//     fleetManager: "fleetless",
-//     tdURL: "http://localhost:8080/smart-vehicle/",
-//     oilLevel: 50,
-//     tyrePressure: 30,
-//     mileage: 10000,
-//     nextServiceDistance: 10000,
-//     doorStatus: "UNLOCKED",
-//     maintenanceNeeded: false,
-//   },
-
-//   {
-//     vehicleId: "WoT-ID-Mfr-VIN-3",
-//     fleetManager: "fleetless",
-//     tdURL: "http://localhost:8080/smart-vehicle/",
-//     oilLevel: 50,
-//     tyrePressure: 30,
-//     mileage: 10000,
-//     nextServiceDistance: 10000,
-//     doorStatus: "LOCKED",
-//     maintenanceNeeded: false,
-//   },
-// ];
-
 function showVehicle(vehicleJson, fleetManager) {
   var newInnerHtml = "";
   newInnerHtml +=
@@ -205,7 +127,6 @@ function showFleetVehicles(fleet, manager) {
 
   let InnerHtml = "";
 
-  //change dummy json to fleet
   fleet.forEach((vehicleJson) => {
     InnerHtml += showVehicle(vehicleJson, manager);
   });
@@ -251,7 +172,6 @@ function addEventListenertoButtons(fleet) {
       individualDiv.style.display = "inline";
       let vehicleDiv = document.getElementById("vehicles");
 
-      //dummy_json.forEach(json => {
       fleet.forEach((json) => {
         if (json.vehicleId === button.innerHTML) {
           activeJson = json;

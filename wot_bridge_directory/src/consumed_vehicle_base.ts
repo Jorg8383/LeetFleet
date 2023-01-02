@@ -89,42 +89,46 @@ export class WotConsumedDevice {
     // exposed thing, update the JSON representation of that vehicle
     // and then communicate this to Akka
     private observeProperties(thing: WoT.ConsumedThing) {
-        thing.observeProperty("propTotalMileage", async (data) => {
-            // @ts-ignore
-            this.vehicleJSON["mileage"] = await data.value();
-            this.updateAkka();
-            // console.log("DEBUGGING: updateAkka because 'propTotalMileage' has changed!");
-        });
+        try {
+            thing.observeProperty("propTotalMileage", async (data) => {
+                // @ts-ignore
+                this.vehicleJSON["mileage"] = await data.value();
+                this.updateAkka();
+                // console.log("DEBUGGING: updateAkka because 'propTotalMileage' has changed!");
+            });
 
-        thing.observeProperty("propMaintenanceNeeded", async (data) => {
-            // @ts-ignore
-            this.vehicleJSON["maintenanceNeeded"] = await data.value();
-            this.updateAkka();
-            // console.log("DEBUGGING: updateAkka because 'propMaintenanceNeeded' has changed!");
-        });
+            thing.observeProperty("propMaintenanceNeeded", async (data) => {
+                // @ts-ignore
+                this.vehicleJSON["maintenanceNeeded"] = await data.value();
+                this.updateAkka();
+                // console.log("DEBUGGING: updateAkka because 'propMaintenanceNeeded' has changed!");
+            });
 
-        thing.observeProperty("propServiceDistance", async (data) => {
-            // @ts-ignore
-            this.vehicleJSON["nextServiceDistance"] = await data.value();
-            this.updateAkka();
-            // console.log("DEBUGGING: updateAkka because 'propServiceDistance' has changed!");
-        });
+            thing.observeProperty("propServiceDistance", async (data) => {
+                // @ts-ignore
+                this.vehicleJSON["nextServiceDistance"] = await data.value();
+                this.updateAkka();
+                // console.log("DEBUGGING: updateAkka because 'propServiceDistance' has changed!");
+            });
 
-        thing.observeProperty("propDoorStatus", async (data) => {
-            let value = await data.value();
-            // @ts-ignore
-            this.vehicleJSON["doorStatus"] = value;
-            // console.log("DEBUGGING: updateAkka because await 'propDoorStatus' has changed to value: " + value);
-            // console.log("DEBUGGING: updateAkka because 'propDoorStatus' has changed to value: " + this.vehicleJSON["doorStatus"]);
-            this.updateAkka();
-        })
-        // 22/12/29 TK; Added fleetId...
-        thing.observeProperty("propFleetId", async (data) => {
-            // @ts-ignore
-            this.vehicleJSON["fleetId"] = await data.value();
-            this.updateAkka();
-            // console.log("DEBUGGING: updateAkka because 'propFleetId' has changed!");
-        })
+            thing.observeProperty("propDoorStatus", async (data) => {
+                let value = await data.value();
+                // @ts-ignore
+                this.vehicleJSON["doorStatus"] = value;
+                // console.log("DEBUGGING: updateAkka because await 'propDoorStatus' has changed to value: " + value);
+                // console.log("DEBUGGING: updateAkka because 'propDoorStatus' has changed to value: " + this.vehicleJSON["doorStatus"]);
+                this.updateAkka();
+            })
+            // 22/12/29 TK; Added fleetId...
+            thing.observeProperty("propFleetId", async (data) => {
+                // @ts-ignore
+                this.vehicleJSON["fleetId"] = await data.value();
+                this.updateAkka();
+                // console.log("DEBUGGING: updateAkka because 'propFleetId' has changed!");
+            })
+        } catch (e) {
+            console.log("ERROR IN OBSERVING PROPERTIES OF CONSUMED THING");
+        }
     }
 
     // Method to subscribe to the events of the consumed thing

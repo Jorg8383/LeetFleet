@@ -65,19 +65,24 @@ var httpServerPortCount = 0;
 // This function is to fetch all TDs listed in the WoT-Hive directory
 async function fetchWotHiveTdCache() {
     try {
+        console.log("FETCHING THING DIRECTORY");
         // Fetch all listed TDs in the WoT-Hive directory
         const response = await fetch(URI_API_THINGS);
         // Check if response status is ok (200 < status < 300)
-        if (!response.ok) {
-            const message = `An error has occured while fetching: ${response.status}`;
-            console.log(message);
-            throw new Error(message);
-        }
+        // if (!response.ok) {
+        //     const message = `An error has occured while fetching: ${response.status}`;
+        //     console.log(message);
+        //     throw new Error(message);
+        // }
         // Resolve response by converting the received data into JSON
         const tdCache = await response.json();
         return tdCache;
     } catch (error) {
-        console.warn(error);
+        console.log("ERROR RETRIEVING THING DIRECTORY - TRYING AGAIN")
+        setTimeout(() => {
+            fetchWotHiveTdCache();
+        }, 10000);
+        // console.warn(error);
     }
 }
 
@@ -85,55 +90,59 @@ async function fetchWotHiveTdCache() {
 // It stores the "id" of all current and outdated TDs from the WoT-Hive dictionary
 // in the dictionaries "wotToBeConsumedThingDict" and "wotToBeDeletedThingDict" respectively.
 function checkCacheForRelevantEntries(cache) {
-    if (cache.length != 0) {
-        console.log("The WoT-Hive cache contains " + cache.length + " TD entries.");
-        let deleteIdKey = 0;
-        for (let i=0; i < cache.length; i++) {
-            // Get one single TD and convert "created" time into a UTC timestamp
-            let tdEntry = cache[i];
-            const dt = new Date(tdEntry.registration.created);
-            const timestamp = dt.getTime();
-            // There's no need to keep track of the entire TD
-            // so let's store only relevant information about it
-            const obj = {
-                "id":tdEntry.id,
-                "timestamp":timestamp,
-                "created":tdEntry.registration.created
-            };
-            // Check whether the listed TD should be deleted or consumed
-            // and keep track of them in seperate dictionaries.
-            // Only listed TDs with a timestamp newer than the time when the WoT-Bridge was started
-            // will be considered as relevant. All others will be deleted.
-            if (timestamp <= wotBridgeTimeStarted) {
-                if (!wotToBeDeletedThingDict.has(obj.id)) {
-                    wotToBeDeletedThingDict.set(obj.id, obj);
-                }
-            } else if (timestamp > wotBridgeTimeStarted) {
-                if (!wotToBeConsumedThingDict.has(obj.id) && !wotIsConsumedThingDict.has(obj.id)) {
-                    wotToBeConsumedThingDict.set(obj.id, obj);
+    try {
+        if (cache.length != 0) {
+            console.log("The WoT-Hive cache contains " + cache.length + " TD entries.");
+            let deleteIdKey = 0;
+            for (let i = 0; i < cache.length; i++) {
+                // Get one single TD and convert "created" time into a UTC timestamp
+                let tdEntry = cache[i];
+                const dt = new Date(tdEntry.registration.created);
+                const timestamp = dt.getTime();
+                // There's no need to keep track of the entire TD
+                // so let's store only relevant information about it
+                const obj = {
+                    "id": tdEntry.id,
+                    "timestamp": timestamp,
+                    "created": tdEntry.registration.created
+                };
+                // Check whether the listed TD should be deleted or consumed
+                // and keep track of them in seperate dictionaries.
+                // Only listed TDs with a timestamp newer than the time when the WoT-Bridge was started
+                // will be considered as relevant. All others will be deleted.
+                if (timestamp <= wotBridgeTimeStarted) {
+                    if (!wotToBeDeletedThingDict.has(obj.id)) {
+                        wotToBeDeletedThingDict.set(obj.id, obj);
+                    }
+                } else if (timestamp > wotBridgeTimeStarted) {
+                    if (!wotToBeConsumedThingDict.has(obj.id) && !wotIsConsumedThingDict.has(obj.id)) {
+                        wotToBeConsumedThingDict.set(obj.id, obj);
+                    }
                 }
             }
+            // Print the results of TDs to be deleted
+            console.log("Directory Startup: Number of Outdated TDs to be deleted: " + wotToBeDeletedThingDict.size);
+            // if (wotToBeDeletedThingDict.size != 0) {
+            //     for (const [key, value] of wotToBeDeletedThingDict.entries()) {
+            //         console.log("TD to be deleted: " + JSON.stringify(key));
+            //         // console.log(JSON.stringify(key) + ": " + JSON.stringify(value));
+            //     }
+            // }
+            // Print the results of TDs to be consumed
+            console.log("Number of TDs to be consumed: " + wotToBeConsumedThingDict.size);
+            // if (wotToBeConsumedThingDict.size != 0) {
+            //     for (const [key, value] of wotToBeConsumedThingDict.entries()) {
+            //         console.log("TD to be consumed: " + JSON.stringify(key));
+            //         // console.log(JSON.stringify(key) + ": " + JSON.stringify(value));
+            //     }
+            // }
         }
-        // Print the results of TDs to be deleted
-        console.log("Directory Startup: Number of Outdated TDs to be deleted: " + wotToBeDeletedThingDict.size);
-        // if (wotToBeDeletedThingDict.size != 0) {
-        //     for (const [key, value] of wotToBeDeletedThingDict.entries()) {
-        //         console.log("TD to be deleted: " + JSON.stringify(key));
-        //         // console.log(JSON.stringify(key) + ": " + JSON.stringify(value));
-        //     }
+        // else {
+        //     console.log("The WoT-Hive cache has yet to be created.");
         // }
-        // Print the results of TDs to be consumed
-        console.log("Number of TDs to be consumed: " + wotToBeConsumedThingDict.size);
-        // if (wotToBeConsumedThingDict.size != 0) {
-        //     for (const [key, value] of wotToBeConsumedThingDict.entries()) {
-        //         console.log("TD to be consumed: " + JSON.stringify(key));
-        //         // console.log(JSON.stringify(key) + ": " + JSON.stringify(value));
-        //     }
-        // }
+    } catch (e) {
+        console.log("ERROR IN READING CACHE - TRYING AGAIN IN 1 MINUTE");
     }
-    // else {
-    //     console.log("The WoT-Hive cache has yet to be created.");
-    // }
 }
 
 // This function is to delete outdated TDs from the WoT-Hive dictionary
@@ -154,51 +163,59 @@ async function deleteTD(id) {
 
 // This function cleans up the WoT-Hive directory and deletets oudtated TDs
 async function cleanUpWotHive() {
-    if (wotToBeDeletedThingDict.size != 0 && wotHiveLocalTdCache.length != 0) {
-        for (const key of wotToBeDeletedThingDict.keys()) {
-            let successful = await deleteTD(key);
-            if (successful) {
-                console.log("TD entry has been deleted: " + key);
-                wotToBeDeletedThingDict.delete(key);
+    try {
+        if (wotToBeDeletedThingDict.size != 0 && wotHiveLocalTdCache.length != 0) {
+            for (const key of wotToBeDeletedThingDict.keys()) {
+                let successful = await deleteTD(key);
+                if (successful) {
+                    console.log("TD entry has been deleted: " + key);
+                    wotToBeDeletedThingDict.delete(key);
+                }
             }
         }
+    } catch (e) {
+        console.log("ERROR CLEANING UP DIRECTORY - TRY AGAIN IN 1 MINUTE");
     }
 }
 
 async function createConsumedThings() {
-    if (wotToBeConsumedThingDict.size != 0) {
-        for (const [key, td ] of wotToBeConsumedThingDict.entries()) {
+    try {
+        if (wotToBeConsumedThingDict.size != 0) {
+            for (const [key, td] of wotToBeConsumedThingDict.entries()) {
 
-            let isRunning = false;
-            let wotDevice;
-            if (!wotIsConsumedThingDict.has(key)) {
-                //  console.log("Dict size of to be consumed: " + wotIsConsumedThingDict.size);
-                //Creating the instances of the binding servers
-                let serverPort = parseInt(FIRST_HTTP_SERVER_PORT) + httpServerPortCount++;
-                let httpServer = new HttpServer({port: serverPort});
-                // //Build the servient object
-                let servient = new Servient();
-                servient.addClientFactory(new HttpClientFactory(null));
-                //Add different bindings to the server
-                servient.addServer(httpServer);
-                servient.start().then((WoT) => {
-                    wotDevice = new WotDevice(WoT, key);
-                    wotDevice.startDevice();
-                });
-                console.log("New consumed thing with ID " + JSON.stringify(key)
+                let isRunning = false;
+                let wotDevice;
+                if (!wotIsConsumedThingDict.has(key)) {
+                    //  console.log("Dict size of to be consumed: " + wotIsConsumedThingDict.size);
+                    //Creating the instances of the binding servers
+                    let serverPort = parseInt(FIRST_HTTP_SERVER_PORT) + httpServerPortCount++;
+                    let httpServer = new HttpServer({port: serverPort});
+                    // //Build the servient object
+                    let servient = new Servient();
+                    servient.addClientFactory(new HttpClientFactory(null));
+                    //Add different bindings to the server
+                    servient.addServer(httpServer);
+                    servient.start().then((WoT) => {
+                        wotDevice = new WotDevice(WoT, key);
+                        wotDevice.startDevice();
+                    });
+                    console.log("New consumed thing with ID " + JSON.stringify(key)
                         + " is now up and running on port " + serverPort);
-                // Update dictionaries
-                wotIsConsumedThingDict.set(key, td);
-                wotToBeConsumedThingDict.delete(key);
+                    // Update dictionaries
+                    wotIsConsumedThingDict.set(key, td);
+                    wotToBeConsumedThingDict.delete(key);
+                }
             }
+            // Print the results of is consumed TDs
+            console.log("Number of consumed TDs: " + wotIsConsumedThingDict.size);
+            // if (wotIsConsumedThingDict.size != 0) {
+            //     for (const [key, value] of wotIsConsumedThingDict.entries()) {
+            //         console.log("TD is now listed as consumed: " + JSON.stringify(key));
+            //     }
+            // }
         }
-        // Print the results of is consumed TDs
-        console.log("Number of consumed TDs: " + wotIsConsumedThingDict.size);
-        // if (wotIsConsumedThingDict.size != 0) {
-        //     for (const [key, value] of wotIsConsumedThingDict.entries()) {
-        //         console.log("TD is now listed as consumed: " + JSON.stringify(key));
-        //     }
-        // }
+    } catch (e) {
+        console.log("ERROR CONSUMING THING - TRY AGAIN IN 1 MINUTE");
     }
 }
 

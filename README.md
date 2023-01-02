@@ -34,7 +34,7 @@ The main technology used within the application includes but is not limited to:
 
 We have used Maven and Docker to make the installation and usage of the application as easy as possible.
 
-The first step is to make sure you have (java version) and Maven installed on your system. Also ensure that Docker and Docker Desktop is installed and open on your computer.
+The first step is to make sure you have Maven installed on your system. Also ensure that Docker and Docker Desktop is installed and open.
 
 After you have pulled from this repository, ensure you are in the root folder and run the following:
 

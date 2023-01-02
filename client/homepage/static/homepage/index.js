@@ -2,10 +2,9 @@
 // let fleets = [{"managerId":"10000","name":"Fastidious"},{"managerId":"10001","name":"Careless"},{"managerId":"10002","name":"Paranoid"},{"managerId":"10003","name":"Fleetless"}]
 
 let current_vehicle_for_lock;
-async function getVehicles(id) {
+async function getVehicles(id, manager) {
   var url = "http://localhost:8080/web/list_vehicles?fleetManager=" + id;
 
-  console.log(url);
   $.support.cors = true;
 
   $.ajax({
@@ -18,19 +17,17 @@ async function getVehicles(id) {
       "Access-Control-Allow-Origin": "*",
     },
     success: function (data) {
-      showFleetVehicles(data);
+      showFleetVehicles(data, manager);
     },
     error: function (jqXhr, textStatus, errorMessage) {
-      console.log("error message: " + textStatus + jqXhr);
+      console.log("error message: " + textStatus);
     },
   });
 }
 
 async function editVehicle(vehicleJson) {
   var url = "http://localhost:8080/web";
-  console.log(
-    "vehicle json just before transmit: " + JSON.stringify(vehicleJson)
-  );
+
   $.ajax({
     url: url,
     type: "POST",
@@ -41,7 +38,6 @@ async function editVehicle(vehicleJson) {
     },
     success: function (newJson) {
       console.log("Vehicle change success!");
-      console.log("The json after change is: " + JSON.stringify(newJson));
     },
     error: function (jqXhr, textStatus, errorMessage) {
       console.log("error message: " + textStatus + jqXhr);
@@ -66,7 +62,7 @@ async function getFleets() {
       setUpDropDown(data);
     },
     error: function (jqXhr, textStatus, errorMessage) {
-      console.log("error message: " + textStatus + jqXhr);
+      console.log("error message: " + textStatus);
     },
   });
 }
@@ -77,84 +73,84 @@ getFleets();
 
 // dummy json
 
-let dummy_json = [
-  {
-    vehicleId: "WoT-ID-Mfr-VIN-1",
-    fleetManager: "fleetless",
-    tdURL: "http://localhost:8080/smart-vehicle/",
-    oilLevel: 50,
-    tyrePressure: 30,
-    mileage: 10000,
-    nextServiceDistance: 10000,
-    doorStatus: "LOCKED",
-    maintenanceNeeded: false,
-  },
+// let dummy_json = [
+//   {
+//     vehicleId: "WoT-ID-Mfr-VIN-1",
+//     fleetManager: "fleetless",
+//     tdURL: "http://localhost:8080/smart-vehicle/",
+//     oilLevel: 50,
+//     tyrePressure: 30,
+//     mileage: 10000,
+//     nextServiceDistance: 10000,
+//     doorStatus: "LOCKED",
+//     maintenanceNeeded: false,
+//   },
 
-  {
-    vehicleId: "WoT-ID-Mfr-VIN-2",
-    fleetManager: "fleetless",
-    tdURL: "http://localhost:8080/smart-vehicle/",
-    oilLevel: 50,
-    tyrePressure: 30,
-    mileage: 10000,
-    nextServiceDistance: 10000,
-    doorStatus: "UNLOCKED",
-    maintenanceNeeded: false,
-  },
+//   {
+//     vehicleId: "WoT-ID-Mfr-VIN-2",
+//     fleetManager: "fleetless",
+//     tdURL: "http://localhost:8080/smart-vehicle/",
+//     oilLevel: 50,
+//     tyrePressure: 30,
+//     mileage: 10000,
+//     nextServiceDistance: 10000,
+//     doorStatus: "UNLOCKED",
+//     maintenanceNeeded: false,
+//   },
 
-  {
-    vehicleId: "WoT-ID-Mfr-VIN-3",
-    fleetManager: "fleetless",
-    tdURL: "http://localhost:8080/smart-vehicle/",
-    oilLevel: 50,
-    tyrePressure: 30,
-    mileage: 10000,
-    nextServiceDistance: 10000,
-    doorStatus: "LOCKED",
-    maintenanceNeeded: false,
-  },
-  {
-    vehicleId: "WoT-ID-Mfr-VIN-1",
-    fleetManager: "fleetless",
-    tdURL: "http://localhost:8080/smart-vehicle/",
-    oilLevel: 50,
-    tyrePressure: 30,
-    mileage: 10000,
-    nextServiceDistance: 10000,
-    doorStatus: "LOCKED",
-    maintenanceNeeded: false,
-  },
+//   {
+//     vehicleId: "WoT-ID-Mfr-VIN-3",
+//     fleetManager: "fleetless",
+//     tdURL: "http://localhost:8080/smart-vehicle/",
+//     oilLevel: 50,
+//     tyrePressure: 30,
+//     mileage: 10000,
+//     nextServiceDistance: 10000,
+//     doorStatus: "LOCKED",
+//     maintenanceNeeded: false,
+//   },
+//   {
+//     vehicleId: "WoT-ID-Mfr-VIN-1",
+//     fleetManager: "fleetless",
+//     tdURL: "http://localhost:8080/smart-vehicle/",
+//     oilLevel: 50,
+//     tyrePressure: 30,
+//     mileage: 10000,
+//     nextServiceDistance: 10000,
+//     doorStatus: "LOCKED",
+//     maintenanceNeeded: false,
+//   },
 
-  {
-    vehicleId: "WoT-ID-Mfr-VIN-2",
-    fleetManager: "fleetless",
-    tdURL: "http://localhost:8080/smart-vehicle/",
-    oilLevel: 50,
-    tyrePressure: 30,
-    mileage: 10000,
-    nextServiceDistance: 10000,
-    doorStatus: "UNLOCKED",
-    maintenanceNeeded: false,
-  },
+//   {
+//     vehicleId: "WoT-ID-Mfr-VIN-2",
+//     fleetManager: "fleetless",
+//     tdURL: "http://localhost:8080/smart-vehicle/",
+//     oilLevel: 50,
+//     tyrePressure: 30,
+//     mileage: 10000,
+//     nextServiceDistance: 10000,
+//     doorStatus: "UNLOCKED",
+//     maintenanceNeeded: false,
+//   },
 
-  {
-    vehicleId: "WoT-ID-Mfr-VIN-3",
-    fleetManager: "fleetless",
-    tdURL: "http://localhost:8080/smart-vehicle/",
-    oilLevel: 50,
-    tyrePressure: 30,
-    mileage: 10000,
-    nextServiceDistance: 10000,
-    doorStatus: "LOCKED",
-    maintenanceNeeded: false,
-  },
-];
+//   {
+//     vehicleId: "WoT-ID-Mfr-VIN-3",
+//     fleetManager: "fleetless",
+//     tdURL: "http://localhost:8080/smart-vehicle/",
+//     oilLevel: 50,
+//     tyrePressure: 30,
+//     mileage: 10000,
+//     nextServiceDistance: 10000,
+//     doorStatus: "LOCKED",
+//     maintenanceNeeded: false,
+//   },
+// ];
 
-function showVehicle(vehicleJson) {
+function showVehicle(vehicleJson, fleetManager) {
   var newInnerHtml = "";
   newInnerHtml +=
     "<div class='vehicle-div' id='div-" + vehicleJson.vehicleId + "'>";
-  // newInnerHtml += "<h1>" + vehicleJson.fleetManager + "</h1>"
+  newInnerHtml += "<h1>" + fleetManager + "</h1>";
   newInnerHtml += "<p> Vehicle ID: " + vehicleJson.vehicleId + "</p>";
   newInnerHtml += "<p> oilLevel: " + vehicleJson.oilLevel + "</p>";
   newInnerHtml += "<p> tyrePressure " + vehicleJson.tyrePressure + "</p>";
@@ -198,20 +194,20 @@ function setUpDropDown(fleetMgrs) {
 
   dropdownItems.forEach((element) => {
     element.addEventListener("click", () => {
-      getVehicles(element.id);
+      getVehicles(element.id, element.innerHTML);
     });
   });
 }
 
-function showFleetVehicles(fleet) {
+function showFleetVehicles(fleet, manager) {
   let vehicleDiv = document.getElementById("vehicles");
   // make api call to get vehicles from akka
 
   let InnerHtml = "";
-  console.log(fleet);
+
   //change dummy json to fleet
   fleet.forEach((vehicleJson) => {
-    InnerHtml += showVehicle(vehicleJson);
+    InnerHtml += showVehicle(vehicleJson, manager);
   });
 
   vehicleDiv.style.display = "grid";
@@ -227,6 +223,15 @@ function showFleetVehicles(fleet) {
 }
 
 document.querySelector(".back").addEventListener("click", () => {
+  let vehicleDiv = document.getElementById("vehicles");
+  vehicleDiv.style.display = "none";
+  home.style.display = "inline-block";
+
+  document.querySelector(".back").classList.add("back-hidden");
+  document.querySelector(".back").classList.remove("back-shown");
+});
+
+document.querySelector(".title").addEventListener("click", () => {
   let vehicleDiv = document.getElementById("vehicles");
   vehicleDiv.style.display = "none";
   home.style.display = "inline-block";
@@ -252,7 +257,6 @@ function addEventListenertoButtons(fleet) {
           activeJson = json;
         }
       });
-      console.log("Current json = " + activeJson);
 
       let allVDivs = document.querySelectorAll(".vehicle-div");
 
@@ -271,7 +275,7 @@ function addEventListenertoButtons(fleet) {
       } else if (doorStatusElement.innerHTML === "doorStatus: UNLOCKED") {
         doorStatusCompliment = "LOCK";
       } else {
-        console.log(doorStatusElement.innerHTML);
+        console.log("ERROR: Incompatable door status");
       }
 
       individualDiv.innerHTML +=
@@ -291,14 +295,14 @@ function addEventListenertoButtons(fleet) {
         if (doorStatusCompliment === "LOCK") {
           // Action was 'Lock' the doors
           activeJson.doorStatus = "LOCKED";
-          // console.log("In the LOCK block " + doorStatusElement.innerHTML );
+
           doorElement.innerHTML = "doorStatus: LOCKED";
           // New action is 'Unlock' the doors.
           doorStatusCompliment = "UNLOCK";
         } else if (doorStatusCompliment === "UNLOCK") {
           // Action was 'Unlock' the doors
           activeJson.doorStatus = "UNLOCKED";
-          // console.log("In the UNLOCK block " + doorStatusElement.innerHTML );
+
           doorElement.innerHTML = "doorStatus: UNLOCKED";
           // New action is 'Unlock' the doors.
           doorStatusCompliment = "LOCK";

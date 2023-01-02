@@ -1,7 +1,7 @@
 version: "3.9"
 name: leetfleet
 services:
-  # #
+  #
   #-----------------------------------------------------------------------------
   # The first service we spin up is the (ad-hoc) bridge service used transfer messages
   # from the WoT infrastrucutre to the akka system.
@@ -103,7 +103,7 @@ services:
       - leetnetwork
   #
   #-----------------------------------------------------------------------------
-  # And finally...  We spin up a couple of vehicles per fleet...
+  # Next...  We spin up a couple of vehicles per fleet...
   #
   careless-vehicle-1:
     image: vehicle:latest

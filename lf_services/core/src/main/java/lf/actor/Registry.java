@@ -161,9 +161,7 @@ public class Registry extends AbstractBehavior<Registry.Message> {
               .receptionist()
               .tell(Receptionist.register(registrySK, context.getSelf()));
 
-          // TODO FIX FIX FIX - THINK FOLLOWING IS CORRECT - TEST IT TEST IT TEST IT
-          //return new Registry(context);
-          return Behaviors.setup(Registry::new);
+          return new Registry(context);
         });
   }
 

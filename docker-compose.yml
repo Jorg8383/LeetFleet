@@ -29,7 +29,6 @@ services:
   # Ideally - this will have completely started before any vehicles try to register.
   #
   wot_bridge_directory:
-    # TODO // CAN WE DISABLE wothive CONSOLE LOGS???
     image: wot_bridge_directory:latest
     depends_on:
       - "triplestore"
@@ -125,7 +124,7 @@ services:
       - leetnetwork
   #
   #-----------------------------------------------------------------------------
-  # And finally...  We spin up a couple of vehicles per fleet...
+  # Next...  We spin up a couple of vehicles per fleet...
   #
   careless-vehicle-1:
     image: vehicle:latest
@@ -138,6 +137,9 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    # Following ports forwarded for testing (Postman)
+    ports:
+      - 8100:8100
     networks:
       - leetnetwork
   careless-vehicle-2:
@@ -151,6 +153,9 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    # Following ports forwarded for testing (Postman)
+    ports:
+      - 8101:8101
     networks:
       - leetnetwork
   fastidious-vehicle-1:
@@ -164,6 +169,9 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    # Following ports forwarded for testing (Postman)
+    ports:
+      - 8110:8110
     networks:
       - leetnetwork
   fastidious-vehicle-2:
@@ -177,6 +185,9 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    # Following ports forwarded for testing (Postman)
+    ports:
+      - 8111:8111
     networks:
       - leetnetwork
   fleetless-vehicle-1:
@@ -190,6 +201,9 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    # Following ports forwarded for testing (Postman)
+    ports:
+      - 8120:8120
     networks:
       - leetnetwork
   fleetless-vehicle-2:
@@ -203,6 +217,9 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    # Following ports forwarded for testing (Postman)
+    ports:
+      - 8121:8121
     networks:
       - leetnetwork
   fleetless-vehicle-3:
@@ -216,6 +233,9 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    # Following ports forwarded for testing (Postman)
+    ports:
+      - 8122:8122
     networks:
       - leetnetwork
   paranoid-vehicle-1:
@@ -229,6 +249,9 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    # Following ports forwarded for testing (Postman)
+    ports:
+      - 8130:8130
     networks:
       - leetnetwork
   paranoid-vehicle-2:
@@ -242,6 +265,9 @@ services:
       - "triplestore"
       - "wothive"
       - "wot_bridge_directory"
+    # Following ports forwarded for testing (Postman)
+    ports:
+      - 8131:8131
     networks:
       - leetnetwork
   #

@@ -105,8 +105,7 @@ public class VehicleWebQuery extends AbstractBehavior<VehicleWebQuery.Message> {
               .receptionist()
               .tell(Receptionist.register(vehicleWebQuerySK, context.getSelf()));
 
-          //return new VehicleWebQuery(context);
-          return Behaviors.setup(VehicleWebQuery::new);
+          return new VehicleWebQuery(context);
         });
   }
 

@@ -178,8 +178,8 @@ export class WotConsumedDevice {
     private async updateAkka() {
         // await this.initialiseJSON(this.vehicleJSON);
         const timestamp = new Date();
-        console.log(`${timestamp.toLocaleTimeString()}  updateAkka: JSON representation for " + this.td.id + " is:`);
-        console.log(JSON.stringify(this.vehicleJSON));
+        // console.log(`${timestamp.toLocaleTimeString()}  updateAkka: JSON representation for " + this.td.id + " is:`);
+        // console.log(JSON.stringify(this.vehicleJSON));
         fetch("http://webportal:8080/wot", {
             method: 'POST',
             headers: {

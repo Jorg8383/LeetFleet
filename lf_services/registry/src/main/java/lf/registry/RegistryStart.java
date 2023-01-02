@@ -5,13 +5,9 @@ import lf.actor.RegistryGuardian;
 import lf.core.LeetFServiceStart;
 import lf.message.LeetFServiceGuardianMsg.BootStrap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.typesafe.config.Config;
 
 public class RegistryStart extends LeetFServiceStart {
-  private static final Logger log = LogManager.getLogger(RegistryStart.class);
 
   public static void main(String[] args) {
     akkaHostname = "registry"; // Sensible defaults

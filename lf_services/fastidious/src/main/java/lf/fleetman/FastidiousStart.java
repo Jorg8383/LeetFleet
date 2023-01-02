@@ -5,13 +5,9 @@ import lf.actor.FastidiousGuardian;
 import lf.core.LeetFServiceStart;
 import lf.message.LeetFServiceGuardianMsg;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.typesafe.config.Config;
 
 public class FastidiousStart extends LeetFServiceStart {
-  private static final Logger log = LogManager.getLogger(FastidiousStart.class);
 
   public static void main(String[] args) {
     akkaHostname = "fastidious"; // Sensible defaults

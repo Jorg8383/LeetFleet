@@ -1,12 +1,10 @@
 package lf.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 
 import lf.model.Vehicle;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.UnifiedJedis;
-import redis.clients.jedis.json.Path;
 
 import redis.clients.jedis.providers.PooledConnectionProvider;
 

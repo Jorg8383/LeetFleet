@@ -1,10 +1,6 @@
 package lf.core;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 public class ConfigFromArgs {
-    private static final Logger log = LogManager.getLogger(ConfigFromArgs.class);
 
     public ConfigFromArgs(String[] args) {
         configFromArgs(args);

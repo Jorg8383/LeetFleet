@@ -28,6 +28,7 @@ public class WebPortalStart {
   private static String httpHostname = "localhost";
   private static int httpPort = 8080;
   private static String redisHostname = "localhost";
+  @SuppressWarnings("unused")
   private static int redisPort = 6379;
 
   public static void main(String[] args) throws Exception {

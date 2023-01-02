@@ -22,6 +22,7 @@ public abstract class LeetFServiceStart
   protected static String akkaHostname = "localhost"; // Sensible defaults
   protected static int akkaPort = 0;  // Typically defaulted in the Implementing Class
   private static String redisHostname = "redis";
+  @SuppressWarnings("unused")
   private static int redisPort = 6379;
 
   // ------------------------------------------------------------

@@ -5,13 +5,9 @@ import lf.actor.CarelessGuardian;
 import lf.core.LeetFServiceStart;
 import lf.message.LeetFServiceGuardianMsg;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.typesafe.config.Config;
 
 public class CarelessStart extends LeetFServiceStart {
-  private static final Logger log = LogManager.getLogger(CarelessStart.class);
 
   public static void main(String[] args) {
     akkaHostname = "careless"; // Sensible defaults

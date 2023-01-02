@@ -6,7 +6,6 @@ import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
 import akka.actor.typed.receptionist.Receptionist;
-import jnr.ffi.annotations.IgnoreError;
 import lf.message.LFSerialisable;
 import lf.message.VehicleEventMsg;
 import lf.message.WebPortalMsg;

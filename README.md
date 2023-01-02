@@ -85,6 +85,8 @@ Within a particular ecosystem, there may be a common way of installing things, s
 
 Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
+![Client Changing WoT Property](https://gitlab.com/comp30220/2022/leetfleet/-/blob/develop/_resources/client-clip.gif)
+
 ## Running the Docker Images Directly
 
 If you would like to install a particular docker image, you can first ensure you're in the correct directory for that service. Then run:

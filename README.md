@@ -26,21 +26,36 @@ Our client web page allows fleet managers to view all the information outlined a
 
 The main technology used within the application includes but is not limited to:
 
-1. Akka (Typed)
-2. Web of Things
+1. Akka (Typed; Java implementation)
+2. Web of Things (Node.js implementation)
 3. Django (client application)
 
 ## Getting started
 
+### Requirements
 We have used Maven and Docker to make the installation and usage of the application as easy as possible.
 
 The first step is to make sure you have Maven installed on your system. Also ensure that Docker and Docker Desktop is installed and open.
 
+### Compiling Akka and Building Docker Images
 After you have pulled from this repository, ensure you are in the root folder and run the following:
 
 `mvn clean compile install`
 
 This will compile all the Java projects and install all the Docker images locally on your system with the appropriate names.
+
+### WoT build with NPM
+
+The directories that contain the Javascript code for running the Web of Things (WoT) architectural system for emulating vehicles and communicating with the backend system require separate builds and installation.
+To simply run the project, run the following command in your terminal from the "vehicle" and the "wot_bridge_directory" directories:
+
+`docker build -t <directory-name> .`
+
+The naming convention is very important here i.e. when building the vehicle directory's docker image, the command should read as follows:
+
+`docker build -t 'wot_bridge_directory' .`
+
+This naming convention is based on the default hostname assignment within a docker-compose network and incorrectly naming these docker images could break the communication between elements of the system
 
 Once this is complete, you have two options for running the system using docker-compose which are:
 
@@ -125,6 +140,7 @@ Additional functionality which would be nice to add at a later stage includes su
 1. Allowing a fleet manager to log that a car has been serviced, which will reset the Next distance for service flag via the client webpage
 2. Allowing a fleet manager to log if maintenance was carried out via the client webpage.
 3. Notifications via email/sms to a fleet manager if vehicle needs mainanence or the vehicle is due a service.
+4. Login credentials for the client webpage to access the associated fleetmanager information in the backend
 
 ## Contributing
 
@@ -143,7 +159,7 @@ Authors of the project include:
 - Tomas Kelly
 - Jorg
 - Daniel Gresak (daniel.gresak@ucdconnect.ie)
-- Ian
+- Ian Foster
 
 Should we acknowled Node-Wot
 Akka

@@ -30,26 +30,39 @@ The main technology used within the application includes but is not limited to:
 2. Web of Things
 3. Django (client application)
 
-## Getting started
+## Getting started and Installation
 
 We have used Maven and Docker to make the installation and usage of the application as easy as possible.
 
 The first step is to make sure you have Maven installed on your system. Also ensure that Docker and Docker Desktop is installed and open.
 
-After you have pulled from this repository, ensure you are in the root folder and run the following:
+```
+git clone https://gitlab.com/comp30220/2022/leetfleet.git
+```
 
-`mvn clean compile install`
+Then ensure you are in the root folder and run the following:
+
+```
+mvn clean compile install
+```
 
 This will compile all the Java projects and install all the Docker images locally on your system with the appropriate names.
 
 Once this is complete, you have two options for running the system using docker-compose which are:
 
-`docker compose up`
+```
+docker compose up
+```
 
 -OR-
 
-`docker compose -f dkr-comp1-wot-dir-service.yml up`
-`docker compose -f dkr-comp2-wot-akka.yml up`
+```
+docker compose -f dkr-comp1-wot-dir-service.yml up
+```
+
+```
+docker compose -f dkr-comp2-wot-akka.yml up
+```
 
 We reccomend using the second option if you would like cleaner logs during debugging or would like an overview of what's happening in the background using the logs. This seperates the directory service logs and the main Akka and WoT logs.
 
@@ -61,7 +74,7 @@ https://akka.io/docs/
 WoT Documentation:
 https://www.w3.org/WoT/
 
-## Test and Deploy
+<!-- ## Test and Deploy
 
 Use the built-in continuous integration in GitLab.
 
@@ -75,17 +88,24 @@ Use the built-in continuous integration in GitLab.
 
 ## Visuals
 
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method. -->
 
-## Installation
+<!-- ## Installation
 
 Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+ -->
 
 ## Usage
 
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+<!-- Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README. -->
+
+### Client
 
 ![Client Changing WoT Property](/_resources/client-clip.gif "Client Changing WoT Property"){width=75%}
+
+### Redis
+
+### Portman
 
 ## Running the Docker Images Directly
 
@@ -96,22 +116,22 @@ If you would like to install a particular docker image, you can first ensure you
 Afterwards you can run the image by using the following command:
 `docker run <name of image>`
 
-1. `docker network create leet-fleet`
+<!-- 1. `docker network create leet-fleet`
 2. `docker run --network-alias core --network leet-fleet -p 80:8080 core:latest`
 3. In a new terminal; ``
 4. In a new terminal; ``
 5. In a new terminal; ``
 6. (If your PC isn't fast - allow the services a few seconds to start!)<br>
-   In a new terminal; ``<br>
+   In a new terminal; ``<br> -->
 
-## Running Docker Compose
+<!-- ## Running Docker Compose
 
 `docker compose up`
 
 -OR-
 
 `docker compose -f dkr-comp1-wot-dir-service.yml up`
-`docker compose -f dkr-comp2-wot-akka.yml up`
+`docker compose -f dkr-comp2-wot-akka.yml up` -->
 
 ## Roadmap
 

@@ -2,7 +2,7 @@
 
 ## Description
 
-LeetFleet Management System is an infrustructure/proof-of-concept specialised in vehicle management. This solution can be used for the management of many fleet types such as delivery fleets, taxi fleets or general company car fleet management. The architecture has been designed to store and process general road vehicle information but can be easily customisable to accomodate more specific fleet needs.
+LeetFleet Management System is an infrustructure/proof-of-concept specialised in vehicle management. This solution can be used for the management of many fleet types such as delivery fleets, taxi fleets or general company car fleet management. The architecture has been designed to store and process general road vehicle information but can be easily customised to accomodate more specific fleet needs.
 
 As it currently stands, we store and process such information as:
 
@@ -17,6 +17,8 @@ As it currently stands, we store and process such information as:
 Each vehicle belongs to a certain fleet, and the way information is processed can be customised to a particular fleets specifications making this solution highly flexible to your business needs.
 
 Our client web page allows fleet managers to view all the information outlined above for each of their vehicles as well as remotely locking or unlocking the vehicle doors. Other remote functionality could be added at a future stage.
+
+The behaviour of smart vehicles, which are called Exposed Things, is simulated within the vehicle application logic. These vehicles communicate with the fleet management system via the cutting-edge technology standard Web of Things by utilising so-called interaction affordances to read/write properties, invoke actions and subscribe/listen to events.
 
 The main technologies used within the application includes but is not limited to:
 
@@ -100,25 +102,58 @@ You can use Postman to directly access a Thing description or an individual prop
 
 To give an example, there is a careless vehicle being forwarded to port 8100 in localhost.
 
-The Thing description can be accessed with a GET request to `http://localhost:<port for vehicle>/\<vehicle id>/`.
+The Thing description can be accessed with a GET request to `http://<hostname>:<PORT>/<title>`.
 
-The vehicle ID is "WoT-ID-Mfr-VIN" + the ENV_VEHICLE_NUMBER which can also be found in the docker-compose file
+The title is made up of the prefix "WoT-ID-Mfr-VIN" + the vehicle ID which is defined in the docker-compose files as ENV_VEHICLE_NUMBER.
 
-In this case, you can access the Thing Description from `http://localhost:8100\WoT-ID-Mfr-VIN0001/`.
+For example: `http://localhost:8100/WoT-ID-Mfr-VIN-0001`
 
-This will give you all the properties available to view and change. See image below for the details of where to find the vehicle number and port number (highlighted in grey).
+This smart vehicle provides the following so-called Property Affordances, Action Affordances, and Event Affordances:
+
+Properties:
+-	propFleetId
+-	propVehicleId
+-	propOilLevel
+-	propTyrePressure
+-	propTotalMileage
+-	propServiceDistance
+-	propDoorStatus
+-	propMaintenanceNeeded
+
+Actions:
+-	actionLockDoor
+-	actionUnlockDoor
+
+Events:
+-	eventLowOnOil
+-	eventLowTyrePressure
+-	eventMaintenanceNeeded
+
+All these affordances are defined in the Thing Description (TD) which is embedded in the vehicle application logic.
+
+See image below for the details of where to define the vehicle number and port number (highlighted in grey).
 
 ![docker-compose port and vehicle number](/_resources/readme_docker_compose.png "docker-compose port and vehicle number"){width=50%}
 
 #### Reading a Property
 
-To view a property you can make a GET request to `http://localhost:<port for vehicle>/\<vehicle id>/properties/\<property name>/`.
+To read a property you can make a GET request to `http://<hostname>:<PORT>/<title>/properties/<property-name>`.
 
-For the example above, you can make a GET request to `http://localhost:8100\WoT-ID-Mfr-VIN0001/properties/propDoorStatus` which will return the door status of that vehicle.
+For example, if we want to read the property 'propOilLevel' we would make a GET request to the following URI: `http://<hostname>:<PORT>/<title>/properties/propOilLevel`
 
-#### Changing a Property
 
-You can also directly change a property by doing a PUT request to the same endpoint above. You should use the JSON datatype and include a string with the new value you want for the property. So in the case above you could include a string with word "LOCKED". When this is successful, you will recieve a 204 response.
+#### Writing a Property
+
+To write a property, provided its writeable, you can make a PUT request to `http://<hostname>:<PORT>/<title>/properties/<property-name>`.
+
+For example, if we want to change the property "propFleetId" we would make a PUT request to the following URI `http://<hostname>:<PORT>/<title>/properties/propFleetId` with a JSON payload containing the value to set.
+
+
+### Invoking an Action
+
+To invoke an action on a smart vehicle we can perform a POST request to `http://<hostname>:<PORT>/<title>/actions/<action-name>`.
+
+For example, if we want to lock the door of the vehicle we woud make a POST request to the following URI `http://<hostname>:<PORT>/<title>/actions/actionLockDoor`.
 
 ## Building and Running Individual Sections of Application
 
@@ -167,22 +202,18 @@ This naming convention is based on the default hostname assignment within a dock
 
 ## Roadmap
 
-ideas for releases in the future, it is a good idea to list them in the README.
-WoT Items
-Akka Items
-Client Items
-
 Additional functionality which would be nice to add at a later stage includes suggestions such as:
 
-1. Allowing a fleet manager to log that a car has been serviced, which will reset the Next distance for service flag via the client webpage
+1. Allowing a fleet manager to log that a car has been serviced, which will reset the next distance for service flag via the client webpage
 2. Allowing a fleet manager to log if maintenance was carried out via the client webpage.
 3. Notifications via email/sms to a fleet manager if vehicle needs mainanence or the vehicle is due a service.
 4. Login credentials for the client webpage to access the associated fleetmanager information in the backend
+5. Defining various vehicle types/sizes to better exploite the Web of Things discovery mechanism by searching for a specific vehicle type/size.
 
 ## Project Status and Contributing
 
 This project was developed to fulfill assignment requirements for a Master in
-Computer Science (Converstion) module (COMP41720 Distributed Systems) in UCD.
+Computer Science module (COMP41720 Distributed Systems) in UCD.
 
 Development has stopped. Should someone choose to fork this project or volunteer
 to step in as a maintainer or owner, we would be happy to discuss it.
@@ -193,8 +224,8 @@ We would like to thank Dr. Rem Collier for his ongoing advice and support prior 
 
 Authors of the project include:
 
-- Tomas Kelly
-- Jorg
+- Tomás Kelly
+- Jörg Striebel
 - Daniel Gresak (daniel.gresak@ucdconnect.ie)
 - Ian Foster
 

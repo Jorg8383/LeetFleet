@@ -70,12 +70,6 @@ We reccomend using the second option if you would like cleaner logs during debug
 
 The first option works the same way but can be more difficult to follow when debugging using the logs but works well if you just want to run or deploy the application.
 
-Akka Documentation
-https://akka.io/docs/
-
-WoT Documentation:
-https://www.w3.org/WoT/
-
 ## Usage
 
 ### Client
@@ -94,66 +88,77 @@ If you'd like to return to the main menu, there is a back button at the top righ
 
 You can view the information stored in Redis by accessing `http://localhost:8001/`. This will present to you the information which is stored from our lf services backend application (Akka). Here you can confirm that the information recieved by the client application matches the information held be akka if you wish.
 
+![Redis](/_resources/redis.png "Redis"){width=75%}
+
 ### Web of Things Thing
 
 You can use Postman to directly access a Thing description or an individual property of a Thing. Each Thing has been port forwarded to localhost with their own port number which can be found in the docker-compose file.
 
 #### Retrieving a Thing Description
 
-To give an example, there is a careless vehicle being forwarded to port 8100 in localhost.
+The examples given below refer to a vehicle which belongs to the careless fleet manager.
 
 The Thing description can be accessed with a GET request to `http://<hostname>:<PORT>/<title>`.
 
-The title is made up of the prefix "WoT-ID-Mfr-VIN" + the vehicle ID which is defined in the docker-compose files as ENV_VEHICLE_NUMBER.
+The title is made up of the prefix "wot-id-mfr-vin-" + the vehicle ID which is defined in the docker-compose files as ENV_VEHICLE_NUMBER and the port is forwarded within the docker-compose file. The port is definited in the port forwarding statement.
 
-For example: `http://localhost:8100/WoT-ID-Mfr-VIN-0001`
+See image below for the details of where the vehicle ID and port are configured (highlighted in grey). This can be found in the docker-compose.yml file within the root directory.
+
+![docker-compose port and vehicle number](/_resources/readme_docker_compose.png "docker-compose port and vehicle number"){width=50%}
+
+For example: `http://localhost:8100/wot-id-mfr-vin-0001`
 
 This smart vehicle provides the following so-called Property Affordances, Action Affordances, and Event Affordances:
 
 Properties:
--	propFleetId
--	propVehicleId
--	propOilLevel
--	propTyrePressure
--	propTotalMileage
--	propServiceDistance
--	propDoorStatus
--	propMaintenanceNeeded
+
+- propFleetId
+- propVehicleId
+- propOilLevel
+- propTyrePressure
+- propTotalMileage
+- propServiceDistance
+- propDoorStatus
+- propMaintenanceNeeded
 
 Actions:
--	actionLockDoor
--	actionUnlockDoor
+
+- actionLockDoor
+- actionUnlockDoor
 
 Events:
--	eventLowOnOil
--	eventLowTyrePressure
--	eventMaintenanceNeeded
+
+- eventLowOnOil
+- eventLowTyrePressure
+- eventMaintenanceNeeded
 
 All these affordances are defined in the Thing Description (TD) which is embedded in the vehicle application logic.
 
-See image below for the details of where to define the vehicle number and port number (highlighted in grey).
-
-![docker-compose port and vehicle number](/_resources/readme_docker_compose.png "docker-compose port and vehicle number"){width=50%}
+![Postman](/_resources/postman-td.png "Postman"){width=50%}
 
 #### Reading a Property
 
 To read a property you can make a GET request to `http://<hostname>:<PORT>/<title>/properties/<property-name>`.
 
-For example, if we want to read the property 'propOilLevel' we would make a GET request to the following URI: `http://<hostname>:<PORT>/<title>/properties/propOilLevel`
+For example, if we want to read the property 'propOilLevel' we would make a GET request to the following URI: `http://localhost:8100/wot-id-mfr-vin-0001/properties/propOilLevel`
 
+![Postman](/_resources/postman-get.png "Postman"){width=50%}
 
 #### Writing a Property
 
 To write a property, provided its writeable, you can make a PUT request to `http://<hostname>:<PORT>/<title>/properties/<property-name>`.
 
-For example, if we want to change the property "propFleetId" we would make a PUT request to the following URI `http://<hostname>:<PORT>/<title>/properties/propFleetId` with a JSON payload containing the value to set.
+For example, if we want to change the property "propFleetId" we would make a PUT request to the following URI `http://localhost:8100/wot-id-mfr-vin-0001/properties/propFleetId` with a JSON payload containing the value to set.
 
+![Postman](/_resources/postman-put.png "Postman"){width=50%}
 
-### Invoking an Action
+#### Invoking an Action
 
 To invoke an action on a smart vehicle we can perform a POST request to `http://<hostname>:<PORT>/<title>/actions/<action-name>`.
 
-For example, if we want to lock the door of the vehicle we woud make a POST request to the following URI `http://<hostname>:<PORT>/<title>/actions/actionLockDoor`.
+For example, if we want to lock the door of the vehicle we woud make a POST request to the following URI `http://localhost:8100/wot-id-mfr-vin-0001/actions/actionLockDoor`.
+
+![Postman](/_resources/postman-post.png "Postman"){width=50%}
 
 ## Building and Running Individual Sections of Application
 
@@ -204,11 +209,11 @@ This naming convention is based on the default hostname assignment within a dock
 
 Additional functionality which would be nice to add at a later stage includes suggestions such as:
 
-1. Allowing a fleet manager to log that a car has been serviced, which will reset the next distance for service flag via the client webpage
-2. Allowing a fleet manager to log if maintenance was carried out via the client webpage.
-3. Notifications via email/sms to a fleet manager if vehicle needs mainanence or the vehicle is due a service.
-4. Login credentials for the client webpage to access the associated fleetmanager information in the backend
-5. Defining various vehicle types/sizes to better exploite the Web of Things discovery mechanism by searching for a specific vehicle type/size.
+- Allowing a fleet manager to log that a car has been serviced, which will reset the next distance for service flag via the client webpage
+- Allowing a fleet manager to log if maintenance was carried out via the client webpage.
+- Notifications via email/sms to a fleet manager if vehicle needs mainanence or the vehicle is due a service.
+- Login credentials for the client webpage to access the associated fleetmanager information in the backend
+- Defining various vehicle types/sizes to better exploit the Web of Things discovery mechanism by searching for a specific vehicle type/size.
 
 ## Project Status and Contributing
 
@@ -217,6 +222,14 @@ Computer Science module (COMP41720 Distributed Systems) in UCD.
 
 Development has stopped. Should someone choose to fork this project or volunteer
 to step in as a maintainer or owner, we would be happy to discuss it.
+
+For more information on the technologies used, See documentation linked below.
+
+Akka Documentation
+https://akka.io/docs/
+
+WoT Documentation:
+https://www.w3.org/WoT/
 
 ## Authors and acknowledgment
 
@@ -230,6 +243,8 @@ Authors of the project include:
 - Ian Foster
 
 We would also like to thank the creators of the Redis Stack docker image used within this application. This is the [link](https://hub.docker.com/r/redis/redis-stack) to the Docker Hub page this was found.
+
+We also would like to thank the creators of the wot-hive which was used in this project, the original git repository is available [here](https://github.com/oeg-upm/wot-hive)
 
 ## License
 

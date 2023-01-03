@@ -135,7 +135,9 @@ The vehicle ID is "WoT-ID-Mfr-VIN" + the ENV_VEHICLE_NUMBER which can also be fo
 
 In this case, you can access the Thing Description from `http://localhost:8100\WoT-ID-Mfr-VIN0001/`.
 
-This will give you all the properties available to view and change.
+This will give you all the properties available to view and change. See image below for the details of where to find the vehicle number and port number (highlighted in grey).
+
+![docker-compose port and vehicle number](/_resources/readme_docker_compose.png "docker-compose port and vehicle number"){width=50%}
 
 #### Reading a Property
 

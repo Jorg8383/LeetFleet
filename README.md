@@ -2,7 +2,7 @@
 
 ## Description
 
-LeetFleet Management System is an infrustructure/proof-of-concept specialised in vehicle management. This solution can be used for the management of many fleet types such as delivery fleets, taxi fleets or general company car fleet management. The architecture has been designed to store and process general road vehicle information but can be easily customised to accomodate more specific fleet needs.
+LeetFleet Management System is an infrastructure/proof-of-concept specialised in vehicle management. This solution can be used for the management of many fleet types such as delivery fleets, taxi fleets or general company car fleet management. The architecture has been designed to store and process general road vehicle information but can be easily customised to accommodate more specific fleet needs.
 
 As it currently stands, we store and process such information as:
 
@@ -66,7 +66,7 @@ docker compose -f dkr-comp1-wot-dir-service.yml up
 docker compose -f dkr-comp2-wot-akka.yml up
 ```
 
-We reccomend using the second option if you would like cleaner logs during debugging or would like an overview of what's happening in the background using the logs. This seperates the directory service logs and the main Akka and WoT logs.
+We recommend using the second option if you would like cleaner logs during debugging or would like an overview of what's happening in the background using the logs. This separates the directory service logs and the main Akka and WoT logs.
 
 The first option works the same way but can be more difficult to follow when debugging using the logs but works well if you just want to run or deploy the application.
 
@@ -86,7 +86,7 @@ If you'd like to return to the main menu, there is a back button at the top righ
 
 ### Redis
 
-You can view the information stored in Redis by accessing `http://localhost:8001/`. This will present to you the information which is stored from our lf services backend application (Akka). Here you can confirm that the information recieved by the client application matches the information held be akka if you wish.
+You can view the information stored in Redis by accessing `http://localhost:8001/`. This will present to you the information which is stored from our lf services backend application (Akka). Here you can confirm that the information received by the client application matches the information held be akka if you wish.
 
 ![Redis](/_resources/redis.png "Redis"){width=75%}
 
@@ -100,7 +100,7 @@ The examples given below refer to a vehicle which belongs to the careless fleet 
 
 The Thing description can be accessed with a GET request to `http://<hostname>:<PORT>/<title>`.
 
-The title is made up of the prefix "wot-id-mfr-vin-" + the vehicle ID which is defined in the docker-compose files as ENV_VEHICLE_NUMBER and the port is forwarded within the docker-compose file. The port is definited in the port forwarding statement.
+The title is made up of the prefix "wot-id-mfr-vin-" + the vehicle ID which is defined in the docker-compose files as ENV_VEHICLE_NUMBER and the port is forwarded within the docker-compose file. The port is defined in the port forwarding statement.
 
 See image below for the details of where the vehicle ID and port are configured (highlighted in grey). This can be found in the docker-compose.yml file within the root directory.
 
@@ -156,7 +156,7 @@ For example, if we want to change the property "propFleetId" we would make a PUT
 
 To invoke an action on a smart vehicle we can perform a POST request to `http://<hostname>:<PORT>/<title>/actions/<action-name>`.
 
-For example, if we want to lock the door of the vehicle we woud make a POST request to the following URI `http://localhost:8100/wot-id-mfr-vin-0001/actions/actionLockDoor`.
+For example, if we want to lock the door of the vehicle, we would make a POST request to the following URI `http://localhost:8100/wot-id-mfr-vin-0001/actions/actionLockDoor`.
 
 ![Postman](/_resources/postman-post.png "Postman"){width=50%}
 
@@ -190,7 +190,7 @@ Be aware that the docker-compose file has particular naming conventions for the 
 
 ### WoT build with NPM
 
-The directories that contain the Javascript code for running the Web of Things (WoT) architectural system for emulating vehicles and communicating with the backend system require separate builds and installation.
+The directories that contain the JavaScript code for running the Web of Things (WoT) architectural system for emulating vehicles and communicating with the backend system require separate builds and installation.
 To simply run the project, run the following command in your terminal from the "vehicle" and the "wot_bridge_directory" directories:
 
 ```
@@ -211,13 +211,13 @@ Additional functionality which would be nice to add at a later stage includes su
 
 - Allowing a fleet manager to log that a car has been serviced, which will reset the next distance for service flag via the client webpage
 - Allowing a fleet manager to log if maintenance was carried out via the client webpage.
-- Notifications via email/sms to a fleet manager if vehicle needs mainanence or the vehicle is due a service.
+- Notifications via email/sms to a fleet manager if vehicle needs maintenance or the vehicle is due a service.
 - Login credentials for the client webpage to access the associated fleetmanager information in the backend
 - Defining various vehicle types/sizes to better exploit the Web of Things discovery mechanism by searching for a specific vehicle type/size.
 
 ## Project Status and Contributing
 
-This project was developed to fulfill assignment requirements for a Master in
+This project was developed to fulfil assignment requirements for a Master in
 Computer Science module (COMP41720 Distributed Systems) in UCD.
 
 Development has stopped. Should someone choose to fork this project or volunteer

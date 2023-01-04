@@ -1,0 +1,71 @@
+body {
+    box-sizing: border-box;
+}
+
+.home {
+    height: 100vh;
+    width: 100vw;
+}
+
+.fleets {
+    display: none;
+    height: 100vh;
+    width: 100vw;
+}
+
+.vehicles {
+    display: none;
+    height: 75vh;
+    width: 100vw;
+}
+
+.back-hidden{
+    display: none;
+}
+
+.back-shown {
+    display: inline-block;
+    position: fixed;
+    top: 30px;
+    right: 60px;
+    
+}
+.page{
+    padding: 50px;
+}
+
+.back-div {
+        display: flex;
+        justify-content: center;
+}
+
+header {
+    text-align: center;
+    width: 100%;
+    height: 80px;
+    padding-top: 20px;
+    padding-bottom: 80px;
+    background-color:crimson;
+    border-bottom-left-radius: 25px;
+    border-bottom-right-radius: 25px;
+}
+
+header h1{
+    color:purple;
+}
+
+.dropdown {
+    display: flex;
+    justify-content: center;
+}
+
+
+
+.vehicle-div {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.lock-btn {
+    margin: 10px;
+}

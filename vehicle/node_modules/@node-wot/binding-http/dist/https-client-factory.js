@@ -1,0 +1,33 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const core_1 = require("@node-wot/core");
+const http_client_1 = __importDefault(require("./http-client"));
+const { debug, warn } = (0, core_1.createLoggers)("binding-http", "https-client-factory");
+class HttpsClientFactory {
+    constructor(config = null) {
+        this.scheme = "https";
+        this.config = null;
+        this.config = config;
+    }
+    getClient() {
+        if (this.config && this.config.proxy && this.config.proxy.href && this.config.proxy.href.startsWith("http:")) {
+            warn("HttpsClientFactory creating client for 'http' due to insecure proxy configuration");
+            return new http_client_1.default(this.config);
+        }
+        else {
+            debug(`HttpsClientFactory creating client for '${this.scheme}'`);
+            return new http_client_1.default(this.config, true);
+        }
+    }
+    init() {
+        return true;
+    }
+    destroy() {
+        return true;
+    }
+}
+exports.default = HttpsClientFactory;
+//# sourceMappingURL=https-client-factory.js.map

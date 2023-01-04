@@ -1,0 +1,31 @@
+version: "3.9"
+name: leetfleet
+services:
+  #
+  #-----------------------------------------------------------------------------
+  # The first service we spin up is the directory service used for WoT discovery
+  # Ideally - this will have completely started before any vehicles try to register.
+  #
+  triplestore:
+    # TODO // CAN WE DISABLE TRIPLESTORE CONSOLE LOGS???
+    image: acimmino/auroral-fuseky:latest
+    environment:
+      ADMIN_PASSWORD: pw123
+    networks:
+      - leetnetwork
+  wothive:
+    # TODO // CAN WE DISABLE wothive CONSOLE LOGS???
+    image: acimmino/wot-hive:latest
+    # volumes:
+    # - ./configuration.json:/usr/src/wothive/configuration.json
+    ports:
+      - '9000:9000'
+    networks:
+      - leetnetwork
+  #
+  #-----------------------------------------------------------------------------
+  # Now we just create a named network for debugging purposes in Docker
+  #
+networks:
+  leetnetwork:
+    name: leetnetwork

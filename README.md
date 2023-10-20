@@ -3,7 +3,7 @@
 ## Description
 
 
-[Video demonstration](https://drive.google.com/file/d/1dtUfLHEsBnP2KYK37hffRyyTC_EcPZqy/view?usp=share_link)
+[Video demonstration](Leetfleet_Demo_v1.mp4)
 
 [Final report](COMP41720_Final_Report.pdf)
 
